@@ -9,7 +9,7 @@ const allRoutes = require('./routes/allRoutes');
 const app = express();
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const API_ROOT = process.env.API_ROOT;
+// const API_ROOT = process.env.API_ROOT;
 require('../database/connection');
 require('../models/associations/associations.js');
 const Account = require('../models/account.js');
@@ -45,38 +45,38 @@ async function syncModels() {
  }
 
 
-const swaggerDefinition = {
-  openapi: '3.0.0',
-  info: {
-    title: 'Express API for electron-app',
-    version: '1.0.0',
-    description:
-      'This is a REST API application made with Express. It retrieves data from electron-app.',
-    license: {
-      name: 'Licensed Under MIT',
-      url: 'https://spdx.org/licenses/MIT.html',
-    },
-    contact: {
-      name: 'electron-app',
-      url: 'https://jsonplaceholder.typicode.com',
-    },
-  },
-  servers: [
-    {
-      url: API_ROOT,
-      description: 'Development server',
-    },
-  ],
-};
+// const swaggerDefinition = {
+//   openapi: '3.0.0',
+//   info: {
+//     title: 'Express API for electron-app',
+//     version: '1.0.0',
+//     description:
+//       'This is a REST API application made with Express. It retrieves data from electron-app.',
+//     license: {
+//       name: 'Licensed Under MIT',
+//       url: 'https://spdx.org/licenses/MIT.html',
+//     },
+//     contact: {
+//       name: 'electron-app',
+//       url: 'https://jsonplaceholder.typicode.com',
+//     },
+//   },
+//   servers: [
+//     {
+//       url: API_ROOT,
+//       description: 'Development server',
+//     },
+//   ],
+// };
 
-const options = {
-  swaggerDefinition,
-  // Paths to files containing OpenAPI definitions
-  apis: ['C:/Users/koval/electron-store-app/electron-app/src/server/routes/*.js'],
-};
+// const options = {
+//   swaggerDefinition,
+//   // Paths to files containing OpenAPI definitions
+//   apis: ['C:/Users/koval/electron-store-app/electron-app/src/server/routes/*.js'],
+// };
 
 
-const swaggerSpec = swaggerJSDoc(options);
+// const swaggerSpec = swaggerJSDoc(options);
 
 
 
