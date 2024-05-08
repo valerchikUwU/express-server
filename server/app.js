@@ -102,14 +102,14 @@ app.use('/api', allRoutes );
 
 
   
-  // error handler
-  app.use(function (err, req, res, next) {
-    console.error(err.stack); // Запись стека ошибки в консоль
-    res.locals.message = err.message;
-    res.locals.error = req.app.get("env") === "development" ? err : {};
+  // // error handler
+  // app.use(function (err, req, res, next) {
+  //   console.error(err.stack); // Запись стека ошибки в консоль
+  //   res.locals.message = err.message;
+  //   res.locals.error = req.app.get("env") === "development" ? err : {};
   
-    res.status(500).send(res.locals.message || 'Internal Server Error');
-  });
+  //   res.status(500).send(res.locals.message || 'Internal Server Error');
+  // });
 
 
 // Запуск Express сервера

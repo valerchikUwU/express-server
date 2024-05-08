@@ -1,15 +1,14 @@
 const { Telegraf, Markup } = require('telegraf');
 const fetch = require('node-fetch'); 
-require('dotenv').config({ path: '../.env' });
-
+require('dotenv').config();
 
 const apiRoot = process.env.API_ROOT;
-const BOT_TOKEN = process.env.BOT_TOKEN
+
 
 
 async function startBot() {
-    if (!BOT_TOKEN) throw new Error('"BOT_TOKEN" env var is required!');
-    const bot = new Telegraf(BOT_TOKEN);
+    if (!process.env.BOT_TOKEN) throw new Error('"BOT_TOKEN" env var is required!');
+    const bot = new Telegraf(process.env.BOT_TOKEN);
 
     bot.start((ctx) => {
         ctx.reply('Добро пожаловать в бота! Чтобы зарегистрироваться отправьте номер вашего телефона, нажав на кнопку ниже:',
