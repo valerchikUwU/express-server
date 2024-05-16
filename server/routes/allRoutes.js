@@ -9,7 +9,7 @@ const titleOrders_controller = require("../controllers/titleOrdersController");
 const deposit_controller = require("../controllers/depositController")
 const checkAbilities = require('../../utils/checkAbility');
 
-const swaggerSchema = require('../../swagger-schema');
+const swaggerSchema = require('../../swagger-shcema');
 
 /**
  * @swagger
