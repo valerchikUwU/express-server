@@ -182,19 +182,19 @@ app.use('/api', allRoutes );
 
 
  
-// const privateKey = fs.readFileSync('C:/Users/koval/electron-store-app/electron-app/private_key_no_password.pem', 'utf8');
-// const certificate = fs.readFileSync('C:/Users/koval/electron-store-app/electron-app/cert.pem', 'utf8');
+const privateKey = fs.readFileSync('../key.pem', 'utf8');
+const certificate = fs.readFileSync('../cert.pem', 'utf8');
 
- // Создание HTTPS сервера
-// const credentials = { key: privateKey, cert: certificate };
-// const httpsServer = https.createServer(credentials, app);
+//  Создание HTTPS сервера
+const credentials = { key: privateKey, cert: certificate };
+const httpsServer = https.createServer(credentials, app);
 
 
 
 
 // Запуск Express сервера
 const PORT = process.env.SERVER_PORT;
-app.listen(PORT, () => {
+httpsServer.listen(PORT, () => {
    syncModels();
   //  checkDatabaseConnection();
  console.log(`Server is running on port ${PORT}`);
