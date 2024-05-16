@@ -30,11 +30,29 @@ const allRoutes = require('./routes/allRoutes');
 const app = express();
 
 
+
 const fs = require('fs');
 const https = require('https');
 
 
 
+
+
+require('../database/connection');
+require('../models/associations/associations.js');
+
+
+const Account = require('../models/account.js');
+const Role = require('../models/role.js');
+const Payee = require('../models/payee.js')
+const ProductType = require('../models/productType.js');
+const Product = require('../models/product.js');
+const PriceDefinition = require('../models/priceDefinition.js');
+const CommisionReciever = require('../models/commisionReceiver.js');
+const OrganizationCustomer = require('../models/organizationCustomer.js');
+const Order = require('../models/order.js');
+const TitleOrders = require('../models/titleOrders.js');
+const AccrualRule = require('../models/accrualRule.js');
 
 
 
@@ -73,7 +91,24 @@ const sessionStore = new MySQLStore(optionsStore);
 
 
 
-
+async function syncModels() {
+  try {
+     await Role.sync();
+     await Account.sync();
+     await Payee.sync();
+     await ProductType.sync();
+     await OrganizationCustomer.sync();
+     await Product.sync();
+     await PriceDefinition.sync();
+     await CommisionReciever.sync();
+     await Order.sync();
+     await TitleOrders.sync();
+     await AccrualRule.sync();
+     console.log('Syncronized successfully');
+  } catch (error) {
+     console.error('Error due to failed sycnronization:', error);
+  }
+ }
 
 
 const swaggerDefinition = {
@@ -103,7 +138,7 @@ const swaggerDefinition = {
 const options = {
   swaggerDefinition,
   // Paths to files containing OpenAPI definitions
-  apis: ['C:/Users/koval/electron-store-app/electron-app/src/server/routes/*.js'],
+  apis: ['routes/*.js'],
 };
 
 
@@ -127,6 +162,7 @@ app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
+
 // Настройка сессии
 app.use(session({
   secret: process.env.SESSION_SECRET, // Секретный ключ для подписи сессии
@@ -137,10 +173,15 @@ app.use(session({
 }));
 
 
+
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', authRoutes);
 app.use('/api', allRoutes );
 
+
+
+
+ 
 // const privateKey = fs.readFileSync('C:/Users/koval/electron-store-app/electron-app/private_key_no_password.pem', 'utf8');
 // const certificate = fs.readFileSync('C:/Users/koval/electron-store-app/electron-app/cert.pem', 'utf8');
 
@@ -148,8 +189,13 @@ app.use('/api', allRoutes );
 // const credentials = { key: privateKey, cert: certificate };
 // const httpsServer = https.createServer(credentials, app);
 
+
+
+
 // Запуск Express сервера
 const PORT = process.env.SERVER_PORT;
 app.listen(PORT, () => {
+   syncModels();
+  //  checkDatabaseConnection();
  console.log(`Server is running on port ${PORT}`);
 });
