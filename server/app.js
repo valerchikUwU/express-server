@@ -1,5 +1,5 @@
 //Переменные среды
-require('dotenv').config();
+require('dotenv').config({path: '../.env'});
 
 
 // Импортируем Express, фреймворк для создания веб-приложений на Node.js
