@@ -25,7 +25,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
       res.json({
         title: "Начальные",
-        productsList: productsInit
+        productsList: productsInit,
       });
       break;
     case 2:
@@ -36,7 +36,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
       res.json({
         title: "Основные",
-        productsList: productsMain
+        productsList: productsMain,
       });
       break;
     case 3:
@@ -47,7 +47,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
       res.json({
         title: "Для персонала",
-        productsList: productsForEmployers
+        productsList: productsForEmployers,
       });
       break;
     case 4:

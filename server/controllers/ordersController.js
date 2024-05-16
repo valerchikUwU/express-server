@@ -65,7 +65,8 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
         res.json({
             title: "Все активные заказы",
             orders_list: activeOrders,
-            organizationList: organizationList
+            organizationList: organizationList,
+            sessionID: req.sessionID
         })
     }
     catch (error) {
@@ -120,7 +121,8 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
         });
         res.json({
             title: "Все полученные заказы",
-            orders_list: finishedOrders
+            orders_list: finishedOrders,
+            sessionID: req.sessionID
         })
     }
 
@@ -313,10 +315,12 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     try {
         const [order, titles, products] = await Promise.all([
             Order.findByPk(req.params.orderId, {
-                include: [
+                include: 
+                [
                     {
                         model: TitleOrders,
-                        include: [
+                        include: 
+                        [
                             {
                                 model: PriceDefinition,
                                 as: 'price',
@@ -326,8 +330,10 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         attributes: ['quantity']
                     }
                 ],
-                attributes: {
-                    include: [
+                attributes: 
+                {
+                    include: 
+                    [
                         [
                             Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
                         ],
@@ -335,10 +341,12 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                 },
             }),
             TitleOrders.findAll({
-                where: {
+                where: 
+                {
                     orderId: req.params.orderId
                 },
-                include: [
+                include: 
+                [
                     {
                         model: Product,
                         as: 'product',
@@ -350,8 +358,10 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         attributes: ['priceAccess', 'priceBooklet']
                     }
                 ],
-                attributes: {
-                    include: [
+                attributes: 
+                {
+                    include: 
+                    [
                         [
                             Sequelize.literal(`CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END`), 'SumForOneTitle'
                         ],
@@ -361,7 +371,22 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                     ]
                 },
             }),
-            Product.findAll({ where: { productTypeId: { [Op.ne]: 4 } } })
+            Product.findAll({ 
+                where: 
+                { 
+                    productTypeId: 
+                    { 
+                        [Op.ne]: 4 
+                    } 
+                },
+                include: 
+                [
+                    {
+                        model: PriceDefinition,
+                        attributes: ['priceAccess', 'priceBooklet']
+                    }
+                ] 
+            })
         ]);
 
         if (order.id === null) {
@@ -752,8 +777,12 @@ exports.user_draftOrder_updateStatus_put = [
             return;
         } else {
             const oldOrder = await Order.findByPk(req.params.orderId);
-            if (oldOrder.status !== 'Черновик') {
-                res.status(400).send('Редактировать можно только черновик')
+            const titles = await TitleOrders.findAll({where: {orderId: oldOrder.id}})
+            if (oldOrder.status !== 'Черновик' || oldOrder.status !== 'Черновик депозита' ) {
+                res.status(400).send('Редактировать можно только черновик!')
+            }
+            if(!titles){
+                res.status(400).send('Добавьте товары в заказ!')
             }
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = 'Активный'
@@ -927,5 +956,4 @@ async function ifProductTypeDeposit(productId) {
 //         return false;
 //     }
 // }
-
 

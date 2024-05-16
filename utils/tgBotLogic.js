@@ -34,10 +34,10 @@ async function startBot() {
             body: JSON.stringify({ phone: phoneNumber , id: telegramId}),
         });
         const data = await response.json();
-        if (data.success) {
-            ctx.reply('Вход успешен!');
-        } else {
+        if (typeof data === 'object' && data!== null) {
             ctx.reply('Такого номера нет');
+        } else {
+            ctx.reply('Вход успешен!');
         }
     });
 

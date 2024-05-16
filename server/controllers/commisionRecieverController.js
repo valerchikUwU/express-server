@@ -158,4 +158,3 @@ exports.commisionReciever_create_post = [
     }),
 ];
 
-
