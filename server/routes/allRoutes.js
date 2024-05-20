@@ -9,7 +9,7 @@ const titleOrders_controller = require("../controllers/titleOrdersController");
 const deposit_controller = require("../controllers/depositController")
 const checkAbilities = require('../../utils/checkAbility');
 
-const swaggerSchema = require('../../swagger-shcema');
+const swaggerSchema = require('../../swagger-schema');
 
 /**
  * @swagger
@@ -349,7 +349,7 @@ router.get("/:acountId/deposits/:organizationCustomerId", checkAbilities('read',
 /**
  * Запрос GET для получения всех остатков на депозитах
  */
-router.get("/:accountId/deposits", checkAbilities('create', 'Deposit'), deposit_controller.deposits_list);
+router.get("/:accountId/deposits", checkAbilities('read', 'Deposit'), deposit_controller.deposits_list);
 
 
 
