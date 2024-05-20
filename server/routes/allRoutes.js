@@ -9,7 +9,7 @@ const titleOrders_controller = require("../controllers/titleOrdersController");
 const deposit_controller = require("../controllers/depositController")
 const checkAbilities = require('../../utils/checkAbility');
 
-// const swaggerSchema = require('../../swagger-schema');
+const swaggerSchema = require('../../swagger-schema');
 
 /**
  * @swagger
@@ -289,7 +289,7 @@ router.get("/:accountId/accounts", checkAbilities('read', 'Account'), accounts_c
 /**
  * Запрос GET для всех пользователей от лица админа
  */
-router.get("/:accountId/superAdm/accounts", checkAbilities('read', 'SuperAdmin'), accounts_controller.superAdmin_accounts_list);
+router.get("/:accountId/superAdmin/accounts", checkAbilities('read', 'SuperAdmin'), accounts_controller.superAdmin_accounts_list);
 
 
 /**
@@ -349,7 +349,7 @@ router.get("/:acountId/deposits/:organizationCustomerId", checkAbilities('read',
 /**
  * Запрос GET для получения всех остатков на депозитах
  */
-router.get("/:accountId/deposits", checkAbilities('create', 'Deposit'), deposit_controller.deposits_list);
+router.get("/:accountId/deposits", checkAbilities('read', 'Deposit'), deposit_controller.deposits_list);
 
 
 
