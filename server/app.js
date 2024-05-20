@@ -138,7 +138,7 @@ const swaggerDefinition = {
 const options = {
   swaggerDefinition,
   // Paths to files containing OpenAPI definitions
-  apis: ['routes/*.js'],
+  apis: ['./routes/*.js'],
 };
 
 
@@ -178,23 +178,12 @@ app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use('/api', authRoutes);
 app.use('/api', allRoutes );
 
-
-
-
  
-const privateKey = fs.readFileSync('../key.pem', 'utf8');
-const certificate = fs.readFileSync('../cert.pem', 'utf8');
-
-//  Создание HTTPS сервера
-const credentials = { key: privateKey, cert: certificate };
-const httpsServer = https.createServer(credentials, app);
-
-
 
 
 // Запуск Express сервера
 const PORT = process.env.SERVER_PORT;
-httpsServer.listen(PORT, () => {
+app.listen(PORT, () => {
    syncModels();
   //  checkDatabaseConnection();
  console.log(`Server is running on port ${PORT}`);

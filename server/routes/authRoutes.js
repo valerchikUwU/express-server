@@ -10,7 +10,7 @@ const crypto = require('crypto');
 
 
 const apiRoot = process.env.API_ROOT;
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 3002});
 const connections = {};
 
 wss.on('connection', (ws, req) => {
