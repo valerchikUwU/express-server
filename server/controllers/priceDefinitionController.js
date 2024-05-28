@@ -10,30 +10,107 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
     const pricesInit = await PriceDefinition.findAll({
         include: [{
             model: Product,
+            attributes: 
+            [
+                'name',
+                'abbreviation',
+                'id',
+                'productTypeId'
+            ],
             where: { productTypeId: 1 }
 
-        }]
+        }],
+        attributes: 
+        {
+            include: 
+            [
+                [
+                    Sequelize.literal(`Product.name`), 'productName'
+                ],
+                [
+                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                ],
+                [
+                    Sequelize.literal(`Product.id`), 'productId'
+                ],
+                [
+                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                ],
+            ]
+        },
+        group: ['PriceDefinition.id'],
+        raw: true
     });
     const pricesMain = await PriceDefinition.findAll({
         include: [{
             model: Product,
+            attributes: 
+            [
+                'name',
+                'abbreviation',
+                'id',
+                'productTypeId'
+            ],
             where: { productTypeId: 2 }
-        }]
+        }],
+        attributes: {
+            include: [
+                [
+                    Sequelize.literal(`Product.name`), 'productName'
+                ],
+                [
+                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                ],
+                [
+                    Sequelize.literal(`Product.id`), 'productId'
+                ],
+                [
+                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                ],
+            ]
+        },
+        group: ['PriceDefinition.id'],
+        raw: true
     });
     const pricesForEmployers = await PriceDefinition.findAll({
         include: [{
             model: Product,
+            attributes: 
+            [
+                'name',
+                'abbreviation',
+                'id',
+                'productTypeId'
+            ],
             where: { productTypeId: 3 }
-        }]
+        }],
+        attributes: {
+            include: [
+                [
+                    Sequelize.literal(`Product.name`), 'productName'
+                ],
+                [
+                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                ],
+                [
+                    Sequelize.literal(`Product.id`), 'productId'
+                ],
+                [
+                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                ],
+            ]
+        },
+        group: ['PriceDefinition.id'],
+        raw: true
     });
     pricesInit.forEach(prices => {
-        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
     });
     pricesMain.forEach(prices => {
-        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
     });
     pricesForEmployers.forEach(prices => {
-        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
     });
     res.json({
         title: "Список прайс листов",

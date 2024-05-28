@@ -180,7 +180,7 @@ router.post("/:accountId/prices/newPrice", checkAbilities('create', 'PriceDefini
  */
 router.get("/:accountId/prices/:priceDefId/update", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.price_update_get);
 /**
- * Запрос POST для обновления прайс листа (PriceDefinition)
+ * Запрос PUT для обновления прайс листа (PriceDefinition)
  * @param priceDefId - id прайс листа
  */
 router.put("/:accountId/prices/:priceDefId/update", checkAbilities('update', 'PriceDefinition'), priceDefinition_controller.price_update_put);

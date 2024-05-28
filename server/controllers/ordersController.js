@@ -85,15 +85,18 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
     const accountId = req.params.accountId;
     try {
         const finishedOrders = await Order.findAll({
-            where: {
+            where: 
+            {
 
                 accountId: accountId,
                 status: 'Получен'
             },
-            include: [
+            include: 
+            [
                 {
                     model: TitleOrders, // Добавляем модель TitleOrders
-                    include: [
+                    include: 
+                    [
                         {
                             model: PriceDefinition,
                             as: 'price',
@@ -107,8 +110,10 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
                     as: 'organization'
                 }
             ],
-            attributes: {
-                include: [
+            attributes: 
+            {
+                include: 
+                [
                     [
                         Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
                     ],
