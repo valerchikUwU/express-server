@@ -81,7 +81,10 @@ router.get('/homepage', async (req, res) => {
 
 
 // Запуск бота
-startBot();
+if(process.env.NODE_ENV === 'production'){
+
+  startBot();
+}
 
 
 

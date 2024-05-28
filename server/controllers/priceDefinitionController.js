@@ -4,6 +4,7 @@ const { Sequelize, Op, fn, col } = require('sequelize');
 const PriceDefinition = require('../../models/priceDefinition');
 const Product = require('../../models/product');
 const ProductType = require('../../models/productType');
+const dateFns = require('date-fns');
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
     const pricesInit = await PriceDefinition.findAll({
@@ -25,6 +26,15 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
             where: { productTypeId: 3 }
         }]
     });
+    pricesInit.forEach(prices => {
+        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+    });
+    pricesMain.forEach(prices => {
+        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+    });
+    pricesForEmployers.forEach(prices => {
+        prices.formattedDispatchDate = prices.dispatchDate ? dateFns.format(prices.dispatchDate, 'dd-MM-yyyy') : null;
+    });
     res.json({
         title: "Список прайс листов",
         pricesInit: pricesInit,
@@ -34,20 +44,6 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
 }
 );
 
-exports.price_create_get = asyncHandler(async (req, res, next) => {
-    const priceDef = PriceDefinition.findByPk(req.params.priceDefId)
-    const [allProducts, thisProduct] = await Promise.all([
-        Product.findAll({ order: [['name']] }),
-        Product.findOne({ where: { id: priceDef.productId } })
-    ]);
-
-    // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
-    res.json({
-        title: "Форма создания прайс листа",
-        allProducts: allProducts,
-        thisProduct: thisProduct
-    });
-});
 
 exports.price_create_post = [
 
@@ -65,7 +61,9 @@ exports.price_create_post = [
     body("priceBooklet", "Цена буклета должна быть указана")
         .isInt({ min: 1 })
         .escape(),
-
+    body("productTypeId")
+        .isInt({ min: 1, max: 3})
+        .escape(),
 
     asyncHandler(async (req, res, next) => {
 
@@ -74,6 +72,7 @@ exports.price_create_post = [
         const product = new Product({
             name: req.body.name,
             abbreviation: req.body.abbreviation,
+            productTypeId: req.body.productTypeId
         })
 
 
@@ -96,7 +95,7 @@ exports.price_create_post = [
                 price: price,
                 errors: errors.array(),
             });
-        } 
+        }
         else {
 
             await product.save();
@@ -110,10 +109,10 @@ exports.price_create_post = [
 
 exports.price_update_get = asyncHandler(async (req, res, next) => {
     const [price] = await Promise.all([
-        PriceDefinition.findByPk(req.params.priceDefId, { include: [{ model: Product, as: 'product' }] })
+        PriceDefinition.findByPk(req.params.priceDefId, { include: [{ model: Product }] })
     ]);
 
-    if (!price) {
+    if (price.id === null) {
         const err = new Error("Такой прайс лист не найден!");
         err.status = 404;
         return next(err);
