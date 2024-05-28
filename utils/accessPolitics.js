@@ -1,7 +1,19 @@
 const { AbilityBuilder, Ability } = require('@casl/ability');
+//Переменные среды
+require('dotenv').config({path: '../.env'});
+
+
+
 
 function defineAbilitiesFor(account) {
  const { can, cannot, rules } = new AbilityBuilder(Ability);
+
+
+
+ if (process.env.NODE_ENV === 'development') {
+  can('manage', 'all');
+  return new Ability(rules);
+}
 
 
 // Если аккаунт заблокирован, запрещаем все действия
