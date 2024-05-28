@@ -341,8 +341,29 @@
  *                  application/json:
  *                      schema: 
  *                          type: object
- *                          items:
- *                            $ref: '#/components/schemas/Product'
+ *                          properties:
+ *                              productId:
+ *                                  type: string
+ *                                  format: uuid
+ *                                  description: ID товара
+ *                                  example: 8eb897f2-22b1-4d32-aef8-e9a379b5c0e8
+ *                              generation:
+ *                                  type: string
+ *                                  description: Поколение
+ *                                  example: Второе поколение
+ *                              accessType:
+ *                                  type: string
+ *                                  description: Тип доступа
+ *                                  example: Электронный
+ *                              addBooklet:
+ *                                  type: boolean
+ *                                  description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
+ *                                  example: false
+ *                              quantity:
+ *                                  type: integer
+ *                                  description: Кол-во товара
+ *                                  example: 20
+ *                            
  *      responses:
  *        200:
  *          description: Товар успешно добавлен в заказ!
@@ -387,10 +408,13 @@
  *              required: true
  *              content:
  *                  application/json:
- *                      organizationName:
- *                          type: string
- *                          description: Название организации-клиента
- *                          example: Уфа
+ *                      schema: 
+ *                          type: object
+ *                          properties:
+ *                              organizationName:
+ *                                  type: string
+ *                                  description: Название организации-клиента
+ *                                  example: Уфа
  *      responses:
  *        200:
  *          description: Заказ успешно переведён в статус "Активный"!
@@ -431,10 +455,13 @@
  *              required: true
  *              content:
  *                  application/json:
- *                      organizationName:
- *                          type: string
- *                          description: Название организации-клиента
- *                          example: Уфа
+ *                      schema: 
+ *                          type: object
+ *                          properties:
+ *                              organizationName:
+ *                                  type: string
+ *                                  description: Название организации-клиента
+ *                                  example: Уфа
  *      responses:
  *        200:
  *          description: Заказ успешно переведён в статус "Получен"!
@@ -533,6 +560,7 @@
  *                                example: 3
  *                              addBooklet:
  *                                type: boolean
+ *                                description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                                example: true
  *                              price:
  *                                type: object
@@ -1051,6 +1079,7 @@
  *                            example: "Первое поколение"
  *                          addBooklet:
  *                            type: boolean
+ *                            description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                            example: false
  *                          quantity:
  *                            type: integer
@@ -1219,6 +1248,7 @@
  *                            example: "Первое поколение"
  *                          addBooklet:
  *                            type: boolean
+ *                            description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                            example: false
  *                          quantity:
  *                            type: integer
@@ -1381,7 +1411,7 @@
  *                                              example: 'Бумажный'
  *                                            addBooklet:
  *                                              type: boolean
- *                                              description: Флаг добавления брошюры к заказу (если true, то accessType уст             анавливается в null)
+ *                                              description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                                              example: false
  *                                            generation:
  *                                              type: string
@@ -1565,16 +1595,20 @@
  *                            id:
  *                              type: string
  *                              format: uuid
+ *                              description: ID прайс листа
  *                              example: "377c60f7-4bf0-469b-92a9-0c7d6a123314"
  *                            activationDate:
  *                              type: string
  *                              format: date-time
+ *                              description: Дата активации
  *                              example: "2024-04-22T13:27:24.000Z"
  *                            priceAccess:
  *                              type: string
+ *                              description: Цена доступа
  *                              example: "15000"
  *                            priceBooklet:
  *                              type: string
+ *                              description: Цена буклета
  *                              example: "1500"
  *                            createdAt:
  *                              type: string
@@ -1587,9 +1621,24 @@
  *                            productId:
  *                              type: string
  *                              format: uuid
+ *                              description: ID товара
  *                              example: "01584925-5783-428b-a592-e886cb8dca50"
- *                            Product:
- *                                  $ref: '#/components/schemas/Product'
+ *                            productName:
+ *                              type: string
+ *                              description: Название товара
+ *                              example: Начальный курс
+ *                            productAbbreviation:
+ *                              type: string
+ *                              description: Аббревиатура товара
+ *                              example: НК
+ *                            productTypeId:
+ *                              type: integer
+ *                              description: Тип товара
+ *                              example: 1
+ *                            formattedActivationDate:
+ *                              type: date
+ *                              description: Форматированная дата активации
+ *                              example: 22-02-2022
  *                      pricesMain:
  *                        type: array
  *                        items:
@@ -1598,16 +1647,20 @@
  *                            id:
  *                              type: string
  *                              format: uuid
+ *                              description: ID прайс листа
  *                              example: "377c60f7-4bf0-469b-92a9-0c7d6a123314"
  *                            activationDate:
  *                              type: string
  *                              format: date-time
+ *                              description: Дата активации
  *                              example: "2024-04-22T13:27:24.000Z"
  *                            priceAccess:
  *                              type: string
+ *                              description: Цена доступа
  *                              example: "15000"
  *                            priceBooklet:
  *                              type: string
+ *                              description: Цена буклета
  *                              example: "1500"
  *                            createdAt:
  *                              type: string
@@ -1620,9 +1673,24 @@
  *                            productId:
  *                              type: string
  *                              format: uuid
+ *                              description: ID товара
  *                              example: "01584925-5783-428b-a592-e886cb8dca50"
- *                            Product:
- *                                  $ref: '#/components/schemas/Product'
+ *                            productName:
+ *                              type: string
+ *                              description: Название товара
+ *                              example: Начальный курс
+ *                            productAbbreviation:
+ *                              type: string
+ *                              description: Аббревиатура товара
+ *                              example: НК
+ *                            productTypeId:
+ *                              type: integer
+ *                              description: Тип товара
+ *                              example: 2
+ *                            formattedActivationDate:
+ *                              type: date
+ *                              description: Форматированная дата активации
+ *                              example: 22-02-2022
  *                      pricesForEmployers:
  *                        type: array
  *                        items:
@@ -1631,16 +1699,20 @@
  *                            id:
  *                              type: string
  *                              format: uuid
+ *                              description: ID прайс листа
  *                              example: "377c60f7-4bf0-469b-92a9-0c7d6a123314"
  *                            activationDate:
  *                              type: string
  *                              format: date-time
+ *                              description: Дата активации
  *                              example: "2024-04-22T13:27:24.000Z"
  *                            priceAccess:
  *                              type: string
+ *                              description: Цена доступа
  *                              example: "15000"
  *                            priceBooklet:
  *                              type: string
+ *                              description: Цена буклета
  *                              example: "1500"
  *                            createdAt:
  *                              type: string
@@ -1653,9 +1725,24 @@
  *                            productId:
  *                              type: string
  *                              format: uuid
+ *                              description: ID товара
  *                              example: "01584925-5783-428b-a592-e886cb8dca50"
- *                            Product:
- *                                  $ref: '#/components/schemas/Product'
+ *                            productName:
+ *                              type: string
+ *                              description: Название товара
+ *                              example: Начальный курс
+ *                            productAbbreviation:
+ *                              type: string
+ *                              description: Аббревиатура товара
+ *                              example: НК
+ *                            productTypeId:
+ *                              type: integer
+ *                              description: Тип товара
+ *                              example: 3
+ *                            formattedActivationDate:
+ *                              type: date
+ *                              description: Форматированная дата активации
+ *                              example: 22-02-2022
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  */
@@ -1749,6 +1836,149 @@
  *                          title:
  *                            type: string
  *                            example: "Форма обновления прайс - листа"
+ *                          price:
+ *                            type: object
+ *                            properties:
+ *                              id:
+ *                                type: string
+ *                                format: uuid
+ *                                example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
+ *                              activationDate:
+ *                                type: string
+ *                                format: date-time
+ *                                example: "2024-04-23T07:57:40.000Z"
+ *                              priceAccess:
+ *                                type: string
+ *                                example: "1"
+ *                              priceBooklet:
+ *                                type: string
+ *                                example: "0"
+ *                              createdAt:
+ *                                type: string
+ *                                format: date-time
+ *                                example: "2024-04-23T07:57:40.000Z"
+ *                              updatedAt:
+ *                                type: string
+ *                                format: date-time
+ *                                example: "2024-04-23T07:57:40.000Z"
+ *                              productId:
+ *                                type: string
+ *                                format: uuid
+ *                                example: "ed976451-efd4-4559-a31f-4e2f9dd70248"
+ *                              Product:
+ *                                type: object
+ *                                properties:
+ *                                  id:
+ *                                    type: string
+ *                                    format: uuid
+ *                                    example: "ed976451-efd4-4559-a31f-4e2f9dd70248"
+ *                                  name:
+ *                                    type: string
+ *                                    example: "депозит"
+ *                                  abbreviation:
+ *                                    type: string
+ *                                    example: "Д"
+ *                                  createdAt:
+ *                                    type: string
+ *                                    format: date-time
+ *                                    example: "2024-04-22T13:24:50.000Z"
+ *                                  updatedAt:
+ *                                    type: string
+ *                                    format: date-time
+ *                                    example: "2024-04-22T13:24:50.000Z"
+ *                                  productTypeId:
+ *                                    type: integer
+ *                                    example: 4
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *        404:
+ *          description: Такой прайс лист не найден!
+ *        500:
+ *          description: Некорректная форма обновления прайс листа
+ */
+
+
+/**
+ * @swagger
+ * /{accountId}/orders/{orderId}/received:
+ *  put:
+ *      tags:
+ *          - PriceDefinition
+ *      summary: Запрос PUT для обновления отправленного заказа на полученный от лица пользователя (НА СТРАНИЦЕ "В РАБОТЕ")
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *        - in: path
+ *          name: priceDefId
+ *          required: true
+ *          schema:
+ *              type: string
+ *              format: uuid
+ *          description: ID прайс листа
+ *      requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema: 
+ *                          type: object
+ *                          properties:
+ *                              priceAccess:
+ *                                  type: decimal
+ *                                  description: Цена доступа
+ *                                  example: 2500
+ *                              priceBooklet:
+ *                                  type: decimal
+ *                                  description: Цена буклета
+ *                                  example: 300
+ *      responses:
+ *        200:
+ *          description: Заказ успешно переведён в статус "Получен"!
+ *        400:
+ *          description: Этот заказ еще не отправлен!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+/**
+ * @swagger
+ * /{accountId}/accounts/{accountFocusId}/update:
+ *  get:
+ *      tags:
+ *          - Account
+ *      summary: Запрос GET для получения формы обновления аккаунта
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *        - in: path
+ *          name: accountFocusId
+ *          required: true
+ *          schema:
+ *              type: string
+ *              format: uuid
+ *          description: ID выбранного аккаунта
+ *      responses:
+ *        200:
+ *          description: Форма обновления аккаунта для админа
+ *          content:
+ *            application/json:
+ *                      schema:
+ *                        type: object
+ *                        properties:
+ *                          title:
+ *                            type: string
+ *                            example: "Форма обновления аккаунта для админа"
  *                          price:
  *                            type: object
  *                            properties:
