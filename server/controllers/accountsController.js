@@ -43,7 +43,7 @@ exports.account_detail = asyncHandler(async (req, res, next) => {
         Account.findByPk(req.params.accountFocusId)
     ]);
 
-    if (account === null) {
+    if (account.id === null) {
         // No results.
         const err = new Error("Такой аккаунт не найден");
         err.status = 404;
@@ -60,9 +60,8 @@ exports.account_organization_create_get = asyncHandler(async (req, res, next) =>
     // Используем Promise.all для параллельного выполнения запросов к базе данных.
     // В данном случае, выполняем запрос к таблице ProductType,
     // чтобы получить все типы продуктов, отсортированные по id и name.
-    const [allOrganizations] = await Promise.all([
-        OrganizationCustomer.findAll({ order: [['name']] })
-    ]);
+    const allOrganizations = await OrganizationCustomer.findAll({ order: ['organizationName'] })
+
 
     // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
@@ -129,7 +128,6 @@ exports.account_organization_create_post = [
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             telephoneNumber: req.body.telephoneNumber,
-            telegramId: req.body.telegramId,
             organizationList: req.body.organizationList,
             roleId: 3
         });
@@ -362,7 +360,7 @@ exports.account_update_put = [
 async function getOrganizationList(accountId) {
     try {
         const account = await Account.findByPk(accountId);
-        if (!account) {
+        if (account.id === null) {
             throw new Error('Account not found');
         }
         return account.organizationList;

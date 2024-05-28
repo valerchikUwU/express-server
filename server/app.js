@@ -31,13 +31,6 @@ const app = express();
 
 
 
-const fs = require('fs');
-const https = require('https');
-
-
-
-
-
 require('../database/connection');
 require('../models/associations/associations.js');
 
@@ -133,12 +126,26 @@ const swaggerDefinition = {
       description: 'Development server',
     },
   ],
+  tags: [
+    {name: 'Account'},
+    {name: 'AccuralRule'},
+    {name: 'CommisionReceiver'},
+    {name: 'Order'},
+    {name: 'OrganizationCustomer'},
+    {name: 'Payee'},
+    {name: 'PriceDefinition'},
+    {name: 'Product'},
+    {name: 'ProductType'},
+    {name: 'Role'},
+    {name: 'TitleOrders'},
+    {name: 'Authentication'}
+  ]
 };
 
 const options = {
   swaggerDefinition,
   // Paths to files containing OpenAPI definitions
-  apis: ['./routes/*.js'],
+  apis: ['../docs/*.js'],
 };
 
 
