@@ -19,6 +19,7 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
+                as: 'product',
             where: { productTypeId: 1 }
 
         }],
@@ -27,16 +28,16 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
             include:
                 [
                     [
-                        Sequelize.literal(`Product.name`), 'productName'
+                        Sequelize.literal(`product.name`), 'productName'
                     ],
                     [
-                        Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                        Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
                     ],
                     [
-                        Sequelize.literal(`Product.id`), 'productId'
+                        Sequelize.literal(`product.id`), 'productId'
                     ],
                     [
-                        Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                        Sequelize.literal(`product.productTypeId`), 'productTypeId'
                     ],
                 ]
         },
@@ -53,21 +54,22 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
+                as: 'product',
             where: { productTypeId: 2 }
         }],
         attributes: {
             include: [
                 [
-                    Sequelize.literal(`Product.name`), 'productName'
+                    Sequelize.literal(`product.name`), 'productName'
                 ],
                 [
-                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                    Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
                 ],
                 [
-                    Sequelize.literal(`Product.id`), 'productId'
+                    Sequelize.literal(`product.id`), 'productId'
                 ],
                 [
-                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                    Sequelize.literal(`product.productTypeId`), 'productTypeId'
                 ],
             ]
         },
@@ -84,21 +86,22 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
+                as: 'product',
             where: { productTypeId: 3 }
         }],
         attributes: {
             include: [
                 [
-                    Sequelize.literal(`Product.name`), 'productName'
+                    Sequelize.literal(`product.name`), 'productName'
                 ],
                 [
-                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                    Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
                 ],
                 [
-                    Sequelize.literal(`Product.id`), 'productId'
+                    Sequelize.literal(`product.id`), 'productId'
                 ],
                 [
-                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                    Sequelize.literal(`product.productTypeId`), 'productTypeId'
                 ],
             ]
         },
