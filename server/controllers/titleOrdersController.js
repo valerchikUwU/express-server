@@ -155,7 +155,7 @@ exports.admin_titleOrder_update_put = [
         .isLength({ min: 1 })
         .escape(),
     body("titlesToUpdate.*.accessType")
-        .if(body("accessType").exists())
+        .if(body("accessType").exists()) 
         .trim()
         .isLength({ min: 1 })
         .escape(),
@@ -232,27 +232,32 @@ exports.admin_titleOrder_update_put = [
                 const oldTitle = await TitleOrders.findByPk(title.id);
                 if (oldTitle) {
                     // Проверяем, были ли предоставлены новые значения для полей
-                    if (title.addBooklet === 1) {
-                        oldTitle.accessType = null;
-                    }
-                    else {
-                        oldTitle.addBooklet = title.addBooklet;
-                    }
+                    
                     if (title.accessType) {
                         oldTitle.accessType = title.accessType;
                     }
+
                     if (title.productId) {
                         oldTitle.productId = title.productId;
                         const priceDef = await PriceDefinition.findOne({ where: { productId: title.productId } });
                         oldTitle.priceDefId = priceDef.id
                     }
 
-                    if (title.generation)
+                    if (title.generation) {
                         oldTitle.generation = title.generation;
+                    }
 
-                    if (title.quantity)
+
+                    if (title.quantity) {
                         oldTitle.quantity = title.quantity;
-
+                    }
+                    if (title.addBooklet === true) {
+                        oldTitle.addBooklet = title.addBooklet;
+                        oldTitle.accessType = null;
+                    }
+                    else {
+                        oldTitle.addBooklet = title.addBooklet;
+                    }
                     await oldTitle.save();
                 }
             }
