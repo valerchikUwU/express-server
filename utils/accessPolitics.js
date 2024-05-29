@@ -27,7 +27,7 @@ if (account.isBlocked) {
       can('manage', 'all'); // СуперАдмин может управлять всем
       break;
     case 2: // Админ
-      can('read',   ['Order_Admin', 'Account', 'PriceDefinition', 'Deposit']); // Админ может читать все
+      can('read',   ['Order_Admin', 'Account', 'PriceDefinition', 'Deposit', 'Product']); // Админ может читать все
       can('create', ['Order_Admin', 'Account', 'PriceDefinition']); // Админ может создавать заказы
       can('update', ['Order_Admin', 'Account', 'PriceDefinition', 'TitleOrder_Admin']); // Админ может обновлять заказы
       break;
