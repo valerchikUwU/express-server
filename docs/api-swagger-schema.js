@@ -11,20 +11,23 @@
  *          example: 8800e557-6247-4f12-a9d8-534d59c09318
  *        name:
  *          type: string
+ *          nullable: false
  *          example: product
  *        abbreviation:
  *          type: string
+ *          nullable: false
  *          example: KPSS
  *        createdAt:
  *          type: string
  *          format: date-time
- *          example: 2024-05-01 17:25:00
+ *          example: "2024-05-21T12:56:42.000Z"
  *        updatedAt:
  *          type: string
  *          format: date-time
- *          example: 2024-05-01 17:25:00
+ *          example: "2024-05-21T12:56:42.000Z"
  *        productTypeId:
  *          type: integer
+ *          nullable: false
  *          example: 1
  *    Order:
  *      type: object
@@ -32,7 +35,6 @@
  *              id:
  *                  type: string
  *                  format: uuid
- *                  readOnly: true
  *                  description: Уникальный идентификатор заказа
  *                  example: 8800e557-6247-4f12-a9d8-534d59c09318
  *              dispatchDate:
@@ -40,11 +42,12 @@
  *                  format: date-time
  *                  nullable: true
  *                  description: Дата и время отправки заказа
- *                  example: 2024-05-01 17:25:00
+ *                  example: "2024-05-21T12:56:42.000Z"
  *              status:
  *                  type: string
  *                  enum: ['Черновик', 'Черновик депозита', 'Активный', 'Выставлен счёт', 'Оплачен', 'Отправлен', 'Получен', 'Отменен']
  *                  default: 'Черновик'
+ *                  nullable: false
  *                  description: Статус заказа
  *                  example: Черновик
  *              billNumber:
@@ -55,16 +58,18 @@
  *              createdBySupAdm:
  *                  type: boolean
  *                  default: false
- *                  description: Флаг, указывающий, был ли заказ создан суперадминистратором
+ *                  nullable: false
+ *                  description: Флаг, указывающий, был ли заказ создан суперАдминистратором
  *                  example: true
  *              orderNumber:
  *                  type: integer
- *                  readOnly: true
+ *                  nullable: false
  *                  description: Уникальный номер заказа
  *                  example: 24
  *              isFromDeposit:
  *                  type: boolean
  *                  default: false
+ *                  nullable: false
  *                  description: Флаг, указывающий, был ли заказ оплачен через депозит
  *                  example: true
  * 
@@ -78,16 +83,19 @@
  *                  example: 8800e557-6247-4f12-a9d8-534d59c09318
  *              firstName:
  *                  type: string
+ *                  nullable: false
  *                  description: Имя пользователя
  *                  example: Максим
  *              lastName:
  *                  type: string
+ *                  nullable: false
  *                  description: Фамилия пользователя
  *                  example: Ковальский
  *              telephoneNumber:
  *                  type: string
+ *                  nullable: false
  *                  description: Номер телефона пользователя
- *                  example: +79787513901
+ *                  example: '+79787513901'
  *              telegramId:
  *                  type: string
  *                  nullable: true
@@ -95,12 +103,13 @@
  *                  example: 123232424
  *              organizationList:
  *                  type: JSON
- *                  nullable: true
+ *                  nullable: false
  *                  description: Список организация, привязанных к пользователю
  *                  example: ["Джанкой", "Севастополь"]
  *              isBlocked:
  *                  type: boolean
  *                  default: false
+ *                  nullable: false
  *                  description: Флаг, показывающий заблокирован ли пользователь
  *                  example: false
  *              lastSeen:
@@ -108,9 +117,10 @@
  *                  format: date-time
  *                  nullable: true
  *                  description: Последний вход пользователя
- *                  example: 2024-05-01 17:25:00
+ *                  example: 16:30 25-05
  *              accountNumber:
  *                  type: integer
+ *                  nullable: false
  *                  description: Уникальный порядковый номер пользователя
  *                  example: 33
  *     
@@ -125,15 +135,18 @@
  *            commision:
  *              type: string
  *              format: decimal
+ *              nullable: false
  *              description: Комиссия, применимая к правилу накопления
  *              example: 5000
  *            accessType:
  *              type: string
+ *              nullable: true
  *              enum: ['Бумажный', 'Электронный']
  *              description: Тип доступа, на который действует правило (может отсутствовать => действует на все типы доступов)
  *              example: Бумажный
  *            generation:
  *              type: string
+ *              nullable: true
  *              enum: ['Первое поколение', 'Второе поколение']
  *              description: Поколение, на которое действует правило (может отсутствовать => действует на все поколения)
  *              example: Первое поколение
@@ -148,6 +161,7 @@
  *              description: Уникальный идентификатор получателя комиссии
  *            name:
  *              type: string
+ *              nullable: false
  *              description: Имя получателя комиссии
  * 
  * 
@@ -161,6 +175,7 @@
  *              example: 8800e557-6247-4f12-a9d8-534d59c09318
  *            organizationName:
  *              type: string
+ *              nullable: false
  *              description: Название организации-клиента
  *              example: Уфа
  * 
@@ -175,6 +190,7 @@
  *              example: 8800e557-6247-4f12-a9d8-534d59c09318
  *            name:
  *              type: string
+ *              nullable: false
  *              description: Имя плательщика
  *              example: ИП Климов
  * 
@@ -190,16 +206,19 @@
  *            activationDate:
  *              type: string
  *              format: date-time
+ *              nullable: false
  *              description: Дата активации определения цены
  *              example: 2024-05-01 17:25:00
  *            priceAccess:
  *              type: string
  *              format: decimal
+ *              nullable: false
  *              description: Цена доступа
  *              example: 25500
  *            priceBooklet:
  *              type: string
  *              format: decimal
+ *              nullable: false
  *              description: Цена брошюры
  *              example: 1900
  * 
@@ -215,6 +234,7 @@
  *              example: 8800e557-6247-4f12-a9d8-534d59c09318
  *            name:
  *              type: string
+ *              nullable: false
  *              description: Название типа продукта
  *              example: Начальные
  * 
@@ -229,12 +249,13 @@
  *              example: 1
  *            roleName:
  *              type: string
+ *              nullable: false
  *              description: Название роли
  *              example: СуперАдмин
  *            roleDescription:
  *              type: string
  *              description: Описание роли
- *              example: Лишнее поле, хуй пойми зачем оно
+ *              example: Лишнее поле, хуй пойми нахуй оно
  * 
  * 
  * 
@@ -248,20 +269,24 @@
  *              example: 8800e557-6247-4f12-a9d8-534d59c09318
  *            accessType:
  *              type: string
+ *              nullable: true
  *              enum: ['Бумажный', 'Электронный']
  *              description: Тип доступа к заказу названия
  *              example: Бумажный
  *            generation:
  *              type: string
+ *              nullable: false
  *              enum: ['Первое поколение', 'Второе поколение']
  *              description: Генерация заказа названия
  *              example: Первое поколение
  *            addBooklet:
  *              type: boolean
+ *              nullable: false
  *              description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *              example: false
  *            quantity:
  *              type: integer
+ *              nullable: false
  *              description: Количество заказанных названий
  *              example: 25
  * 
@@ -368,22 +393,27 @@
  *                              productId:
  *                                  type: string
  *                                  format: uuid
+ *                                  nullable: false
  *                                  description: ID товара
  *                                  example: 8eb897f2-22b1-4d32-aef8-e9a379b5c0e8
  *                              generation:
  *                                  type: string
+ *                                  nullable: false
  *                                  description: Поколение
  *                                  example: Второе поколение
  *                              accessType:
  *                                  type: string
+ *                                  nullable: true
  *                                  description: Тип доступа
  *                                  example: Электронный
  *                              addBooklet:
  *                                  type: boolean
+ *                                  nullable: false
  *                                  description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                                  example: false
  *                              quantity:
  *                                  type: integer
+ *                                  nullable: false
  *                                  description: Кол-во товара
  *                                  example: 20
  *                            
@@ -437,6 +467,7 @@
  *                              organizationName:
  *                                  type: string
  *                                  description: Название организации-клиента
+ *                                  nullable: false
  *                                  example: Уфа
  *      responses:
  *        200:
@@ -483,6 +514,7 @@
  *                          properties:
  *                              organizationName:
  *                                  type: string
+ *                                  nullable: false
  *                                  description: Название организации-клиента
  *                                  example: Уфа
  *      responses:
@@ -532,21 +564,27 @@
  *                            format: uuid
  *                          dispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                          status:
  *                            type: string
+ *                            nullable: false
  *                            example: "Выставлен счёт"
  *                          billNumber:
  *                            type: string
+ *                            nullable: true
  *                            example: "222"
  *                          createdBySupAdm:
  *                            type: boolean
+ *                            nullable: false
  *                            example: false
  *                          orderNumber:
  *                            type: integer
+ *                            nullable: false
  *                            example: 156
  *                          isFromDeposit:
 *                             type: boolean
+ *                            nullable: false
 *                             default: false
  *                          createdAt:
  *                            type: string
@@ -558,31 +596,37 @@
  *                            example: "2024-05-23T09:57:47.000Z"
  *                          organizationCustomerId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "ff080ca8-c967-47e9-89bd-c3213551ca7f"
  *                          payeeId:
  *                            type: string
  *                            format: uuid
  *                            nullable: true
- *                            example: null
+ *                            example: "asdfasdasdca8-c967-47e9-89bd-c3213551ca7f"
  *                          accountId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "1f1bbfc0-1621-4ba2-85ac-6ec23c1ef299"
  *                          SUM:
  *                            type: string
+ *                            nullable: true
  *                            example: "4500"
  *                          organizationName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Санкт-Петербург"
  *                          TitleOrder:
  *                            type: object
  *                            properties:
  *                              quantity:
  *                                type: decimal
+ *                                nullable: false
  *                                example: 3
  *                              addBooklet:
  *                                type: boolean
+ *                                nullable: false
  *                                description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
  *                                example: true
  *                              price:
@@ -594,10 +638,12 @@
  *                                    example: "377c60f7-4bf0-469b-92a9-0c7d6a123314"
  *                                  priceAccess:
  *                                    type: string
- *                                    example: "15000"
+ *                                    nullable: false
+ *                                    example: "15000" (в случае депозита устанавл. в "1")
  *                                  priceBooklet:
  *                                    type: string
- *                                    example: "1500"
+ *                                    nullable: false
+ *                                    example: "1500" (в случае депозита устанавл. в "0")
  *                          formattedDispatchDate:
  *                            type: string
  *                            format: date-time
@@ -646,9 +692,11 @@
  *                            format: uuid
  *                          dispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                          status:
  *                            type: string
+ *                            nullable: false
  *                            example: "Получен"
  *                          billNumber:
  *                            type: string
@@ -656,12 +704,15 @@
  *                            example: null
  *                          createdBySupAdm:
  *                            type: boolean
+ *                            nullable: false
  *                            example: false
  *                          orderNumber:
  *                            type: integer
+ *                            nullable: false
  *                            example: 1
  *                          isFromDeposit:
  *                            type: boolean
+ *                            nullable: false
  *                            default: false
  *                          createdAt:
  *                            type: string
@@ -673,28 +724,33 @@
  *                            example: "2024-05-01T07:53:50.000Z"
  *                          organizationCustomerId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "1"
  *                          payeeId:
  *                            type: string
- *                            format: uuid
  *                            nullable: true
+ *                            format: uuid
  *                            example: null
  *                          accountId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "1"
  *                          SUM:
  *                            type: string
+ *                            nullable: false
  *                            example: "22222222"
  *                          organizationName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Симферополь"
  *                          TitleOrder:
  *                            type: object
  *                            properties:
  *                              quantity:
  *                                type: integer
+ *                                nullable: false
  *                                example: 22222222
  *                              price:
  *                                type: object
@@ -705,12 +761,15 @@
  *                                    example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
  *                                  priceAccess:
  *                                    type: string
- *                                    example: "1"
+ *                                    nullable: false
+ *                                    example: "1235" (в случае депозита устанавл. в "1")
  *                                  priceBooklet:
  *                                    type: string
- *                                    example: "0"
+ *                                    nullable: false
+ *                                    example: "333" (в случае депозита устанавл. в "0")
  *                          formattedDispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                            nullable: true
  *                            example: 02-02-2002
@@ -759,23 +818,29 @@
  *                            format: uuid
  *                          dispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                            nullable: true
  *                            example: null
  *                          status:
  *                            type: string
+ *                            nullable: false
  *                            example: "Выставлен счёт"
  *                          billNumber:
  *                            type: string
+ *                            nullable: true
  *                            example: "222"
  *                          createdBySupAdm:
  *                            type: boolean
+ *                            nullable: false
  *                            example: false
  *                          orderNumber:
  *                            type: integer
+ *                            nullable: false
  *                            example: 156
  *                          isFromDeposit:
  *                            type: boolean
+ *                            nullable: false
  *                            default: false
  *                          createdAt:
  *                            type: string
@@ -787,34 +852,42 @@
  *                            example: "2024-05-23T09:57:47.000Z"
  *                          organizationCustomerId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "ff080ca8-c967-47e9-89bd-c3213551ca7f"
  *                          payeeId:
  *                            type: string
- *                            format: uuid
  *                            nullable: true
+ *                            format: uuid
  *                            example: null
  *                          accountId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "1f1bbfc0-1621-4ba2-85ac-6ec23c1ef299"
  *                          fullName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Valera Lysenko"
  *                          SUM:
  *                            type: string
+ *                            nullable: false
  *                            example: "4500"
  *                          organizationName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Санкт-Петербург"
  *                          totalQuantity:
  *                            type: string
+ *                            nullable: false
  *                            example: "3"
  *                          organizationList:
  *                            type: JSON
+ *                            nullable: false
  *                            example: ["Джанкой", "Севастополь"]
  *                          formattedDispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                            nullable: true
  *                            example: 02-02-2002
@@ -861,11 +934,13 @@
  *                            format: uuid
  *                          dispatchDate:
  *                            type: string
+ *                            nullable: true
  *                            format: date-time
  *                            nullable: true
  *                            example: null
  *                          status:
  *                            type: string
+ *                            nullable: false
  *                            example: "Получен"
  *                          billNumber:
  *                            type: string
@@ -873,12 +948,15 @@
  *                            example: null
  *                          createdBySupAdm:
  *                            type: boolean
+ *                            nullable: false
  *                            example: false
  *                          orderNumber:
  *                            type: integer
+ *                            nullable: false
  *                            example: 1
  *                          isFromDeposit:
  *                            type: boolean
+ *                            nullable: false
  *                            default: false
  *                          createdAt:
  *                            type: string
@@ -890,41 +968,49 @@
  *                            example: "2024-05-01T07:53:50.000Z"
  *                          organizationCustomerId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "09as1130-a1f9-4b12-98a8-c1897c630d19"
  *                          payeeId:
  *                            type: string
- *                            format: uuid
  *                            nullable: true
+ *                            format: uuid
  *                            example: null
  *                          accountId:
  *                            type: string
+ *                            nullable: false
  *                            format: uuid
  *                            example: "20dd1130-a1f9-4b12-98a8-c1897c630d19"
  *                          fullName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Максим Ковальски"
  *                          SUM:
  *                            type: string
+ *                            nullable: false
  *                            example: "22222222"
  *                          organizationName:
  *                            type: string
+ *                            nullable: false
  *                            example: "Симферополь"
  *                          account:
  *                            type: object
  *                            properties:
  *                              firstName:
  *                                type: string
+ *                                nullable: false
  *                                example: "Максим"
  *                              lastName:
  *                                type: string
+ *                                nullable: false
  *                                example: "Ковальски"
  *                          TitleOrder:
  *                            type: object
  *                            properties:
  *                              quantity:
  *                                type: integer
- *                                example: 22222222
+ *                                nullable: false
+ *                                example: 22
  *                              price:
  *                                type: object
  *                                properties:
@@ -934,10 +1020,12 @@
  *                                    example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
  *                                  priceAccess:
  *                                    type: string
- *                                    example: "1"
+ *                                    nullable: false
+ *                                    example: "1333" (в случае депозита устанавл. в "1")
  *                                  priceBooklet:
  *                                    type: string
- *                                    example: "0"
+ *                                    nullable: false
+ *                                    example: "330" (в случае депозита устанавл. в "0")
  *                          organization:
  *                            type: object
  *                            properties:
@@ -1067,10 +1155,10 @@
  *                              properties:
  *                                priceAccess:
  *                                  type: string
- *                                  example: "8000"
+ *                                  example: "8000" (в случае депозита устанавл. в "1")
  *                                priceBooklet:
  *                                  type: string
- *                                  example: "500"
+ *                                  example: "500" (в случае депозита устанавл. в "0")
  *                        organization:
  *                          type: object
  *                          properties:
@@ -2077,7 +2165,7 @@
  *                                telephoneNumber:
  *                                  type: string
  *                                  description: Телефонный номер пользователя
- *                                  example: +79787513901
+ *                                  example: '+79787513901'
  *                                telegramId:
  *                                  type: string
  *                                  description: ID Telegram пользователя
@@ -2165,7 +2253,7 @@
  *                              telephoneNumber:
  *                                  type: string
  *                                  description: Номер телефона пользователя
- *                                  example: +79787513333 (также 89787513333)
+ *                                  example: '+79787513333' (также 89787513333)
  *                              organizationList:
  *                                  type: JSON
  *                                  nullable: true
@@ -2232,7 +2320,7 @@
  *                            telephoneNumber:
  *                              type: string
  *                              description: Номер телефона аккаунта
- *                              example: +79787513999 (также 89787513999)
+ *                              example: '+79787513999' (также 89787513999)
  *                            telegramId:
  *                              type: string
  *                              nullable: true
@@ -2330,7 +2418,7 @@
  *                            telephoneNumber:
  *                              type: string
  *                              description: Номер телефона аккаунта
- *                              example: +79787513999 (также 89787513999)
+ *                              example: '+79787513999' (также 89787513999)
  *                            telegramId:
  *                              type: string
  *                              nullable: true
@@ -2441,23 +2529,23 @@
  *            schema:
  *              type: object
  *              properties:
- *              firstName:
- *                  type: string
- *                  description: Имя пользователя
- *                  example: Максим
- *              lastName:
- *                  type: string
- *                  description: Фамилия пользователя
- *                  example: Ковальский
- *              telephoneNumber:
- *                  type: string
- *                  description: Номер телефона пользователя
- *                  example: +79787513333
- *              organizationList:
- *                  type: JSON
- *                  nullable: true
- *                  description: Список организация, привязанных к пользователю
- *                  example: ["Джанкой", "Севастополь"]
+ *                  firstName:
+ *                      type: string
+ *                      description: Имя пользователя
+ *                      example: Максим
+ *                  lastName:
+ *                      type: string
+ *                      description: Фамилия пользователя
+ *                      example: Ковальский
+ *                  telephoneNumber:
+ *                      type: string
+ *                      description: Номер телефона пользователя
+ *                      example: '+79787513333'
+ *                  organizationList:
+ *                      type: JSON
+ *                      nullable: true
+ *                      description: Список организация, привязанных к пользователю
+ *                      example: ["Джанкой", "Севастополь"]
  *      responses:
  *        200:
  *          description: Аккаунт успешно создан!
@@ -2492,22 +2580,22 @@
  *                  schema:
  *                    type: object
  *                    properties:
- *                      title:
- *                        type: string
- *                        description: Форма создания аккаунта для админа
- *                        example: Форма создания аккаунта для админа
- *                      organizations:
- *                        type: array
- *                        description: Список организаций
- *                        items:
- *                          type: object
- *                          $ref: '#/components/schemas/OrganizationCustomer'
- *                      allRoles:
- *                        type: array
- *                        description: Список ролей
- *                        items:
- *                          type: object
- *                          $ref: '#/components/schemas/Role'
+ *                          title:
+ *                            type: string
+ *                            description: Форма создания аккаунта для админа
+ *                            example: Форма создания аккаунта для админа
+ *                          organizations:
+ *                            type: array
+ *                            description: Список организаций
+ *                            items:
+ *                              type: object
+ *                              $ref: '#/components/schemas/OrganizationCustomer'
+ *                          allRoles:
+ *                            type: array
+ *                            description: Список ролей
+ *                            items:
+ *                              type: object
+ *                              $ref: '#/components/schemas/Role'
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  */
@@ -2536,27 +2624,27 @@
  *            schema:
  *              type: object
  *              properties:
- *              firstName:
- *                  type: string
- *                  description: Имя пользователя
- *                  example: Максим
- *              lastName:
- *                  type: string
- *                  description: Фамилия пользователя
- *                  example: Ковальский
- *              telephoneNumber:
- *                  type: string
- *                  description: Номер телефона пользователя
- *                  example: +79787513333
- *              organizationList:
- *                  type: JSON
- *                  nullable: true
- *                  description: Список организация, привязанных к пользователю
- *                  example: ["Джанкой", "Севастополь"]
- *              roleId:
- *                  type: integer
- *                  description: ID роли
- *                  example: 2
+ *                  firstName:
+ *                      type: string
+ *                      description: Имя пользователя
+ *                      example: Максим
+ *                  lastName:
+ *                      type: string
+ *                      description: Фамилия пользователя
+ *                      example: Ковальский
+ *                  telephoneNumber:
+ *                      type: string
+ *                      description: Номер телефона пользователя
+ *                      example: '+79787513333'
+ *                  organizationList:
+ *                      type: JSON
+ *                      nullable: true
+ *                      description: Список организация, привязанных к пользователю
+ *                      example: ["Джанкой", "Севастополь"]
+ *                  roleId:
+ *                      type: integer
+ *                      description: ID роли
+ *                      example: 2
  *      responses:
  *        200:
  *          description: Аккаунт успешно создан!
@@ -2671,13 +2759,83 @@
  *                        type: string
  *                        description: История депозитов организации
  *                        example: История депозитов организации
- *                      organizations:
+ *                      organization:
  *                        type: object
  *                        description: Выбранная организация
+ *                        $ref: '#/components/schemas/OrganizationCustomer'
+ *                      orders:
+ *                        type: array
+ *                        description: Список заказов (депозитов)
  *                        items:
- *                          type: object
- *                          $ref: '#/components/schemas/OrganizationCustomer'
- *                              
+ *                              type: object
+ *                              properties:
+ *                                  id:
+ *                                      type: string
+ *                                      format: uuid
+ *                                      description: Уникальный идентификатор заказа
+ *                                      example: "2670eba2-3b9a-4e72-8bfd-aa2d0c576423"
+ *                                  dispatchDate:
+ *                                      type: string
+ *                                      nullable: true
+ *                                      description: Дата отправления заказа
+ *                                      example: null
+ *                                  status:
+ *                                      type: string
+ *                                      description: Статус заказа
+ *                                      example: "Активный"
+ *                                  billNumber:
+ *                                      type: string
+ *                                      nullable: true
+ *                                      description: Номер счета
+ *                                      example: 2345/f22
+ *                                  createdBySupAdm:
+ *                                      type: boolean
+ *                                      description: Флаг, указывающий, создан ли заказ супериАдмином
+ *                                      example: false
+ *                                  orderNumber:
+ *                                      type: integer
+ *                                      description: Номер заказа
+ *                                      example: 158
+ *                                  isFromDeposit:
+ *                                      type: boolean
+ *                                      description: Флаг, указывающий, снимаются ли средства с депозита по данному заказу
+ *                                      example: false
+ *                                  createdAt:
+ *                                      type: string
+ *                                      format: date-time
+ *                                      description: Дата создания заказа
+ *                                      example: "2024-05-22T13:37:48.000Z"
+ *                                  updatedAt:
+ *                                      type: string
+ *                                      format: date-time
+ *                                      description: Дата последнего обновления информации о заказе
+ *                                      example: "2024-05-22T13:37:56.000Z"
+ *                                  organizationCustomerId:
+ *                                      type: string
+ *                                      format: uuid
+ *                                      description: ID клиента организации
+ *                                      example: "b6612bd1-b356-4d56-8411-978bee4f3872"
+ *                                  payeeId:
+ *                                      type: string
+ *                                      format: uuid
+ *                                      nullable: true
+ *                                      description: ID получателя платежа
+ *                                      example: null
+ *                                  accountId:
+ *                                      type: string
+ *                                      format: uuid
+ *                                      description: ID аккаунта, связанного с заказом
+ *                                      example: "1f1bbfc0-1621-4ba2-85ac-6ec23c1ef299"
+ *                                  Spisanie:
+ *                                      type: string
+ *                                      nullable: true
+ *                                      description: Информация о списании
+ *                                      example: 3000
+ *                                  Deposit:
+ *                                      type: integer
+ *                                      description: Сумма депозитов
+ *                                      example: 55555
+ *                                  
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  */
