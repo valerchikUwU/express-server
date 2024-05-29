@@ -829,6 +829,22 @@ exports.admin_order_create_post = [
         } else {
             await order.save();
             for (const title of titlesToCreate) {
+
+                const actualActivationDate = await sequelize.query(
+                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                    {
+                        replacements: { productId: title.productId },
+                        type: sequelize.QueryTypes.SELECT
+                    }
+                );
+                const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                const priceDefinition = await PriceDefinition.findOne({
+                    where: { activationDate: actualDate }
+                });
+                
+                title.orderId = order.id
+                title.priceDefId = priceDefinition.id
+        
                     await title.save();
                 }
             res.status(200).send('Заказ успешно создан!');
