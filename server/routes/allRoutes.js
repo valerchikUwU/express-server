@@ -172,6 +172,13 @@ router.post("/:accountId/payees/newPayee", checkAbilities('create', 'SuperAdmin'
  */
 router.get("/:accountId/prices", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.prices_list);
 
+
+
+/**
+ * Запрос GET для получения формы создания прайс листа (PriceDefinition)
+ */
+router.get("/:accountId/prices/newPrice", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.price_update_get);
+
 /**
  * Запрос POST для создания нового прайс листа (PriceDefinition)
  */
