@@ -177,7 +177,7 @@ router.get("/:accountId/prices", checkAbilities('read', 'PriceDefinition'), pric
 /**
  * Запрос GET для получения формы создания прайс листа (PriceDefinition)
  */
-router.get("/:accountId/prices/newPrice", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.price_update_get);
+router.get("/:accountId/prices/newPrice", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.price_create_get);
 
 /**
  * Запрос POST для создания нового прайс листа (PriceDefinition)
