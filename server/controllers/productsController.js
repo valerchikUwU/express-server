@@ -9,6 +9,19 @@ const Order = require('../../models/order');
 const PriceDefinition = require('../../models/priceDefinition');
 const TitleOrders = require('../../models/titleOrders');
 
+
+
+exports.all_products = asyncHandler(async (req, res, next) => {
+  const allProduct = Product.findAll()
+
+  res.json({
+    title: "Все продукты",
+    allProduct: allProduct,
+  });
+})
+
+
+
 exports.products_list = asyncHandler(async (req, res, next) => {
   const productTypeId = parseInt(req.params.typeId, 10);
 

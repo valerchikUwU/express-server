@@ -28,6 +28,8 @@ router.get("/:accountId/productsByType/:typeId", checkAbilities('read', 'Product
 
 
 
+router.get("/:accountId/products", checkAbilities('read', 'Product'), products_controller.all_products);
+
 
 
 
