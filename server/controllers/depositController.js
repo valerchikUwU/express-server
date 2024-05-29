@@ -48,6 +48,7 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
                                 attributes: [],
                             }
                         ],
+                    attributes: [],
                     as: 'orders'
                 }
             ],
@@ -153,18 +154,6 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 })
 
 
-
-exports.deposit_create_get = asyncHandler(async (req, res, next) => {
-
-    const [allOrganizations] = await Promise.all([
-        OrganizationCustomer.findAll()
-    ]);
-
-    res.json({
-        title: "Форма создания депозита",
-        organizations: allOrganizations
-    });
-});
 
 exports.deposit_create_post = [
 

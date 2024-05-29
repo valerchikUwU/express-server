@@ -1,5 +1,5 @@
 
-require('dotenv').config({ path: 'C:/Users/koval/express-server/.env'});
+require('dotenv').config({ path: '../.env'});
 const { Sequelize } = require('sequelize');
 
 const sequelize = new Sequelize(process.env.db_name, process.env.db_user, process.env.password, {

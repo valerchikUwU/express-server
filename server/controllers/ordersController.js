@@ -10,6 +10,7 @@ const PriceDefinition = require('../../models/priceDefinition');
 const Product = require('../../models/product');
 const dateFns = require('date-fns');
 const createHttpError = require('http-errors');
+const sequelize = require('../../database/connection');
 
 exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
     const accountId = req.params.accountId;
@@ -85,42 +86,42 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
     const accountId = req.params.accountId;
     try {
         const finishedOrders = await Order.findAll({
-            where: 
+            where:
             {
 
                 accountId: accountId,
                 status: 'Получен'
             },
-            include: 
-            [
-                {
-                    model: TitleOrders, // Добавляем модель TitleOrders
-                    include: 
-                    [
-                        {
-                            model: PriceDefinition,
-                            as: 'price',
-                            attributes: ['priceAccess', 'priceBooklet']
-                        }
-                    ],
-                    attributes: ['quantity']
-                },
-                {
-                    model: OrganizationCustomer,
-                    as: 'organization'
-                }
-            ],
-            attributes: 
-            {
-                include: 
+            include:
                 [
+                    {
+                        model: TitleOrders, // Добавляем модель TitleOrders
+                        include:
+                            [
+                                {
+                                    model: PriceDefinition,
+                                    as: 'price',
+                                    attributes: ['priceAccess', 'priceBooklet']
+                                }
+                            ],
+                        attributes: ['quantity']
+                    },
+                    {
+                        model: OrganizationCustomer,
+                        as: 'organization'
+                    }
+                ],
+            attributes:
+            {
+                include:
                     [
-                        Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
-                    ],
-                    [
-                        Sequelize.literal(`organizationName`), 'organizationName'
+                        [
+                            Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
+                        ],
+                        [
+                            Sequelize.literal(`organizationName`), 'organizationName'
+                        ]
                     ]
-                ]
             },
             group: ['Order.id'], // Группируем результаты по id Order, чтобы суммирование работало корректно
             raw: true // Возвращаем сырые данные, так как мы используем агрегатные функции
@@ -572,8 +573,17 @@ exports.user_order_create_post = [
     asyncHandler(async (req, res, next) => {
 
         if (!req.body) return res.sendStatus(400);
+
+        const actualActivationDate = await sequelize.query(
+            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+            {
+                replacements: { productId: req.body.productId },
+                type: sequelize.QueryTypes.SELECT
+            }
+        );
+        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
         const priceDefinition = await PriceDefinition.findOne({
-            where: { productId: req.body.productId }
+            where: { activationDate: actualDate }
         });
 
 
@@ -749,15 +759,47 @@ exports.admin_order_create_post = [
         .escape(),
     body("isFromDeposit")
         .escape(),
+    body("titlesToCreate.*.productId")
+        .if(body("productId").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("titlesToCreate.*.accessType")
+        .if(body("accessType").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("titlesToCreate.*.generation")
+        .if(body("generation").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("titlesToCreate.*.quantity")
+        .if(body("quantity").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("titlesToCreate.*.addBooklet")
+        .if(body("addBooklet").exists())
+        .escape(),
+    body().custom((value, { req }) => {
+        const titlesToCreate = req.body.titlesToCreate;
+        for (const title of titlesToCreate) {
+            if (title.addBooklet === 1 && title.accessType !== null) {
+                throw new Error('Буклет представлен только в виде бумажного формата!');
+            }
+        }
+        // Возвращаем true, если условие выполнено
+        return true;
+    }),
 
 
     asyncHandler(async (req, res, next) => {
-        // Extract the validation errors from a request.
         const errors = validationResult(req);
 
-        // Create a Book object with escaped and trimmed data.
+
+        const titlesToCreate = req.body.titlesToCreate;
         const order = new Order({
-            accountId: req.body.accountId,
             organizationCustomerId: req.body.organizationCustomerId,
             dispatchDate: req.body.status === 'Отправлен' ? new Date() : null,
             status: req.body.status,
@@ -767,22 +809,26 @@ exports.admin_order_create_post = [
         });
 
         if (!errors.isEmpty()) {
-            // There are errors. Render form again with sanitized values/error messages.
-
-            // Get all authors and genres for form.
-            const [allAccounts] = await Promise.all([
-                Account.findAll()
+            const [allPayees, allOrganizations, allProducts] = await Promise.all([
+                Payee.findAll(),
+                OrganizationCustomer.findAll(),
+                Product.findAll()
             ]);
 
 
             res.json({
                 title: "Некорректная форма создания заказа!",
-                allAccounts: allAccounts,
                 order: order,
+                allProducts: allProducts,
+                allPayees: allPayees,
+                allOrganizations: allOrganizations,
                 errors: errors.array(),
             });
         } else {
             await order.save();
+            for (const title of titlesToCreate) {
+                    await title.save();
+                }
             res.status(200).send('Заказ успешно создан!');
         }
     }),

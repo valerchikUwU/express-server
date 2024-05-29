@@ -78,9 +78,19 @@ Product.belongsTo(ProductType, {
    as: 'productType'
 });
 
-Product.hasOne(PriceDefinition, { foreignKey: 'productId' });
+Product.hasMany(PriceDefinition, { 
+   foreignKey: {
+      name: 'productId',
+      type: DataTypes.UUID,
+      allowNull: false
+   },
+   as: 'prices'
+});
 
-PriceDefinition.belongsTo(Product, { foreignKey: 'productId' });
+PriceDefinition.belongsTo(Product, { 
+   foreignKey: 'productId',
+   as: 'product' 
+});
 
 Product.hasMany(TitleOrders, {
    foreignKey: {

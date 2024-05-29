@@ -223,12 +223,6 @@ router.get("/:accountId/accounts", checkAbilities('read', 'Account'), accounts_c
 
 
 /**
- * Запрос GET для всех пользователей от лица админа
- */
-router.get("/:accountId/superAdmin/accounts", checkAbilities('read', 'SuperAdmin'), accounts_controller.superAdmin_accounts_list);
-
-
-/**
  * Запрос GET для получения формы создания нового аккаунта
  */
 router.get("/:accountId/newAccount", checkAbilities('read', 'Account'), accounts_controller.account_organization_create_get);
@@ -262,11 +256,6 @@ router.post("/:accountId/superAdmin/newAccount", checkAbilities('create', 'Super
 */
 
 
-/**
- * Запрос GET для получения формы создания депозита
- * @param organizationCustomerId - id организации
- */
-router.get("/:acountId/deposits/:organizationCustomerId/newDeposit", checkAbilities('read', 'SuperAdmin'), deposit_controller.deposit_create_get);
 
 /**
  * Запрос POST для добавления депозита

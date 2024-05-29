@@ -57,13 +57,9 @@ exports.account_detail = asyncHandler(async (req, res, next) => {
 });
 
 exports.account_organization_create_get = asyncHandler(async (req, res, next) => {
-    // Используем Promise.all для параллельного выполнения запросов к базе данных.
-    // В данном случае, выполняем запрос к таблице ProductType,
-    // чтобы получить все типы продуктов, отсортированные по id и name.
     const allOrganizations = await OrganizationCustomer.findAll({ order: ['organizationName'] })
 
 
-    // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
         title: "Форма создания аккаунта для админа",
         organizations: allOrganizations
@@ -139,6 +135,7 @@ exports.account_organization_create_post = [
 
 
             res.json({
+                title: 'Некорректная форма создания аккаунта!',
                 organizations: allOrganizations,
                 account: account,
                 errors: errors.array(),
@@ -267,10 +264,12 @@ exports.superAdmin_account_organization_create_post = [
 
 exports.account_update_get = asyncHandler(async (req, res, next) => {
     const [account, allOrganizations] = await Promise.all([
-        Account.findByPk(req.params.accountFocusId),
-        getOrganizationList(req.params.accountFocusId)
+        Account.findByPk(req.params.accountFocusId, {raw: true}),
+        OrganizationCustomer.findAll()
     ]);
 
+    account.formattedLastSeen = (account.lastSeen !== null) ? dateFns.format(account.lastSeen, 'HH:mm dd-MM') : null;
+    
     if (!account) {
         const err = new Error("Аккаунт не найден!");
         err.status = 404;
@@ -320,7 +319,6 @@ exports.account_update_put = [
             firstName: req.body.firstName,
             lastName: req.body.lastName,
             telephoneNumber: req.body.telephoneNumber,
-            telegramId: req.body.telegramId,
             organizationList: req.body.organizationList,
             _id: req.params.accountFocusId
         });
@@ -344,7 +342,6 @@ exports.account_update_put = [
             oldAccount.firstName = account.firstName;
             oldAccount.lastName = account.lastName;
             oldAccount.telephoneNumber = account.telephoneNumber;
-            oldAccount.telegramId = account.telegramId;
             oldAccount.organizationList = account.organizationList;
 
             await oldAccount.save();

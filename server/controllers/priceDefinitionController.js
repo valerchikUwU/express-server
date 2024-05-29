@@ -5,38 +5,40 @@ const PriceDefinition = require('../../models/priceDefinition');
 const Product = require('../../models/product');
 const ProductType = require('../../models/productType');
 const dateFns = require('date-fns');
+const sequelize = require('../../database/connection');
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
+        
     const pricesInit = await PriceDefinition.findAll({
         include: [{
             model: Product,
-            attributes: 
-            [
-                'name',
-                'abbreviation',
-                'id',
-                'productTypeId'
-            ],
+            attributes:
+                [
+                    'name',
+                    'abbreviation',
+                    'id',
+                    'productTypeId'
+                ],
             where: { productTypeId: 1 }
 
         }],
-        attributes: 
+        attributes:
         {
-            include: 
-            [
+            include:
                 [
-                    Sequelize.literal(`Product.name`), 'productName'
-                ],
-                [
-                    Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
-                ],
-                [
-                    Sequelize.literal(`Product.id`), 'productId'
-                ],
-                [
-                    Sequelize.literal(`Product.productTypeId`), 'productTypeId'
-                ],
-            ]
+                    [
+                        Sequelize.literal(`Product.name`), 'productName'
+                    ],
+                    [
+                        Sequelize.literal(`Product.abbreviation`), 'productAbbreviation'
+                    ],
+                    [
+                        Sequelize.literal(`Product.id`), 'productId'
+                    ],
+                    [
+                        Sequelize.literal(`Product.productTypeId`), 'productTypeId'
+                    ],
+                ]
         },
         group: ['PriceDefinition.id'],
         raw: true
@@ -44,13 +46,13 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
     const pricesMain = await PriceDefinition.findAll({
         include: [{
             model: Product,
-            attributes: 
-            [
-                'name',
-                'abbreviation',
-                'id',
-                'productTypeId'
-            ],
+            attributes:
+                [
+                    'name',
+                    'abbreviation',
+                    'id',
+                    'productTypeId'
+                ],
             where: { productTypeId: 2 }
         }],
         attributes: {
@@ -75,13 +77,13 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
     const pricesForEmployers = await PriceDefinition.findAll({
         include: [{
             model: Product,
-            attributes: 
-            [
-                'name',
-                'abbreviation',
-                'id',
-                'productTypeId'
-            ],
+            attributes:
+                [
+                    'name',
+                    'abbreviation',
+                    'id',
+                    'productTypeId'
+                ],
             where: { productTypeId: 3 }
         }],
         attributes: {
@@ -122,6 +124,19 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
 );
 
 
+
+exports.price_create_get = asyncHandler(async (req, res, next) => {
+    const [products] = await Promise.all([
+        Product.findAll()
+    ]);
+
+    res.json({
+        title: "Форма создания прайс - листа",
+        products: products,
+    });
+});
+
+
 exports.price_create_post = [
 
     body("name", "Название должно быть указано")
@@ -129,6 +144,7 @@ exports.price_create_post = [
         .isLength({ min: 1 })
         .escape(),
     body("abbreviation", "Аббревиаутра должна быть указана")
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
         .escape(),
@@ -139,26 +155,26 @@ exports.price_create_post = [
         .isInt({ min: 1 })
         .escape(),
     body("productTypeId")
-        .isInt({ min: 1, max: 3})
+        .optional({ checkFalsy: true })
+        .isInt({ min: 1, max: 3 })
         .escape(),
+    body("activationDate", "Дата активации должна быть указана")
+        .toDate()
+        .custom((value) => {
+            // Проверяем, что дата не раньше сегодня
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Устанавливаем время на начало дня
+            return value >= today;
+        }),
+
 
     asyncHandler(async (req, res, next) => {
 
         const errors = validationResult(req);
 
-        const product = new Product({
-            name: req.body.name,
-            abbreviation: req.body.abbreviation,
-            productTypeId: req.body.productTypeId
-        })
 
 
-        const price = new PriceDefinition({
-            priceAccess: req.body.priceAccess,
-            priceBooklet: req.body.priceBooklet,
-            productId: product.id,
-            activationDate: new Date()
-        });
+
 
         if (!errors.isEmpty()) {
             const [allProducts] = await Promise.all([
@@ -175,8 +191,34 @@ exports.price_create_post = [
         }
         else {
 
-            await product.save();
-            await price.save();
+
+            if (await Product.findOne({ where: { name: req.body.name } }) === null) {
+
+                const product = new Product({
+                    name: req.body.name,
+                    abbreviation: req.body.abbreviation,
+                    productTypeId: req.body.productTypeId
+                })
+
+                const price = new PriceDefinition({
+                    priceAccess: req.body.priceAccess,
+                    priceBooklet: req.body.priceBooklet,
+                    productId: product.id,
+                    activationDate: req.body.activationDate
+                });
+                product.save();
+                price.save();
+            }
+            else {
+                const product = await Product.findOne({ where: { name: req.body.name } })
+                const price = new PriceDefinition({
+                    priceAccess: req.body.priceAccess,
+                    priceBooklet: req.body.priceBooklet,
+                    productId: product.id,
+                    activationDate: req.body.activationDate
+                });
+                price.save();
+            }
             res.status(200).send("Прайс лист успешно создан!");
         }
     }),
@@ -206,7 +248,7 @@ exports.price_update_get = asyncHandler(async (req, res, next) => {
 
 exports.price_update_put = [
 
-    
+
     body("priceAccess", "priceAccess must not be empty.")
         .trim()
         .isLength({ min: 1 })
