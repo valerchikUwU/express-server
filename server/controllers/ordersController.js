@@ -724,14 +724,18 @@ exports.user_order_create_post = [
 
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
 
-    const [allAccounts] = await Promise.all([
-        Account.findAll()
+    const [allProducts, allOrganizations, allPayees] = await Promise.all([
+        Product.findAll(),
+        OrganizationCustomer.findAll(),
+        Payee.findAll(),
     ]);
 
     // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
         title: "Форма создания заказа",
-        accounts: allAccounts
+        allProducts: allProducts,
+        allOrganizations: allOrganizations,
+        allPayees: allPayees
     });
 });
 
@@ -841,7 +845,7 @@ exports.admin_order_create_post = [
                 const priceDefinition = await PriceDefinition.findOne({
                     where: { activationDate: actualDate }
                 });
-                
+
                 title.orderId = order.id
                 title.priceDefId = priceDefinition.id
         

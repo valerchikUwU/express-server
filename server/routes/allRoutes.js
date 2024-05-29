@@ -42,6 +42,9 @@ router.get("/:accountId/products", checkAbilities('read', 'Product'), products_c
 
 
 
+
+
+
 /**
  * Запрос POST для создания заказа от лица пользователя
  */
@@ -95,14 +98,28 @@ router.get("/:accountId/orders/archive", checkAbilities('read', 'Order_Admin'), 
 router.get("/:accountId/orders/admin/:orderId", checkAbilities('read', 'Order_Admin'), orders_controller.admin_order_detail);
 
 
+
+
+
+/**
+ * Запрос GET для получения формы создания заказа от лица Админа
+ * @param orderId - id заказа 
+ */
+router.get("/:accountId/orders/admin/newOrder", checkAbilities('read', 'Order_Admin'), orders_controller.admin_order_create_get);
+
+
+/**
+ * Запрос POST для создания заказа от лица Админа
+ * @param orderId - id заказа 
+ */
+router.post("/:accountId/orders/admin/newOrder", checkAbilities('create', 'Order_Admin'), orders_controller.admin_order_create_post);
+
+
 /**
  * Запрос GET для получения деталей (Всех TitleOrders) для выбранного заказа от лица пользователя
  * @param orderId - id заказа
  */
 router.get("/:accountId/orders/:orderId", checkAbilities('read', 'Order_User'), orders_controller.user_order_detail);
-
-
-
 
 /*
 ============================================================
@@ -270,14 +287,14 @@ router.post("/:accountId/superAdmin/newAccount", checkAbilities('create', 'Super
  * Запрос POST для добавления депозита
  * @param organizationCustomerId - id организации
  */
-router.post("/:acountId/deposits/:organizationCustomerId/newDeposit", checkAbilities('create', 'SuperAdmin'), deposit_controller.deposit_create_post);
+router.post("/:accountId/deposits/:organizationCustomerId/newDeposit", checkAbilities('create', 'SuperAdmin'), deposit_controller.deposit_create_post);
 
 
 /**
  * Запрос GET для получения деталей депозитов для конкретной организации
  * @param organizationCustomerId - id организации
  */
-router.get("/:acountId/deposits/:organizationCustomerId", checkAbilities('read', 'SuperAdmin'), deposit_controller.deposits_details);
+router.get("/:accountId/deposits/:organizationCustomerId", checkAbilities('read', 'SuperAdmin'), deposit_controller.deposits_details);
 
 
 /**
