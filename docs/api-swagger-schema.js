@@ -94,9 +94,7 @@
  *                  description: Телеграмм ID пользователя
  *                  example: 123232424
  *              organizationList:
- *                  type: array
- *                  items:
- *                      type: string
+ *                  type: JSON
  *                  nullable: true
  *                  description: Список организация, привязанных к пользователю
  *                  example: ["Джанкой", "Севастополь"]
@@ -788,9 +786,7 @@
  *                            type: string
  *                            example: "3"
  *                          organizationList:
- *                            type: array
- *                            items:
- *                              type: JSON
+ *                            type: JSON
  *                            example: ["Джанкой", "Севастополь"]
  *                          formattedDispatchDate:
  *                            type: string
@@ -1756,7 +1752,7 @@
  *  post:
  *      tags:
  *          - PriceDefinition
- *      summary: Запрос GET для получения формы для создания нового прайс листа (PriceDefinition)
+ *      summary: Запрос POST для создания нового прайс листа (PriceDefinition)
  *      parameters:
  *        - in: path
  *          name: accountId
@@ -1765,38 +1761,44 @@
  *            type: string
  *            format: uuid
  *          description: ID пользователя
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                    type: string
+ *                    description: Название товара
+ *                    example: Начальный курс
+ *                abbreviation:
+ *                    type: string
+ *                    description: Аббревиатура товара
+ *                    example: НК
+ *                priceAccess:
+ *                    type: decimal
+ *                    description: Цена за доступ к товару
+ *                    example: 6700
+ *                priceBooklet:
+ *                    type: decimal
+ *                    description: Цена за буклет
+ *                    example: 500
+ *                productTypeId:
+ *                    type: integer
+ *                    description: ID категории товара
+ *                    example: 1
+ *                activationDate:
+ *                    type: date
+ *                    description: Дата активации прайс - листа (не раньше текущего дня)
+ *                    example: "2024-04-23T07:57:40.000Z"
  *      responses:
  *        200:
- *          description: Форма создания прайс листа
- *          content:
- *            application/json:
- *              schema:
- *                type: object
- *                properties:
- *                      name:
- *                          type: string
- *                          description: Название товара
- *                          example: Начальный курс
- *                      abbreviation:
- *                          type: string
- *                          description: Аббревиатура товара
- *                          example: НК
- *                      priceAccess:
- *                          type: decimal
- *                          description: Цена за доступ к товару
- *                          example: 6700
- *                      priceBooklet:
- *                          type: decimal
- *                          description: Цена за буклет
- *                          example: 500
- *                      productTypeId:
- *                          type: integer
- *                          description: ID категории товара
- *                          example: 1
- *                  
- *                          
+ *          description: Прайс лист успешно создан!
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Некорректная форма создания прайс листа!
  */
 
 
@@ -1900,11 +1902,11 @@
 
 /**
  * @swagger
- * /{accountId}/orders/{orderId}/received:
+ * /{accountId}/prices/{priceDefId}/update:
  *  put:
  *      tags:
  *          - PriceDefinition
- *      summary: Запрос PUT для обновления отправленного заказа на полученный от лица пользователя (НА СТРАНИЦЕ "В РАБОТЕ")
+ *      summary: Запрос PUT для обновления прайс листа (PriceDefinition)
  *      parameters:
  *        - in: path
  *          name: accountId
@@ -1937,11 +1939,11 @@
  *                                  example: 300
  *      responses:
  *        200:
- *          description: Заказ успешно переведён в статус "Получен"!
- *        400:
- *          description: Этот заказ еще не отправлен!
+ *          description: Прайс лист успешно обновлен!
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Некорректная форма обновления прайс листа
  */
 
 
@@ -1974,68 +1976,657 @@
  *          content:
  *            application/json:
  *                      schema:
- *                        type: object
- *                        properties:
- *                          title:
- *                            type: string
- *                            example: "Форма обновления аккаунта для админа"
- *                          price:
- *                            type: object
- *                            properties:
- *                              id:
- *                                type: string
- *                                format: uuid
- *                                example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
- *                              activationDate:
- *                                type: string
- *                                format: date-time
- *                                example: "2024-04-23T07:57:40.000Z"
- *                              priceAccess:
- *                                type: string
- *                                example: "1"
- *                              priceBooklet:
- *                                type: string
- *                                example: "0"
- *                              createdAt:
- *                                type: string
- *                                format: date-time
- *                                example: "2024-04-23T07:57:40.000Z"
- *                              updatedAt:
- *                                type: string
- *                                format: date-time
- *                                example: "2024-04-23T07:57:40.000Z"
- *                              productId:
- *                                type: string
- *                                format: uuid
- *                                example: "ed976451-efd4-4559-a31f-4e2f9dd70248"
- *                              Product:
+ *                          type: object
+ *                          properties:
+ *                            title:
+ *                              type: string
+ *                              description: Форма обновления аккаунта для админа
+ *                              example: "Форма обновления аккаунта для админа"
+ *                            organizations:
+ *                              type: array
+ *                              description: Список организаций, связанных с аккаунтом
+ *                              items:
  *                                type: object
  *                                properties:
  *                                  id:
  *                                    type: string
- *                                    format: uuid
- *                                    example: "ed976451-efd4-4559-a31f-4e2f9dd70248"
- *                                  name:
+ *                                    description: ID организации
+ *                                    example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
+ *                                  organizationName:
  *                                    type: string
- *                                    example: "депозит"
- *                                  abbreviation:
- *                                    type: string
- *                                    example: "Д"
+ *                                    description: Название организации
+ *                                    example: "Симферополь"
  *                                  createdAt:
  *                                    type: string
- *                                    format: date-time
+ *                                    nullable: true
+ *                                    description: Дата создания записи
  *                                    example: "2024-04-22T13:24:50.000Z"
  *                                  updatedAt:
  *                                    type: string
- *                                    format: date-time
+ *                                    nullable: true
+ *                                    description: Дата последнего обновления записи
  *                                    example: "2024-04-22T13:24:50.000Z"
- *                                  productTypeId:
- *                                    type: integer
- *                                    example: 4
+ *                            account:
+ *                              type: object
+ *                              description: Информация об аккаунте 
+ *                              properties:
+ *                                id:
+ *                                  type: string
+ *                                  format: uuid
+ *                                  description: ID аккаунта
+ *                                  example: "07ff1130-a1f9-4b12-98a8-c1897c630d19"
+ *                                firstName:
+ *                                  type: string
+ *                                  description: Имя пользователя
+ *                                  example: Максим
+ *                                lastName:
+ *                                  type: string
+ *                                  description: Фамилия пользователя
+ *                                  example: Ковальски
+ *                                telephoneNumber:
+ *                                  type: string
+ *                                  description: Телефонный номер пользователя
+ *                                  example: +79787513901
+ *                                telegramId:
+ *                                  type: string
+ *                                  description: ID Telegram пользователя
+ *                                  example: 453120600
+ *                                organizationList:
+ *                                  type: JSON
+ *                                  description: Список организаций, к которым принадлежит пользователь
+ *                                  example: ["Джанкой", "Севастополь"]
+ *                                isBlocked:
+ *                                  type: boolean
+ *                                  description: Статус блокировки аккаунта 
+ *                                  example: false
+ *                                lastSeen:
+ *                                  type: string
+ *                                  format: date-time
+ *                                  description: Последнее время входа в систему 
+ *                                  example: "2024-05-23T13:33:44.000Z"
+ *                                accountNumber:
+ *                                  type: integer
+ *                                  description: Номер аккаунта пользователя
+ *                                  example: 1
+ *                                createdAt:
+ *                                  type: string
+ *                                  nullable: true
+ *                                  description: Дата создания аккаунта пользователя
+ *                                  example: "2024-05-25T16:56:00.000Z"
+ *                                updatedAt:
+ *                                  type: string
+ *                                  format: date-time
+ *                                  description: Дата последнего обновления аккаунта пользователя
+ *                                  example: "2024-05-25T16:56:00.000Z"
+ *                                roleId:
+ *                                  type: integer
+ *                                  description: ID роли пользователя
+ *                                  example: 3
+ *                                formattedLastSeen:
+ *                                  type: string
+ *                                  description: Форматированное время последнего входа в систему пользователя
+ *                                  example: "16:33 23-05"
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  *        404:
- *          description: Такой прайс лист не найден!
+ *          description: Аккаунт не найден!
+ */
+
+
+
+/**
+ * @swagger
+ * /{accountId}/accounts/{accountFocusId}/update:
+ *  put:
+ *      tags:
+ *          - Account
+ *      summary: Запрос PUT для выбранного аккаунта
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *        - in: path
+ *          name: accountFocusId
+ *          required: true
+ *          schema:
+ *              type: string
+ *              format: uuid
+ *          description: ID выбранного пользователя
+ *      requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema: 
+ *                          type: object
+ *                          properties:
+ *                              firstName:
+ *                                  type: string
+ *                                  description: Имя пользователя
+ *                                  example: Толян
+ *                              lastName:
+ *                                  type: string
+ *                                  description: Фамилия пользователя
+ *                                  example: Арбитражович
+ *                              telephoneNumber:
+ *                                  type: string
+ *                                  description: Номер телефона пользователя
+ *                                  example: +79787513333 (также 89787513333)
+ *                              organizationList:
+ *                                  type: JSON
+ *                                  nullable: true
+ *                                  description: Список организация, привязанных к пользователю
+ *                                  example: ["Джанкой", "Севастополь"]
+ *                                      
+ *      responses:
+ *        200:
+ *          description: Аккаунт успешно обновлен!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
  *        500:
- *          description: Некорректная форма обновления прайс листа
+ *          description: Форма ввода некорректна, повторите попытку!
+ */
+
+
+
+
+/**
+ * @swagger
+ * /{accountId}/superAdmin/accounts:
+ *  get:
+ *      tags:
+ *          - Account
+ *      summary: Запрос GET для всех пользователей от лица суперАдмина
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Список аккаунтов
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: Заголовок списка аккаунтов
+ *                        example: "Список аккаунтов"
+ *                      accounts:
+ *                        type: array
+ *                        description: Список аккаунтов
+ *                        items:
+ *                          type: object
+ *                          properties:
+ *                            id:
+ *                              type: string
+ *                              description: Уникальный идентификатор аккаунта
+ *                              example: "0056ac9c-e398-410d-8185-1196ead4a8b8"
+ *                            firstName:
+ *                              type: string
+ *                              description: Имя аккаунта
+ *                              example: "Илья"
+ *                            lastName:
+ *                              type: string
+ *                              description: Фамилия аккаунта
+ *                              example: "Белошейкин"
+ *                            telephoneNumber:
+ *                              type: string
+ *                              description: Номер телефона аккаунта
+ *                              example: +79787513999 (также 89787513999)
+ *                            telegramId:
+ *                              type: string
+ *                              nullable: true
+ *                              description: ID Telegram аккаунта
+ *                              example: 325235235
+ *                            organizationList:
+ *                                type: JSON
+ *                                nullable: true
+ *                                description: Список организация, привязанных к пользователю
+ *                                example: ["Джанкой", "Севастополь"]
+ *                            isBlocked:
+ *                              type: boolean
+ *                              description: Статус блокировки аккаунта
+ *                              example: false
+ *                            lastSeen:
+ *                              type: string
+ *                              nullable: true
+ *                              description: Последнее время входа в систему аккаунта
+ *                              example: "2024-05-28T09:17:42.000Z"
+ *                            accountNumber:
+ *                              type: integer
+ *                              description: Номер аккаунта
+ *                              example: 22
+ *                            createdAt:
+ *                              type: string
+ *                              format: date-time
+ *                              description: Дата создания аккаунта
+ *                              example: "2024-05-27T09:17:42.000Z"
+ *                            updatedAt:
+ *                              type: string
+ *                              format: date-time
+ *                              description: Дата последнего обновления аккаунта
+ *                              example: "2024-05-27T09:17:42.000Z"
+ *                            roleId:
+ *                              type: integer
+ *                              description: ID роли аккаунта
+ *                              example: 3 (также здесь отображаются те, у кого 2, т.е. админы)
+ *                            formattedLastSeen:
+ *                              type: string
+ *                              nullable: true
+ *                              description: Форматированное время последнего входа в систему аккаунта
+ *                              example: 09:17 28-05
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+
+/**
+ * @swagger
+ * /{accountId}/accounts:
+ *  get:
+ *      tags:
+ *          - Account
+ *      summary: Запрос GET для всех пользователей от лица Админа
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Список аккаунтов
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: Заголовок списка аккаунтов
+ *                        example: "Список аккаунтов"
+ *                      accounts:
+ *                        type: array
+ *                        description: Список аккаунтов
+ *                        items:
+ *                          type: object
+ *                          properties:
+ *                            id:
+ *                              type: string
+ *                              description: Уникальный идентификатор аккаунта
+ *                              example: "0056ac9c-e398-410d-8185-1196ead4a8b8"
+ *                            firstName:
+ *                              type: string
+ *                              description: Имя аккаунта
+ *                              example: "Илья"
+ *                            lastName:
+ *                              type: string
+ *                              description: Фамилия аккаунта
+ *                              example: "Белошейкин"
+ *                            telephoneNumber:
+ *                              type: string
+ *                              description: Номер телефона аккаунта
+ *                              example: +79787513999 (также 89787513999)
+ *                            telegramId:
+ *                              type: string
+ *                              nullable: true
+ *                              description: ID Telegram аккаунта
+ *                              example: 325235235
+ *                            organizationList:
+ *                                type: JSON
+ *                                nullable: true
+ *                                description: Список организация, привязанных к пользователю
+ *                                example: ["Джанкой", "Севастополь"]
+ *                            isBlocked:
+ *                              type: boolean
+ *                              description: Статус блокировки аккаунта
+ *                              example: false
+ *                            lastSeen:
+ *                              type: string
+ *                              nullable: true
+ *                              description: Последнее время входа в систему аккаунта
+ *                              example: "2024-05-28T09:17:42.000Z"
+ *                            accountNumber:
+ *                              type: integer
+ *                              description: Номер аккаунта
+ *                              example: 22
+ *                            createdAt:
+ *                              type: string
+ *                              format: date-time
+ *                              description: Дата создания аккаунта
+ *                              example: "2024-05-27T09:17:42.000Z"
+ *                            updatedAt:
+ *                              type: string
+ *                              format: date-time
+ *                              description: Дата последнего обновления аккаунта
+ *                              example: "2024-05-27T09:17:42.000Z"
+ *                            roleId:
+ *                              type: integer
+ *                              description: ID роли аккаунта
+ *                              example: 3 
+ *                            formattedLastSeen:
+ *                              type: string
+ *                              nullable: true
+ *                              description: Форматированное время последнего входа в систему аккаунта
+ *                              example: 09:17 28-05
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+
+/**
+ * @swagger
+ * /{accountId}/newAccount:
+ *  get:
+ *      tags:
+ *          - Account
+ *      summary: Запрос GET для получения формы создания нового аккаунта от лица админа
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Форма создания аккаунта для админа
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: Форма создания аккаунта для админа
+ *                        example: Форма создания аккаунта для админа
+ *                      organizations:
+ *                        type: array
+ *                        description: Список организаций
+ *                        items:
+ *                          type: object
+ *                          $ref: '#/components/schemas/OrganizationCustomer'
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+/**
+ * @swagger
+ * /{accountId}/newAccount:
+ *  post:
+ *      tags:
+ *          - Account
+ *      summary: Запрос POST для создания нового аккаунта от лица админа
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *              firstName:
+ *                  type: string
+ *                  description: Имя пользователя
+ *                  example: Максим
+ *              lastName:
+ *                  type: string
+ *                  description: Фамилия пользователя
+ *                  example: Ковальский
+ *              telephoneNumber:
+ *                  type: string
+ *                  description: Номер телефона пользователя
+ *                  example: +79787513333
+ *              organizationList:
+ *                  type: JSON
+ *                  nullable: true
+ *                  description: Список организация, привязанных к пользователю
+ *                  example: ["Джанкой", "Севастополь"]
+ *      responses:
+ *        200:
+ *          description: Аккаунт успешно создан!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Некорректная форма создания аккаунта!
+ */
+
+
+
+/**
+ * @swagger
+ * /{accountId}/superAdmin/newAccount:
+ *  get:
+ *      tags:
+ *          - Account
+ *      summary: Запрос GET для получения формы создания нового аккаунта от лица суперАдмина
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Форма создания аккаунта для суперАдмина
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: Форма создания аккаунта для админа
+ *                        example: Форма создания аккаунта для админа
+ *                      organizations:
+ *                        type: array
+ *                        description: Список организаций
+ *                        items:
+ *                          type: object
+ *                          $ref: '#/components/schemas/OrganizationCustomer'
+ *                      allRoles:
+ *                        type: array
+ *                        description: Список ролей
+ *                        items:
+ *                          type: object
+ *                          $ref: '#/components/schemas/Role'
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+/**
+ * @swagger
+ * /{accountId}/superAdmin/newAccount:
+ *  post:
+ *      tags:
+ *          - Account
+ *      summary: Запрос POST для создания нового аккаунта от лица суперАдмина
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *              firstName:
+ *                  type: string
+ *                  description: Имя пользователя
+ *                  example: Максим
+ *              lastName:
+ *                  type: string
+ *                  description: Фамилия пользователя
+ *                  example: Ковальский
+ *              telephoneNumber:
+ *                  type: string
+ *                  description: Номер телефона пользователя
+ *                  example: +79787513333
+ *              organizationList:
+ *                  type: JSON
+ *                  nullable: true
+ *                  description: Список организация, привязанных к пользователю
+ *                  example: ["Джанкой", "Севастополь"]
+ *              roleId:
+ *                  type: integer
+ *                  description: ID роли
+ *                  example: 2
+ *      responses:
+ *        200:
+ *          description: Аккаунт успешно создан!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Некорректная форма создания аккаунта!
+ */
+
+
+
+
+
+
+/**
+ * @swagger
+ * /{accountId}/deposits:
+ *  get:
+ *      tags:
+ *          - Deposit
+ *      summary: Запрос GET для получения всех остатков на депозитах
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Список остатков депозитов организаций
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: Список депозитов организаций
+ *                        example: Список депозитов организаций
+ *                      organizations:
+ *                        type: array
+ *                        description: Список организаций и их остатки на депозитах
+ *                        items:
+ *                          type: object
+ *                          properties:
+ *                            id:
+ *                              type: string
+ *                              description: Уникальный идентификатор организации
+ *                              example: "0056ac9c-e398-410d-8185-1196ead4a8b8"
+ *                            organizationName:
+ *                              type: string
+ *                              description: Название организации
+ *                              example: Уфа
+ *                            createdAt:
+ *                              type: string
+ *                              format: date-time
+ *                              example: 2024-05-01 17:25:00
+ *                            updatedAt:
+ *                              type: string
+ *                              format: date-time
+ *                              example: 2024-05-01 17:25:00
+ *                            SUM:
+ *                              type: string
+ *                              description: Сумма всех заказов
+ *                              example: 390000
+ *                            allDeposits:
+ *                              type: string
+ *                              description: Сумма всех депозитов
+ *                              example: 50000
+ *                              
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+
+
+
+/**
+ * @swagger
+ * /{accountId}/deposits/{organizationCustomerId}:
+ *  get:
+ *      tags:
+ *          - Deposit
+ *      summary: Запрос GET для получения всех остатков на депозитах
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *        - in: path
+ *          name: organizationCustomerId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID организации
+ *      responses:
+ *        200:
+ *          description: История депозитов организации
+ *          content:
+ *            application/json:
+ *                  schema:
+ *                    type: object
+ *                    properties:
+ *                      title:
+ *                        type: string
+ *                        description: История депозитов организации
+ *                        example: История депозитов организации
+ *                      organizations:
+ *                        type: object
+ *                        description: Выбранная организация
+ *                        items:
+ *                          type: object
+ *                          $ref: '#/components/schemas/OrganizationCustomer'
+ *                              
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
  */
