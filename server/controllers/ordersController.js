@@ -394,7 +394,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                     [
                         {
                             model: PriceDefinition,
-                            attributes: ['priceAccess', 'priceBooklet']
+                            attributes: ['priceAccess', 'priceBooklet'],
+                            as: 'prices'
                         }
                     ]
             })
@@ -516,7 +517,8 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
                     [
                         {
                             model: PriceDefinition,
-                            attributes: ['priceAccess', 'priceBooklet']
+                            attributes: ['priceAccess', 'priceBooklet'],
+                            as: 'prices'
                         }
                     ]
             }),
