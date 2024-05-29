@@ -1769,7 +1769,33 @@
  */
 
 
-
+/**
+ * @swagger
+ * /{accountId}/prices/newPrice:
+ *  get:
+ *      tags:
+ *          - PriceDefinition
+ *      summary: Запрос GET для получения формы создания прайс листа (PriceDefinition)
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Форма создания прайс листа
+ *          content:
+ *            application/json:
+ *              schema:
+ *                type: array
+ *                items:
+ *                  $ref: '#/components/schemas/Product'
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
 
 /**
  * @swagger
