@@ -158,8 +158,10 @@ exports.price_create_post = [
         .isInt({ min: 1 })
         .escape(),
     body("productTypeId")
-        .optional({ checkFalsy: true })
-        .isInt({ min: 1, max: 3 })
+        .isNumeric()
+        .withMessage('Тип продукта должен быть числом')
+        .isIn([1, 2, 3])
+        .withMessage('Тип продукта может быть только 1, 2 или 3')
         .escape(),
     body("activationDate", "Дата активации должна быть указана")
         .toDate()

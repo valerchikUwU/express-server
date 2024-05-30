@@ -90,17 +90,6 @@ router.get("/:accountId/orders/archive", checkAbilities('read', 'Order_Admin'), 
 
 
 
-
-/**
- * Запрос GET для получения деталей (Всех TitleOrders и OrganizationCustomer) для выбранного заказа от лица админа
- * @param orderId - id заказа 
- */
-router.get("/:accountId/orders/admin/:orderId", checkAbilities('read', 'Order_Admin'), orders_controller.admin_order_detail);
-
-
-
-
-
 /**
  * Запрос GET для получения формы создания заказа от лица Админа
  * @param orderId - id заказа 
@@ -114,6 +103,12 @@ router.get("/:accountId/orders/admin/newOrder", checkAbilities('read', 'Order_Ad
  */
 router.post("/:accountId/orders/admin/newOrder", checkAbilities('create', 'Order_Admin'), orders_controller.admin_order_create_post);
 
+
+/**
+ * Запрос GET для получения деталей (Всех TitleOrders и OrganizationCustomer) для выбранного заказа от лица админа
+ * @param orderId - id заказа 
+ */
+router.get("/:accountId/orders/admin/:orderId", checkAbilities('read', 'Order_Admin'), orders_controller.admin_order_detail);
 
 /**
  * Запрос GET для получения деталей (Всех TitleOrders) для выбранного заказа от лица пользователя
