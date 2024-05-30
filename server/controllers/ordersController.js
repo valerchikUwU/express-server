@@ -724,16 +724,21 @@ exports.user_order_create_post = [
 
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
 
-    const [allProducts, allOrganizations, allPayees] = await Promise.all([
-        Product.findAll(),
+    const [productsWithMaxPriceDefinitions, allOrganizations, allPayees] = await Promise.all([
+        await sequelize.query(`
+        SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
+        FROM Products, PriceDefinitions
+        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+        (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+        `, { type: sequelize.QueryTypes.SELECT }),
         OrganizationCustomer.findAll(),
         Payee.findAll(),
     ]);
-
+    
     // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
         title: "Форма создания заказа",
-        allProducts: allProducts,
+        allProducts: productsWithMaxPriceDefinitions,
         allOrganizations: allOrganizations,
         allPayees: allPayees
     });
@@ -832,7 +837,7 @@ exports.admin_order_create_post = [
 
 
                 const actualActivationDate = await sequelize.query(
-                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
                     {
                         replacements: { productId: title.productId },
                         type: sequelize.QueryTypes.SELECT
@@ -944,70 +949,6 @@ exports.user_receivedOrder_updateStatus_put = [
             oldOrder.status = 'Получен'
             await oldOrder.save();
             res.status(200).send('Заказ успешно переведён в статус "Получен"!');
-        }
-    }),
-];
-
-
-
-
-
-
-
-
-
-exports.admin_order_update_put = [
-
-
-    // Validate and sanitize fields.
-
-    body("organizationCustomerId", "organizationCustomerId must not be empty.")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("status", "status must not be empty.")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("billNumber")
-        .optional({ checkFalsy: true })
-        .escape(),
-
-
-    asyncHandler(async (req, res, next) => {
-        const errors = validationResult(req);
-
-        const order = new Order({
-            organizationCustomerId: req.body.organizationCustomerId,
-            status: req.body.status,
-            billNumber: req.body.billNumber,
-            isFromDeposit: req.body.isFromDeposit,
-            dispatchDate: req.body.status === 'Отправлен' ? new Date() : null,
-            _id: req.params.orderId
-        });
-
-        if (!errors.isEmpty()) {
-            const [allOrganizations] = await Promise.all([
-                getOrganizationList(req.params.accountId)
-            ]);
-
-
-            res.json({
-                title: "Update order",
-                allOrganizations: allOrganizations,
-                order: order,
-                errors: errors.array(),
-            });
-            return;
-        } else {
-            const oldOrder = await Order.findByPk(req.params.orderId);
-            oldOrder.organizationCustomerId = order.organizationCustomerId;
-            oldOrder.status = order.status;
-            oldOrder.billNumber = order.billNumber;
-            oldOrder.isFromDeposit = order.isFromDeposit;
-            oldOrder.dispatchDate = order.dispatchDate
-            await oldOrder.save();
-            res.status(200).send('Заказ успешно обновлен!');
         }
     }),
 ];

@@ -1302,6 +1302,20 @@
  *                               type: integer
  *                               description: ID типа продукта
  *                               example: 1
+ *                             priceAccess:
+ *                                 type: decimal
+ *                                 description: Цена доступа
+ *                                 example: 10000
+ *                             priceBooklet:
+ *                                 type: decimal
+ *                                 description: Цена буклета
+ *                                 example: 1500
+ *                             activationDate:
+ *                                 type: date
+ *                                 description: Актуальная дата прайс листа
+ *                                 example: 2024-05-29T11:03:09.000Z
+ *                              
+ *                          
  *                       allOrganizations:
  *                         type: array
  *                         description: Список всех организаций
