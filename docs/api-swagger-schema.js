@@ -1688,6 +1688,10 @@
  *                                        format: uuid
  *                                        description: ID получателя платежа
  *                                        example: '1c12df6d-11ed-46e2-93d9-e91d07c0a6d0'
+ *                                      isFromDeposit:
+ *                                        type: boolean
+ *                                        description: Флаг, указывающий на списание с депозита
+ *                                        example: true
  *                                      titlesToUpdate:
  *                                        type: array
  *                                        items:
