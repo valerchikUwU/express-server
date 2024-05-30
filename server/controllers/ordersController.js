@@ -724,25 +724,21 @@ exports.user_order_create_post = [
 
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
 
-    const [allProducts, allOrganizations, allPayees] = await Promise.all([
-        Product.findAll({
-            include:
-                [
-                    {
-                        model: PriceDefinition,
-                        attributes: ['priceAccess', 'priceBooklet'],
-                        as: 'prices'
-                    }
-                ]
-        }),
+    const [productsWithMaxPriceDefinitions, allOrganizations, allPayees] = await Promise.all([
+        await sequelize.query(`
+        SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
+        FROM Products, PriceDefinitions
+        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+        (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+        `, { type: sequelize.QueryTypes.SELECT }),
         OrganizationCustomer.findAll(),
         Payee.findAll(),
     ]);
-
+    
     // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
         title: "Форма создания заказа",
-        allProducts: allProducts,
+        allProducts: productsWithMaxPriceDefinitions,
         allOrganizations: allOrganizations,
         allPayees: allPayees
     });
@@ -841,7 +837,7 @@ exports.admin_order_create_post = [
 
 
                 const actualActivationDate = await sequelize.query(
-                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
                     {
                         replacements: { productId: title.productId },
                         type: sequelize.QueryTypes.SELECT
