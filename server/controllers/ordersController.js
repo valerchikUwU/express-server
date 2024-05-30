@@ -981,6 +981,7 @@ exports.admin_order_update_put = [
             organizationCustomerId: req.body.organizationCustomerId,
             status: req.body.status,
             billNumber: req.body.billNumber,
+            isFromDeposit: req.body.isFromDeposit,
             dispatchDate: req.body.status === 'Отправлен' ? new Date() : null,
             _id: req.params.orderId
         });
@@ -1003,6 +1004,7 @@ exports.admin_order_update_put = [
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = order.status;
             oldOrder.billNumber = order.billNumber;
+            oldOrder.isFromDeposit = order.isFromDeposit;
             oldOrder.dispatchDate = order.dispatchDate
             await oldOrder.save();
             res.status(200).send('Заказ успешно обновлен!');
