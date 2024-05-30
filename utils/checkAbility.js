@@ -11,11 +11,17 @@ const checkAbilities = (action, subject) => {
     const sessionId = req.sessionID;
     console.log(`checkability ${sessionId}`)
     if(process.env.NODE_ENV === 'development'){
-      const account = await getAccountById(req.params.accountId);
-      const ability = defineAbilitiesFor(account);
-      if (ability.can(action, subject)) {
-        next();
+      try{
+        const account = await getAccountById(req.params.accountId);
+        const ability = defineAbilitiesFor(account);
+        if (ability.can(action, subject)) {
+          next();
+        }
       }
+      catch(err){
+        console.log(`checkAbilities error ::: ${err}`)
+      }
+      
     }
     else {
 

@@ -639,11 +639,11 @@
  *                                  priceAccess:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "15000" (в случае депозита устанавл. в "1")
+ *                                    example: '15000 (в случае депозита устанавл. в 1)'
  *                                  priceBooklet:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "1500" (в случае депозита устанавл. в "0")
+ *                                    example: '1500 (в случае депозита устанавл. в 0)'
  *                          formattedDispatchDate:
  *                            type: string
  *                            format: date-time
@@ -762,11 +762,11 @@
  *                                  priceAccess:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "1235" (в случае депозита устанавл. в "1")
+ *                                    example: '1235 (в случае депозита устанавл. в 1)'
  *                                  priceBooklet:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "333" (в случае депозита устанавл. в "0")
+ *                                    example: '333 (в случае депозита устанавл. в 0)'
  *                          formattedDispatchDate:
  *                            type: string
  *                            nullable: true
@@ -1021,11 +1021,11 @@
  *                                  priceAccess:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "1333" (в случае депозита устанавл. в "1")
+ *                                    example: '1333 (в случае депозита устанавл. в 1)'
  *                                  priceBooklet:
  *                                    type: string
  *                                    nullable: false
- *                                    example: "330" (в случае депозита устанавл. в "0")
+ *                                    example: '330 (в случае депозита устанавл. в 0)'
  *                          organization:
  *                            type: object
  *                            properties:
@@ -1155,10 +1155,10 @@
  *                              properties:
  *                                priceAccess:
  *                                  type: string
- *                                  example: "8000" (в случае депозита устанавл. в "1")
+ *                                  example: '8000 (в случае депозита устанавл. в 1)'
  *                                priceBooklet:
  *                                  type: string
- *                                  example: "500" (в случае депозита устанавл. в "0")
+ *                                  example: '500 (в случае депозита устанавл. в 0)'
  *                        organization:
  *                          type: object
  *                          properties:
@@ -1242,6 +1242,195 @@
 
 
 
+
+/**
+ * @swagger
+ * /{accountId}/orders/admin/newOrder:
+ *  get:
+ *      tags:
+ *          - Order
+ *      summary: Запрос GET для получения формы создания заказа от лица Админа
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          description: Форма создания заказа
+ *          content:
+ *            application/json:
+ *                   schema:
+ *                     type: object
+ *                     properties:
+ *                       title:
+ *                         type: string
+ *                         description: Форма создания заказа
+ *                         example: "Форма создания заказа"
+ *                       allProducts:
+ *                         type: array
+ *                         description: Список всех продуктов
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               description: Уникальный идентификатор продукта
+ *                               example: "01584925-5783-428b-a592-e886cb8dca50"
+ *                             name:
+ *                               type: string
+ *                               description: Название продукта
+ *                               example: "новейший продукт"
+ *                             abbreviation:
+ *                               type: string
+ *                               description: Аббревиатура продукта
+ *                               example: "НОП"
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                               description: Дата создания продукта
+ *                               example: "2024-04-22T13:19:44.000Z"
+ *                             updatedAt:
+ *                               type: string
+ *                               format: date-time
+ *                               description: Дата последнего обновления продукта
+ *                               example: "2024-04-23T10:47:41.000Z"
+ *                             productTypeId:
+ *                               type: integer
+ *                               description: ID типа продукта
+ *                               example: 1
+ *                       allOrganizations:
+ *                         type: array
+ *                         description: Список всех организаций
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               description: Уникальный идентификатор организации
+ *                               example: "1"
+ *                             organizationName:
+ *                               type: string
+ *                               description: Название организации
+ *                               example: "Симферополь"
+ *                             createdAt:
+ *                               type: string
+ *                               nullable: true
+ *                               description: Дата создания организации
+ *                               example: null
+ *                             updatedAt:
+ *                               type: string
+ *                               nullable: true
+ *                               description: Дата последнего обновления информации об *\организации
+ *                               example: null
+ *                       allPayees:
+ *                         type: array
+ *                         description: Список всех получателей платежей
+ *                         items:
+ *                           type: object
+ *                           properties:
+ *                             id:
+ *                               type: string
+ *                               description: Уникальный идентификатор получателя платежей
+ *                               example: "1c12df6d-11ed-46e2-93d9-e91d07c0a6d0"
+ *                             name:
+ *                               type: string
+ *                               description: Название получателя платежей
+ *                               example: "OOO Popka"
+ *                             createdAt:
+ *                               type: string
+ *                               format: date-time
+ *                               description: Дата создания получателя платежей
+ *                               example: "2024-04-22T13:26:49.000Z"
+ *                             updatedAt:
+ *                               type: string
+ *                               format: date-time
+ *                               description: Дата последнего обновления информации о получателе платежей
+ *                               example: "2024-04-22T13:26:49.000Z"
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ */
+
+
+/**
+ * @swagger
+ * /{accountId}/orders/admin/newOrder:
+ *  post:
+ *      tags:
+ *          - Order
+ *      summary: Запрос POST для создания заказа от лица Админа
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      requestBody:
+ *          required: true
+ *          content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          organizationCustomerId:
+ *                              type: string
+ *                              description: ID клиента организации
+ *                              example: "01584925-5783-428b-a592-e886cb8dca50"
+ *                          status:
+ *                              type: string
+ *                              description: Статус заказа
+ *                              example: "Активный"
+ *                          billNumber:
+ *                              type: string
+ *                              description: Номер счета
+ *                              example: "123.43"
+ *                          payeeId:
+ *                              type: string
+ *                              description: ID получателя платежей
+ *                              example: "2224925-5783-428b-a592-e886cb8dca50"
+ *                          isFromDeposit:
+ *                              type: boolean
+ *                              description: Флаг, указывающий, является ли заказ от депозита
+ *                              example: false
+ *                          titlesToCreate:
+ *                              type: array
+ *                              description: Список заголовков для создания
+ *                              items:
+ *                                  type: object
+ *                                  properties:
+ *                                      productId:
+ *                                          type: string
+ *                                          description: ID продукта
+ *                                          example: "8eb897f2-22b1-4d32-aef8-e9a379b5c0e8"
+ *                                      generation:
+ *                                          type: string
+ *                                          description: Генерация продукта
+ *                                          example: "Второе поколение"
+ *                                      accessType:
+ *                                          type: string
+ *                                          description: Тип доступа к продукту
+ *                                          example: "Электронный"
+ *                                      quantity:
+ *                                          type: integer
+ *                                          description: Количество единиц продукта
+ *                                          example: 5
+ *                                      addBooklet:
+ *                                          type: boolean
+ *                                          description: Флаг, указывающий, нужно ли добавить буклет
+ *                                          example: false
+ *      responses:
+ *        200:
+ *          description: Заказ успешно создан!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Некорректная форма заказа!
+ */
 
 /**
  * @swagger
@@ -2253,7 +2442,7 @@
  *                              telephoneNumber:
  *                                  type: string
  *                                  description: Номер телефона пользователя
- *                                  example: '+79787513333' (также 89787513333)
+ *                                  example: '+79787513333 (также 89787513333)'
  *                              organizationList:
  *                                  type: JSON
  *                                  nullable: true
@@ -2320,7 +2509,7 @@
  *                            telephoneNumber:
  *                              type: string
  *                              description: Номер телефона аккаунта
- *                              example: '+79787513999' (также 89787513999)
+ *                              example: '+79787513999 (также 89787513999)'
  *                            telegramId:
  *                              type: string
  *                              nullable: true
@@ -2418,7 +2607,7 @@
  *                            telephoneNumber:
  *                              type: string
  *                              description: Номер телефона аккаунта
- *                              example: '+79787513999' (также 89787513999)
+ *                              example: '+79787513999 (также 89787513999)'
  *                            telegramId:
  *                              type: string
  *                              nullable: true

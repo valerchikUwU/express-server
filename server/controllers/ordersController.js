@@ -742,12 +742,7 @@ exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
 exports.admin_order_create_post = [
 
 
-
-    body("accountId")
-        .optional({ checkFalsy: true })
-        .trim()
-        .escape(),
-    body("organization", "Организация должна быть указана")
+    body("organizationCustomerId", "Организация должна быть указана")
         .trim()
         .isLength({ min: 1 })
         .escape(),
@@ -834,6 +829,8 @@ exports.admin_order_create_post = [
             await order.save();
             for (const title of titlesToCreate) {
 
+
+
                 const actualActivationDate = await sequelize.query(
                     `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
                     {
@@ -848,9 +845,19 @@ exports.admin_order_create_post = [
 
                 title.orderId = order.id
                 title.priceDefId = priceDefinition.id
-        
-                    await title.save();
-                }
+
+                await TitleOrders.create(
+                    {
+                        productId: title.productId,
+                        orderId: title.orderId,
+                        accessType: title.accessType,
+                        generation: title.generation,
+                        addBooklet: title.addBooklet,
+                        quantity: title.quantity,
+                        priceDefId: title.priceDefId
+                    }
+                )
+            }
             res.status(200).send('Заказ успешно создан!');
         }
     }),
