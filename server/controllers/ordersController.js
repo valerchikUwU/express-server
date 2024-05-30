@@ -725,7 +725,16 @@ exports.user_order_create_post = [
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
 
     const [allProducts, allOrganizations, allPayees] = await Promise.all([
-        Product.findAll(),
+        Product.findAll({
+            include:
+                [
+                    {
+                        model: PriceDefinition,
+                        attributes: ['priceAccess', 'priceBooklet'],
+                        as: 'prices'
+                    }
+                ]
+        }),
         OrganizationCustomer.findAll(),
         Payee.findAll(),
     ]);
