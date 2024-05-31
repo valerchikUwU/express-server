@@ -5,6 +5,7 @@ const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
 const OrganizationCustomer = require('../../models/organizationCustomer');
+const sequelize = require('../../database/connection');
 
 
 
@@ -57,7 +58,6 @@ exports.user_titleOrder_update_put = [
 
 
         const titlesToUpdate = req.body.titlesToUpdate;
-        console.log(titlesToUpdate);
         if (!errors.isEmpty()) {
             const [order, titleOrders] = await Promise.all([
                 Order.findByPk(req.params.orderId),
@@ -66,7 +66,7 @@ exports.user_titleOrder_update_put = [
 
 
             res.json({
-                title: "Обновление наименований в заказе",
+                title: "Некорректное обновление наименований в заказе",
                 titleOrders: titleOrders,
                 order: order,
                 errors: errors.array(),
@@ -85,7 +85,17 @@ exports.user_titleOrder_update_put = [
 
                     if (title.productId) {
                         oldTitle.productId = title.productId;
-                        const priceDef = await PriceDefinition.findOne({ where: { productId: title.productId } });
+                        const actualActivationDate = await sequelize.query(
+                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                            {
+                                replacements: { productId: title.productId },
+                                type: sequelize.QueryTypes.SELECT
+                            }
+                        );
+                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                        const priceDef = await PriceDefinition.findOne({
+                            where: { activationDate: actualDate }
+                        });
                         oldTitle.priceDefId = priceDef.id
                     }
 
@@ -241,7 +251,17 @@ exports.admin_titleOrder_update_put = [
 
                     if (title.productId) {
                         oldTitle.productId = title.productId;
-                        const priceDef = await PriceDefinition.findOne({ where: { productId: title.productId } });
+                        const actualActivationDate = await sequelize.query(
+                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                            {
+                                replacements: { productId: title.productId },
+                                type: sequelize.QueryTypes.SELECT
+                            }
+                        );
+                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                        const priceDef = await PriceDefinition.findOne({
+                            where: { activationDate: actualDate }
+                        });
                         oldTitle.priceDefId = priceDef.id
                     }
 
