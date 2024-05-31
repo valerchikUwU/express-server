@@ -324,6 +324,32 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
 
 exports.user_order_detail = asyncHandler(async (req, res, next) => {
     try {
+
+
+        const draftOrder = findByPk(req.params.orderId);
+        const draftTitles = findAll({where: {orderId: req.params.orderId}})
+        
+        if(draftTitles.length > 0){
+            if(draftOrder.status === 'Черновик'){
+                for (const title of draftTitles) {
+                        const actualActivationDate = await sequelize.query(
+                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
+                            {
+                                replacements: { productId: title.productId },
+                                type: sequelize.QueryTypes.SELECT
+                            }
+                        );
+                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                        const priceDef = await PriceDefinition.findOne({
+                            where: { activationDate: actualDate }
+                        });
+                        title.priceDefId = priceDef.id
+                        await title.save()
+                }
+            }
+        }
+
+
         const [order, titles, products] = await Promise.all([
             Order.findByPk(req.params.orderId, {
                 include:
@@ -399,24 +425,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             throw err;
         }
 
-        if(order.status === 'Черновик'){
-            
-            for (const title in titles) {
-            const actualActivationDate = await sequelize.query(
-                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
-                {
-                    replacements: { productId: title.productId },
-                    type: sequelize.QueryTypes.SELECT
-                }
-            );
-            const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-            const priceDef = await PriceDefinition.findOne({
-                where: { activationDate: actualDate }
-            });
-                title.priceDefId = priceDef.id
-                await title.save()
-            }
-        }
+        
 
 
 
@@ -579,7 +588,7 @@ exports.user_order_create_post = [
         if (!req.body) return res.sendStatus(400);
 
         const actualActivationDate = await sequelize.query(
-            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
             {
                 replacements: { productId: req.body.productId },
                 type: sequelize.QueryTypes.SELECT
