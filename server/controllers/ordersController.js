@@ -326,8 +326,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     try {
 
 
-        const draftOrder = findByPk(req.params.orderId);
-        const draftTitles = findAll({where: {orderId: req.params.orderId}})
+        const draftOrder = await Order.findByPk(req.params.orderId);
+        const draftTitles = await TitleOrders.findAll({where: {orderId: req.params.orderId}})
 
         if(draftTitles.length > 0){
             if(draftOrder.status === 'Черновик'){
