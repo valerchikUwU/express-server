@@ -382,23 +382,13 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         ]
                 },
             }),
-            Product.findAll({
-                where:
-                {
-                    productTypeId:
-                    {
-                        [Op.ne]: 4
-                    }
-                },
-                include:
-                    [
-                        {
-                            model: PriceDefinition,
-                            attributes: ['priceAccess', 'priceBooklet'],
-                            as: 'prices'
-                        }
-                    ]
-            })
+            
+            await sequelize.query(`
+                SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
+                FROM Products, PriceDefinitions
+                WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+                (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+            `, { type: sequelize.QueryTypes.SELECT })
         ]);
 
         if (order.id === null) {
@@ -505,23 +495,12 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
                         ]
                 }
             }),
-            Product.findAll({
-                where:
-                {
-                    productTypeId:
-                    {
-                        [Op.ne]: 4
-                    }
-                },
-                include:
-                    [
-                        {
-                            model: PriceDefinition,
-                            attributes: ['priceAccess', 'priceBooklet'],
-                            as: 'prices'
-                        }
-                    ]
-            }),
+            await sequelize.query(`
+                SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
+                FROM Products, PriceDefinitions
+                WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+                (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+            `, { type: sequelize.QueryTypes.SELECT }),
             Payee.findAll()
         ]);
 
@@ -734,7 +713,7 @@ exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
         OrganizationCustomer.findAll(),
         Payee.findAll(),
     ]);
-    
+
     // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
     res.json({
         title: "Форма создания заказа",
