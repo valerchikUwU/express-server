@@ -361,7 +361,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         {
                             model: Product,
                             as: 'product',
-                            attributes: ['abbreviation']
+                            attributes: ['abbreviation', 'name']
                         },
                         {
                             model: PriceDefinition,
@@ -398,6 +398,26 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             err.status = 404;
             throw err;
         }
+
+        if(order.status === 'Черновик'){
+            const actualActivationDate = await sequelize.query(
+                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                {
+                    replacements: { productId: title.productId },
+                    type: sequelize.QueryTypes.SELECT
+                }
+            );
+            const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+            const priceDef = await PriceDefinition.findOne({
+                where: { activationDate: actualDate }
+            });
+            for (const title in titles) {
+                title.priceDefId = priceDef.id
+                await title.save()
+            }
+        }
+
+
 
         res.json({
             title: "Детали заказа",
@@ -880,25 +900,30 @@ exports.user_draftOrder_updateStatus_put = [
 
 
             res.json({
-                title: "Update order",
+                title: "Некорректное обновление",
                 allOrganizations: allOrganizations,
                 order: order,
                 errors: errors.array(),
             });
-            return;
         } else {
             const oldOrder = await Order.findByPk(req.params.orderId);
             const titles = await TitleOrders.findAll({ where: { orderId: oldOrder.id } })
-            if (oldOrder.status !== 'Черновик' || oldOrder.status !== 'Черновик депозита') {
+            console.log('TITLEs:::::')
+            console.log(titles)
+            if (oldOrder.status !== 'Черновик' && oldOrder.status !== 'Черновик депозита') {
                 res.status(400).send('Редактировать можно только черновик!')
+                console.log('400 edit only draft')
             }
-            if (!titles) {
+            if (titles.length === 0) {
                 res.status(400).send('Добавьте товары в заказ!')
+                console.log('400 add products')
             }
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = 'Активный'
+            console.log('await oldOrder.save();')
             await oldOrder.save();
             res.status(200).send('Заказ успешно переведён в статус "Активный"!');
+            console.log('200')
         }
     }),
 ];
