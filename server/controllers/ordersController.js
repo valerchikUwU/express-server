@@ -400,6 +400,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
         }
 
         if(order.status === 'Черновик'){
+            
+            for (const title in titles) {
             const actualActivationDate = await sequelize.query(
                 `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
                 {
@@ -411,7 +413,6 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             const priceDef = await PriceDefinition.findOne({
                 where: { activationDate: actualDate }
             });
-            for (const title in titles) {
                 title.priceDefId = priceDef.id
                 await title.save()
             }
