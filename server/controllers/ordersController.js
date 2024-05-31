@@ -328,25 +328,28 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
 
         const draftOrder = findByPk(req.params.orderId);
         const draftTitles = findAll({where: {orderId: req.params.orderId}})
-        if(draftOrder.status === 'Черновик'){
-            for (const title of draftTitles) {
-                    const actualActivationDate = await sequelize.query(
-                        `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
-                        {
-                            replacements: { productId: title.productId },
-                            type: sequelize.QueryTypes.SELECT
-                        }
-                    );
-                    const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-                    const priceDef = await PriceDefinition.findOne({
-                        where: { activationDate: actualDate }
-                    });
-                    title.priceDefId = priceDef.id
-                    await title.save()
+        
+        if(draftTitles.length > 0){
+            if(draftOrder.status === 'Черновик'){
+                for (const title of draftTitles) {
+                        const actualActivationDate = await sequelize.query(
+                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
+                            {
+                                replacements: { productId: title.productId },
+                                type: sequelize.QueryTypes.SELECT
+                            }
+                        );
+                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                        const priceDef = await PriceDefinition.findOne({
+                            where: { activationDate: actualDate }
+                        });
+                        title.priceDefId = priceDef.id
+                        await title.save()
+                }
             }
         }
 
-        
+
         const [order, titles, products] = await Promise.all([
             Order.findByPk(req.params.orderId, {
                 include:
