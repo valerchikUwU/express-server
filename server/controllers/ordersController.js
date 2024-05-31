@@ -388,6 +388,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                 FROM Products, PriceDefinitions
                 WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
                 (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+                AND Products.productTypeId <> 4
             `, { type: sequelize.QueryTypes.SELECT })
         ]);
 
@@ -500,6 +501,7 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
                 FROM Products, PriceDefinitions
                 WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
                 (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+                AND Products.productTypeId <> 4
             `, { type: sequelize.QueryTypes.SELECT }),
             Payee.findAll()
         ]);
