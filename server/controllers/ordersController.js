@@ -328,7 +328,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
 
         const draftOrder = findByPk(req.params.orderId);
         const draftTitles = findAll({where: {orderId: req.params.orderId}})
-        
+
         if(draftTitles.length > 0){
             if(draftOrder.status === 'Черновик'){
                 for (const title of draftTitles) {
@@ -918,22 +918,16 @@ exports.user_draftOrder_updateStatus_put = [
         } else {
             const oldOrder = await Order.findByPk(req.params.orderId);
             const titles = await TitleOrders.findAll({ where: { orderId: oldOrder.id } })
-            console.log('TITLEs:::::')
-            console.log(titles)
             if (oldOrder.status !== 'Черновик' && oldOrder.status !== 'Черновик депозита') {
                 res.status(400).send('Редактировать можно только черновик!')
-                console.log('400 edit only draft')
             }
             if (titles.length === 0) {
                 res.status(400).send('Добавьте товары в заказ!')
-                console.log('400 add products')
             }
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = 'Активный'
-            console.log('await oldOrder.save();')
             await oldOrder.save();
             res.status(200).send('Заказ успешно переведён в статус "Активный"!');
-            console.log('200')
         }
     }),
 ];

@@ -57,6 +57,10 @@ exports.user_titleOrder_update_put = [
         const errors = validationResult(req);
 
 
+        const order = await Order.findByPk(req.params.orderId)
+        if (order.status !== 'Черновик'){
+            res.status(400).send('Редактировать можно только черновик!')
+        }
         const titlesToUpdate = req.body.titlesToUpdate;
         if (!errors.isEmpty()) {
             const [order, titleOrders] = await Promise.all([
