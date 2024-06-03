@@ -325,12 +325,13 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
 exports.user_order_detail = asyncHandler(async (req, res, next) => {
     try {
 
+        const [draftOrder, draftTitles] = await Promise.all([
+            await Order.findByPk(req.params.orderId),
+            await TitleOrders.findAll({where: {orderId: req.params.orderId}}),
+        ])
 
-        const draftOrder = await Order.findByPk(req.params.orderId);
-        const draftTitles = await TitleOrders.findAll({where: {orderId: req.params.orderId}})
-
-        if(draftTitles.length > 0){
-            if(draftOrder.status === 'Черновик'){
+        if(draftOrder.status === 'Черновик'){
+            if(draftTitles.length > 0){
                 for (const title of draftTitles) {
                         const actualActivationDate = await sequelize.query(
                             `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
@@ -346,6 +347,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         title.priceDefId = priceDef.id
                         await title.save()
                 }
+
             }
         }
 
@@ -418,6 +420,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             `, { type: sequelize.QueryTypes.SELECT })
         ]);
 
+        
+        
         if (order.id === null) {
             // No results.
             const err = new Error("Заказ не найден");
