@@ -3,7 +3,6 @@ const { body, validationResult } = require("express-validator");
 const { Sequelize, Op, fn, col } = require('sequelize');
 const CommisionReciever = require('../../models/commisionReceiver');
 const AccrualRule = require('../../models/accrualRule');
-const { Sequelize } = require('sequelize');
 const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
@@ -40,13 +39,13 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
 
 
 exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) => {
-    // Get details of books, book instances for specific book
+    
     const [commisionReciever, allRules] = await Promise.all([
-        CommisionReciever.findByPk(req.params.receiverId),
-        AccrualRule.findAll({ where: { commisionRecieverId: req.params.receiverId } })
+        CommisionReciever.findByPk(req.params.commisionRecieverId),
+        AccrualRule.findAll({ where: { commisionRecieverId: req.params.commisionRecieverId } })
     ]);
 
-    if (commisionReciever === null) {
+    if (commisionReciever.id === null) {
         const err = new Error("Такой получатель комиссии не найден!");
         err.status = 404;
         return next(err);
@@ -82,7 +81,6 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                         
 
 /**
-                                         * use co06635_acad;
             SELECT SUM(A.commision * titles.quantity) AS totalCommission
             FROM AccrualRules A
             JOIN TitleOrders titles ON A.productId = titles.productId
@@ -118,14 +116,6 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
 });
 
 
-exports.commisionReciever_create_get = asyncHandler(async (req, res, next) => {
-
-
-    // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
-    res.json({
-        title: "Форма создания получателя комиссии",
-    });
-});
 
 
 exports.commisionReciever_create_post = [
