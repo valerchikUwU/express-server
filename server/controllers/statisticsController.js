@@ -4,6 +4,7 @@ const { Sequelize, Op, fn, col } = require('sequelize');
 const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
+const OrganizationCustomer = require('../../models/organizationCustomer');
 
 
 exports.sells_list = asyncHandler(async (req, res, next) => {
@@ -34,6 +35,11 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
                                 }
                             ],
                         attributes: []
+                    },
+                    {
+                        model: OrganizationCustomer,
+                        as: 'organization',
+                        attributes: ['organizationName']
                     }
                 ],
             attributes:
@@ -45,6 +51,9 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
                         ],
                         [
                             Sequelize.literal(`dispatchDate`), 'dispatchDate'
+                        ],
+                        [
+                            Sequelize.literal(`organizationName`), 'organizationName'
                         ]
                     ]
             },
