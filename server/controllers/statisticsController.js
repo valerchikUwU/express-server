@@ -15,7 +15,9 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
                 {
                     [Op.in]:
                         [
-                            'Оплачен'
+                            'Оплачен',
+                            'Отправлен',
+                            'Получен'
                         ]
                 }
             },
@@ -56,7 +58,7 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
 
 
     res.json({
-        title: "sells statistics",
+        title: "Статистика продаж",
         orders: orders,
     });
 });
