@@ -138,7 +138,8 @@ const swaggerDefinition = {
     {name: 'ProductType'},
     {name: 'Role'},
     {name: 'TitleOrders'},
-    {name: 'Authentication'}
+    {name: 'Authentication'},
+    {name: 'Statistics'}
   ]
 };
 

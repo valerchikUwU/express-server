@@ -6,7 +6,10 @@ const orders_controller = require("../controllers/ordersController");
 const payees_controller = require("../controllers/payeeController");
 const priceDefinition_controller = require("../controllers/priceDefinitionController");
 const titleOrders_controller = require("../controllers/titleOrdersController");
-const deposit_controller = require("../controllers/depositController")
+const deposit_controller = require("../controllers/depositController");
+const statistics_controller = require("../controllers/statisticsController");
+const rules_controller = require('../controllers/accrualRuleController');
+const commisionReceiver_controller = require('../controllers/commisionRecieverController');
 const checkAbilities = require('../../utils/checkAbility');
 
 
@@ -297,6 +300,40 @@ router.get("/:accountId/deposits/:organizationCustomerId", checkAbilities('read'
  */
 router.get("/:accountId/deposits", checkAbilities('read', 'Deposit'), deposit_controller.deposits_list);
 
+
+
+
+
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ СТАТИСТИКИ
+============================================================
+*/
+
+
+/**
+ * Запрос GET для получения статистики
+ */
+router.get("/:accountId/statistics", checkAbilities('read', 'Statistics'), statistics_controller.sells_list);
+
+
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ ПОЛУЧАТЕЛЕЙ КОМИССИИ
+============================================================
+*/
+
+
+router.post("/:accountId/:commisionRecieverId/newRule", checkAbilities('create', 'Rule'), rules_controller.accrualRule_create_post);
+
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ ПРАВИЛ НАЧИСЛЕНИЯ КОМИССИИ
+============================================================
+*/
+
+
+router.post("/:accountId/newCommisionReciever", checkAbilities('create', 'CommisionReciever'), commisionReceiver_controller.commisionReciever_create_post);
 
 
 module.exports = router;
