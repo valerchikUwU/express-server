@@ -15,7 +15,6 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
                 {
                     [Op.in]:
                         [
-                            'Оплачен',
                             'Отправлен',
                             'Получен'
                         ]
