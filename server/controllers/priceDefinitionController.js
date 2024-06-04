@@ -147,7 +147,6 @@ exports.price_create_post = [
         .isLength({ min: 1 })
         .escape(),
     body("abbreviation", "Аббревиаутра должна быть указана")
-        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
         .escape(),
@@ -163,7 +162,7 @@ exports.price_create_post = [
         .isIn([1, 2, 3])
         .withMessage('Тип продукта может быть только 1, 2 или 3')
         .escape(),
-    body("activationDate", "Дата активации должна быть указана")
+    body("activationDate", "Дата активации должна быть не раньше текущей!")
         .toDate()
         .custom((value) => {
             // Проверяем, что дата не раньше сегодня
@@ -182,22 +181,17 @@ exports.price_create_post = [
 
 
         if (!errors.isEmpty()) {
-            const [allProducts] = await Promise.all([
-                Product.findAll({ order: [['name']] })
-            ]);
-
 
             res.json({
                 title: "Некорректная форма создания прайс листа!",
-                allProducts: allProducts,
-                price: price,
                 errors: errors.array(),
             });
         }
         else {
 
+            const findProd = await Product.findOne({ where: { name: req.body.name } })
 
-            if (await Product.findOne({ where: { name: req.body.name } }) === null) {
+            if (findProd.id === null) {
 
                 const product = new Product({
                     name: req.body.name,
@@ -205,24 +199,25 @@ exports.price_create_post = [
                     productTypeId: req.body.productTypeId
                 })
 
+                await product.save();
+
                 const price = new PriceDefinition({
                     priceAccess: req.body.priceAccess,
                     priceBooklet: req.body.priceBooklet,
                     productId: product.id,
                     activationDate: req.body.activationDate
                 });
-                product.save();
-                price.save();
+
+                await price.save();
             }
             else {
-                const product = await Product.findOne({ where: { name: req.body.name } })
                 const price = new PriceDefinition({
                     priceAccess: req.body.priceAccess,
                     priceBooklet: req.body.priceBooklet,
-                    productId: product.id,
+                    productId: findProd.id,
                     activationDate: req.body.activationDate
                 });
-                price.save();
+                await price.save();
             }
             res.status(200).send("Прайс лист успешно создан!");
         }

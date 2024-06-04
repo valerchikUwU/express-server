@@ -61,7 +61,7 @@ exports.accrualRule_create_post = [
             accessType: req.body.accessType,
             generation: req.body.generation,
             commision: req.body.commision,
-            commisionRecieverId: req.params.receiverId
+            commisionRecieverId: req.params.commisionRecieverId
         });
 
         if (!errors.isEmpty()) {
@@ -104,7 +104,7 @@ exports.accrualRule_delete = asyncHandler(async (req, res, next) => {
         AccrualRule.findByPk(req.params.ruleId)
     ]);
 
-    if (rule === null) {
+    if (rule.id === null) {
         res.status(404).send('Такое правило не найдено!');
     }
 

@@ -398,7 +398,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         }
                     ],
                 attributes:
-                {
+                {  
                     include:
                         [
                             [
@@ -606,7 +606,7 @@ exports.user_order_create_post = [
 
         const productId = req.body.productId;
         const generation = req.body.generation;
-        const accessType = req.body.addBooklet === 1 ? null : req.body.accessType;
+        const accessType = req.body.addBooklet === true ? null : req.body.accessType;
         const addBooklet = req.body.addBooklet
         const quantity = req.body.quantity;
         const accountId = req.params.accountId;
@@ -806,7 +806,7 @@ exports.admin_order_create_post = [
     body().custom((value, { req }) => {
         const titlesToCreate = req.body.titlesToCreate;
         for (const title of titlesToCreate) {
-            if (title.addBooklet === 1 && title.accessType !== null) {
+            if (title.addBooklet === true && title.accessType !== null) {
                 throw new Error('Буклет представлен только в виде бумажного формата!');
             }
         }
@@ -995,9 +995,7 @@ async function getFirstOrganizationCustomerName(accountId) {
                 id: accountId
             }
         });
-        if (account) {
-            // Предполагаем, что organizationList уже является JSON-массивом
-            // Мы можем напрямую обращаться к его элементам
+        if (account.id !== null) {
             const organizationsList = account.organizationList;
             const firstOrganization = organizationsList[0];
             console.log(firstOrganization);
@@ -1019,24 +1017,5 @@ async function ifProductTypeDeposit(productId) {
     }
     else return false;
 }
-
-
-// async function createTitleOrder(productId, orderId, accessType, generation, addBooklet, quantity, priceDefId) {
-//     try {
-//         await TitleOrders.create({
-//             productId: productId,
-//             orderId: orderId,
-//             accessType: accessType,
-//             generation: generation,
-//             addBooklet: addBooklet,
-//             quantity: quantity,
-//             priceDefId: priceDefId
-//         });
-//         return true;
-//     } catch (err) {
-//         console.error('ERROR CREATING TITLE:', err);
-//         return false;
-//     }
-// }
 
 

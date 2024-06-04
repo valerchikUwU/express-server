@@ -114,7 +114,7 @@ exports.account_organization_create_post = [
                         organizationName: organization
                     }
                 )
-                org.save();
+                await org.save();
             }
 
         }
@@ -219,7 +219,7 @@ exports.superAdmin_account_organization_create_post = [
                         organizationName: organization
                     }
                 )
-                org.save();
+                await org.save();
             }
 
         }
