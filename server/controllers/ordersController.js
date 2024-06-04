@@ -327,25 +327,25 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
 
         const [draftOrder, draftTitles] = await Promise.all([
             await Order.findByPk(req.params.orderId),
-            await TitleOrders.findAll({where: {orderId: req.params.orderId}}),
+            await TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
         ])
 
-        if(draftOrder.status === 'Черновик'){
-            if(draftTitles.length > 0){
+        if (draftOrder.status === 'Черновик') {
+            if (draftTitles.length > 0) {
                 for (const title of draftTitles) {
-                        const actualActivationDate = await sequelize.query(
-                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
-                            {
-                                replacements: { productId: title.productId },
-                                type: sequelize.QueryTypes.SELECT
-                            }
-                        );
-                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-                        const priceDef = await PriceDefinition.findOne({
-                            where: { activationDate: actualDate }
-                        });
-                        title.priceDefId = priceDef.id
-                        await title.save()
+                    const actualActivationDate = await sequelize.query(
+                        `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
+                        {
+                            replacements: { productId: title.productId },
+                            type: sequelize.QueryTypes.SELECT
+                        }
+                    );
+                    const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                    const priceDef = await PriceDefinition.findOne({
+                        where: { activationDate: actualDate }
+                    });
+                    title.priceDefId = priceDef.id
+                    await title.save()
                 }
 
             }
@@ -398,7 +398,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         }
                     ],
                 attributes:
-                {  
+                {
                     include:
                         [
                             [
@@ -410,7 +410,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
                         ]
                 },
             }),
-            
+
             await sequelize.query(`
                 SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
                 FROM Products, PriceDefinitions
@@ -420,8 +420,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             `, { type: sequelize.QueryTypes.SELECT })
         ]);
 
-        
-        
+
+
         if (order.id === null) {
             // No results.
             const err = new Error("Заказ не найден");
@@ -429,7 +429,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             throw err;
         }
 
-        
+
 
 
 
@@ -578,12 +578,24 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
 exports.user_order_create_post = [
 
 
+
+    body("productId")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("generation")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
+    body("accessType")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("quantity")
         .isInt({ min: 1 })
         .withMessage('Должно быть больше 0')
-        .escape(),
-    body("organizationName")
-        .if(body("organizationName").exists())
         .escape(),
 
 
