@@ -8,7 +8,7 @@ const Account = require('../../models/account');
 const Order = require('../../models/order');
 const PriceDefinition = require('../../models/priceDefinition');
 const TitleOrders = require('../../models/titleOrders');
-
+const sequelize = require('../../database/connection');
 
 
 exports.all_products = asyncHandler(async (req, res, next) => {
@@ -31,10 +31,13 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
   switch (productTypeId) {
     case 1:
-      const productsInit = await Product.findAll({
-        where: { productTypeId: productTypeId },
-        raw: true
-      });
+      const productsInit = await sequelize.query(`
+      SELECT Products.*
+        FROM Products, PriceDefinitions
+        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+          AND Products.productTypeId = 1
+      `, { type: sequelize.QueryTypes.SELECT });
 
       res.json({
         title: "Начальные",
@@ -42,10 +45,13 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       });
       break;
     case 2:
-      const productsMain = await Product.findAll({
-        where: { productTypeId: productTypeId },
-        raw: true
-      });
+      const productsMain = await sequelize.query(`
+      SELECT Products.*
+        FROM Products, PriceDefinitions
+        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+          AND Products.productTypeId = 2
+      `, { type: sequelize.QueryTypes.SELECT });
 
       res.json({
         title: "Основные",
@@ -53,10 +59,13 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       });
       break;
     case 3:
-      const productsForEmployers = await Product.findAll({
-        where: { productTypeId: productTypeId },
-        raw: true
-      });;
+      const productsForEmployers = await sequelize.query(`
+      SELECT Products.*
+        FROM Products, PriceDefinitions
+        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+          AND Products.productTypeId = 3
+      `, { type: sequelize.QueryTypes.SELECT });
 
       res.json({
         title: "Для персонала",
@@ -66,74 +75,75 @@ exports.products_list = asyncHandler(async (req, res, next) => {
     case 4:
       const organizationsList = await getOrganizationList(req.params.accountId);
       const [productsDeposit, organizations] = await Promise.all([
-      
-      await Product.findAll({
-        where: { productTypeId: productTypeId },
-        raw: true
-      }),
-      await OrganizationCustomer.findAll({
-        where: 
-        {
-          organizationName: 
+
+        await Product.findAll({
+          where: { productTypeId: productTypeId },
+          raw: true
+        }),
+        await OrganizationCustomer.findAll({
+          where:
           {
-            [Op.in]: organizationsList
-          }
-        },
-        include:
+            organizationName:
+            {
+              [Op.in]: organizationsList
+            }
+          },
+          include:
             [
-                {
-                    model: Order,
-                    where: {
-                        status:
-                        {
-                            [Op.notIn]:
-                                [
-                                    'Получен',
-                                    'Черновик',
-                                    'Черновик депозита',
-                                    'Отменен'
-                                ]
-                        }
-                    },
-                    include:
+              {
+                model: Order,
+                where: {
+                  status:
+                  {
+                    [Op.notIn]:
+                      [
+                        'Получен',
+                        'Черновик',
+                        'Черновик депозита',
+                        'Отменен'
+                      ]
+                  }
+                },
+                include:
+                  [
+                    {
+                      model: TitleOrders,
+                      include:
                         [
-                            {
-                                model: TitleOrders,
-                                include:
-                                    [
-                                        {
-                                            model: PriceDefinition,
-                                            attributes: [],
-                                            as: 'price'
-                                        },
-                                        {
-                                            model: Product,
-                                            attributes: [],
-                                            as: 'product'
-                                        }
-                                    ],
-                                attributes: [],
-                            }
+                          {
+                            model: PriceDefinition,
+                            attributes: [],
+                            as: 'price'
+                          },
+                          {
+                            model: Product,
+                            attributes: [],
+                            as: 'product'
+                          }
                         ],
-                    as: 'orders'
-                }
+                      attributes: [],
+                    }
+                  ],
+                attributes: [],
+                as: 'orders'
+              }
             ],
-        attributes:
-        {
+          attributes:
+          {
             include:
+              [
+
                 [
-
-                    [
-                        Sequelize.literal(`SUM(CASE WHEN productTypeId = 4 THEN (quantity*1) END) `), 'allDeposits'
-                    ]
+                  Sequelize.literal(`SUM(CASE WHEN productTypeId = 4 THEN (quantity*1) END) `), 'allDeposits'
                 ]
-        },
-        group: ['OrganizationCustomer.id'],
-        raw: true
-    })
-    ]);
+              ]
+          },
+          group: ['OrganizationCustomer.id'],
+          raw: true
+        })
+      ]);
 
-    
+
       res.json({
         title: "Пополнение депозита",
         productsList: productsDeposit,
@@ -155,19 +165,19 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
 async function getOrganizationList(accountId) {
   try {
-      const account = await Account.findOne({
-          where: {
-              id: accountId
-          }
-      });
-      if (account) {
-          const organizationsList = account.organizationList;
-          return organizationsList;
-      } else {
-          return null;
+    const account = await Account.findOne({
+      where: {
+        id: accountId
       }
-  } catch (error) {
-      console.error('Ошибка получения списка организаций данного аккаунта:', error);
+    });
+    if (account) {
+      const organizationsList = account.organizationList;
+      return organizationsList;
+    } else {
       return null;
+    }
+  } catch (error) {
+    console.error('Ошибка получения списка организаций данного аккаунта:', error);
+    return null;
   }
 }

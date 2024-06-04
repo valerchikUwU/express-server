@@ -39,7 +39,7 @@ exports.sells_list = asyncHandler(async (req, res, next) => {
                     {
                         model: OrganizationCustomer,
                         as: 'organization',
-                        attributes: ['organizationName']
+                        attributes: []
                     }
                 ],
             attributes:
