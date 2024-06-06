@@ -22,7 +22,24 @@
  *                title: "Список получателей комиссии"
  *                type: array
  *                items:
- *                  $ref: '#/components/schemas/CommisionReciever'
+ *                  type: object
+ *                  properties:
+ *                      id:
+ *                        type: string
+ *                        format: uuid
+ *                        description: Уникальный идентификатор получателя комиссии
+ *                        example: 8800e557-6247-4f12-a9d8-534d59c09318
+ *                      name:
+ *                        type: string
+ *                        nullable: false
+ *                        description: Название получателя комиссии
+ *                        example: OOO Gavnoedka
+ *                      rulesQuantity:
+ *                          type: integer
+ *                          nullable: false
+ *                          description: Кол-во правил для получателя
+ *                          example: 5
+ *                          
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  *
