@@ -290,6 +290,23 @@
  *              description: Количество заказанных товаров
  *              example: 25
  * 
+ * 
+ * 
+ *    CommisionReciever:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: Уникальный идентификатор получателя комиссии
+ *           example: 8800e557-6247-4f12-a9d8-534d59c09318
+ *         name:
+ *           type: string
+ *           nullable: false
+ *           description: Название получателя комиссии
+ *           example: OOO Gavnoedka
+ * 
+ * 
  */
 
 
