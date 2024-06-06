@@ -188,11 +188,9 @@ exports.price_create_post = [
             });
         }
         else {
-
             const findProd = await Product.findOne({ where: { name: req.body.name } })
 
-            if (findProd.id === null) {
-
+            if (findProd === null) {
                 const product = new Product({
                     name: req.body.name,
                     abbreviation: req.body.abbreviation,

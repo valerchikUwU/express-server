@@ -181,8 +181,9 @@ app.use(session({
 }));
 
 
-
-app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+if(process.env.NODE_ENV !== 'production'){
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+}
 app.use('/api', authRoutes);
 app.use('/api', allRoutes );
 

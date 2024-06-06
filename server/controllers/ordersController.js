@@ -329,7 +329,12 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
             await Order.findByPk(req.params.orderId),
             await TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
         ])
-
+        if (draftOrder === null) {
+            // No results.
+            const err = new Error("Заказ не найден");
+            err.status = 404;
+            throw err;
+        }
         if (draftOrder.status === 'Черновик') {
             if (draftTitles.length > 0) {
                 for (const title of draftTitles) {
@@ -421,13 +426,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
         ]);
 
 
-
-        if (order.id === null) {
-            // No results.
-            const err = new Error("Заказ не найден");
-            err.status = 404;
-            throw err;
-        }
+        
 
 
 
@@ -539,7 +538,6 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
             `, { type: sequelize.QueryTypes.SELECT }),
             Payee.findAll()
         ]);
-
         if (order.id === null) {
             // No results.
             const err = new Error("Заказ не найден");
@@ -615,6 +613,9 @@ exports.user_order_create_post = [
             where: { activationDate: actualDate }
         });
 
+        if(priceDefinition === null){
+            res.status(400).send('У товара еще нет цены!')
+        }
 
         const productId = req.body.productId;
         const generation = req.body.generation;
