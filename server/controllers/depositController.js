@@ -126,9 +126,6 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 
                         [
                             Sequelize.literal(`CASE WHEN productTypeId = 4 THEN (quantity*1) END `), 'Deposit'
-                        ],
-                        [
-                            Sequelize.literal(`billNumber`), 'billNumber'
                         ]
                     ]
             },
@@ -139,12 +136,19 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
     ]);
 
 
-    if (organization.id === null) {
+
+
+    if (organization === null) {
         // No results.
         const err = new Error("Такая организация не найдена");
         err.status = 404;
         return next(err);
     }
+
+    orders.forEach(order => {
+        order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
+    });
+
 
     res.json({
         title: `История депозитов организации ${organization.organizationName}`,
