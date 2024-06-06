@@ -1,0 +1,239 @@
+
+/**
+ * @swagger
+ * /{accountId}/commisionRecievers:
+ *  get:
+ *      tags:
+ *          - CommisionReciever
+ *      summary: Получить список всех получателей комиссии
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *      responses:
+ *        200:
+ *          content:
+ *            application/json:
+ *              schema:
+ *                title: "Список получателей комиссии"
+ *                type: array
+ *                items:
+ *                  $ref: '#/components/schemas/CommisionReciever'
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *
+ * 
+ * 
+ * 
+ * 
+ * 
+ * /{accountId}/commisionRecievers/{commisionReceiverId}/rulesDetails:
+ *  get:
+ *    tags:
+ *      - CommisionReciever
+ *    summary: Получить все правила начисления для конкретного получателя
+ *    parameters:
+ *      - in: path
+ *        name: accountId
+ *        required: true
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        description: ID пользователя
+ *      - in: path
+ *        name: commisionReceiverId
+ *        required: true
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        description: ID получателя
+ *    responses:
+ *      200:
+ *        description: Правила начисления получателя комиссии
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                title:
+ *                  type: string
+ *                  description: Заголовок информации о получателе
+ *                  example: "Правила начисления получателя комиссии OOO Gavnoedka"
+ *                commisionReciever:
+ *                  type: object
+ *                  description: Информация о получателе комиссии
+ *                  properties:
+ *                    id:
+ *                      type: string
+ *                      description: Уникальный идентификатор получателя
+ *                      example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
+ *                    name:
+ *                      type: string
+ *                      description: Название получателя
+ *                      example: "OOO Gavnoedka"
+ *                    createdAt:
+ *                      type: string
+ *                      format: date-time
+ *                      description: Дата создания записи
+ *                      example: "2024-06-03T13:01:13.000Z"
+ *                    updatedAt:
+ *                      type: string
+ *                      format: date-time
+ *                      description: Дата последнего обновления записи
+ *                      example: "2024-06-03T13:01:13.000Z"
+ *                allRules:
+ *                  type: array
+ *                  description: Список всех правил начисления
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      id:
+ *                        type: string
+ *                        description: Уникальный идентификатор правила
+ *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
+ *                      commision:
+ *                        type: string
+ *                        description: Комиссия
+ *                        example: "900"
+ *                      accessType:
+ *                        type: string
+ *                        nullable: true
+ *                        description: Тип доступа
+ *                        example: null
+ *                      generation:
+ *                        type: string
+ *                        nullable: true
+ *                        description: Генерация
+ *                        example: null
+ *                      createdAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата создания правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      updatedAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата последнего обновления правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      productTypeId:
+ *                        type: string
+ *                        nullable: true
+ *                        description: ID типа продукта
+ *                        example: null
+ *                      productId:
+ *                        type: string
+ *                        description: ID продукта
+ *                        example: "3c248e88-b431-4519-bf16-085058206aab"
+ *                      commisionRecieverId:
+ *                        type: string
+ *                        description: ID получателя комиссии
+ *                        example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
+ * 
+ * 
+ * 
+ * * /{accountId}/commisionRecievers/{commisionReceiverId}/rulesDetails:
+ *  get:
+ *    tags:
+ *      - CommisionReciever
+ *    summary: Получить все правила начисления для конкретного получателя
+ *    parameters:
+ *      - in: path
+ *        name: accountId
+ *        required: true
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        description: ID пользователя
+ *      - in: path
+ *        name: commisionReceiverId
+ *        required: true
+ *        schema:
+ *          type: string
+ *          format: uuid
+ *        description: ID получателя
+ *    responses:
+ *      200:
+ *        description: Правила начисления получателя комиссии
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                title:
+ *                  type: string
+ *                  description: Заголовок информации о получателе
+ *                  example: "Правила начисления получателя комиссии OOO Gavnoedka"
+ *                commisionReciever:
+ *                  type: object
+ *                  description: Информация о получателе комиссии
+ *                  properties:
+ *                    id:
+ *                      type: string
+ *                      description: Уникальный идентификатор получателя
+ *                      example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
+ *                    name:
+ *                      type: string
+ *                      description: Название получателя
+ *                      example: "OOO Gavnoedka"
+ *                    createdAt:
+ *                      type: string
+ *                      format: date-time
+ *                      description: Дата создания записи
+ *                      example: "2024-06-03T13:01:13.000Z"
+ *                    updatedAt:
+ *                      type: string
+ *                      format: date-time
+ *                      description: Дата последнего обновления записи
+ *                      example: "2024-06-03T13:01:13.000Z"
+ *                allRules:
+ *                  type: array
+ *                  description: Список всех правил начисления
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      id:
+ *                        type: string
+ *                        description: Уникальный идентификатор правила
+ *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
+ *                      commision:
+ *                        type: string
+ *                        description: Комиссия
+ *                        example: "900"
+ *                      accessType:
+ *                        type: string
+ *                        nullable: true
+ *                        description: Тип доступа
+ *                        example: null
+ *                      generation:
+ *                        type: string
+ *                        nullable: true
+ *                        description: Генерация
+ *                        example: null
+ *                      createdAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата создания правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      updatedAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата последнего обновления правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      productTypeId:
+ *                        type: string
+ *                        nullable: true
+ *                        description: ID типа продукта
+ *                        example: null
+ *                      productId:
+ *                        type: string
+ *                        description: ID продукта
+ *                        example: "3c248e88-b431-4519-bf16-085058206aab"
+ *                      commisionRecieverId:
+ *                        type: string
+ *                        description: ID получателя комиссии
+ *                        example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
+ */
