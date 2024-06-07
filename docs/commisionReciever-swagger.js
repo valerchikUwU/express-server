@@ -199,7 +199,7 @@
  * 
  * 
  * 
- * /{accountId}/newCommisionReciever                   
+ * /{accountId}/newCommisionReciever:                   
  *    post:
  *      tags:
  *          - CommisionReciever
