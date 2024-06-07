@@ -33,12 +33,12 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                 group: ['CommisionReciever.id'],
             });
 
-        
 
-    res.json({
-        title: "Список получателей комиссии",
-        allCommisionRecievers: allCommisionRecievers
-    })
+
+        res.json({
+            title: "Список получателей комиссии",
+            allCommisionRecievers: allCommisionRecievers
+        })
     }
     catch (err) {
         console.log(err)
@@ -50,12 +50,12 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
 
     const [commisionReciever, allRules, allProducts] = await Promise.all([
         CommisionReciever.findByPk(req.params.commisionRecieverId),
-        AccrualRule.findAll({ 
-            where: 
-            { 
-                commisionRecieverId: req.params.commisionRecieverId 
+        AccrualRule.findAll({
+            where:
+            {
+                commisionRecieverId: req.params.commisionRecieverId
             },
-            include: 
+            include:
                 [
                     {
                         model: Product,
@@ -63,18 +63,18 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
                         attributes: []
                     }
                 ],
-                attributes:
-                {
-                    include:
+            attributes:
+            {
+                include:
+                    [
                         [
-                            [
-                                Sequelize.literal(`product.name`), 'prodName'
-                            ],
-                            [
-                                Sequelize.literal(`product.abbreviation`), 'prodAbbreviation'
-                            ]
+                            Sequelize.literal(`product.name`), 'prodName'
+                        ],
+                        [
+                            Sequelize.literal(`product.abbreviation`), 'prodAbbreviation'
                         ]
-                },
+                    ]
+            },
         }),
         await sequelize.query(`
                 SELECT Products.*, PriceDefinitions.activationDate
@@ -83,7 +83,7 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
                 (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
                 AND Products.productTypeId <> 4
             `, { type: sequelize.QueryTypes.SELECT }),
-         
+
 
     ]);
 
@@ -105,25 +105,23 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
 
 exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) => {
     try {
-        const commisionReceiver = await Promise.all([
-            CommisionReciever.findByPk(req.params.commisionRecieverId),
-            await sequelize.query(`
-
-            
-            CREATE TEMPORARY TABLE IF NOT EXISTS first_commission_summaries (
-                productId CHAR(35),
-                orderId CHAR(35),
-                dispatchDate DATETIME,
-                billNumber VARCHAR(255),
-                titlesId CHAR(35),
-                accessType VARCHAR(255),
-                generation VARCHAR(255),
-                totalCommissionPerRule DECIMAL(10, 2)
-            );
-            
-            INSERT INTO first_commission_summaries (
-                productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation,  totalCommissionPerRule
-            ) 
+        const commisionReceiver = await CommisionReciever.findByPk(req.params.commisionRecieverId);
+        const getCommissionSummary = async (req, res) => {
+            await sequelize.transaction(async t => {
+                try {
+                    await sequelize.query(`
+                CREATE TEMPORARY TABLE IF NOT EXISTS first_commission_summaries (
+                    productId CHAR(35),
+                    orderId CHAR(35),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(35),
+                    accessType VARCHAR(255),
+                    generation VARCHAR(255),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+    
+                INSERT INTO first_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation, totalCommissionPerRule)
                 SELECT 
                     A.productId,
                     titles.orderId,
@@ -146,189 +144,182 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                     AND A.generation IS NOT NULL
                     AND A.accessType = titles.accessType
                     AND A.generation = titles.generation
-                    AND A.commisionRecieverId = :commisionRecieverId
                 GROUP BY 
                     titles.orderId;
-            
-            
-          
-            
-            CREATE TEMPORARY TABLE IF NOT EXISTS second_commission_summaries (
-                productId CHAR(35),
-                orderId CHAR(35),
-                dispatchDate DATETIME,
-                billNumber VARCHAR(255),
-                titlesId CHAR(35),
-                accessType VARCHAR(255),
-                generation VARCHAR(255),
-                totalCommissionPerRule DECIMAL(10, 2)
-            );
-            
-            
-            INSERT INTO second_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation,  totalCommissionPerRule)
-            SELECT 
-                A.productId,
-                titles.orderId,
-                orders.dispatchDate,
-                orders.billNumber,
-                titles.id,
-                A.accessType,
-                A.generation,
-                SUM(A.commision * titles.quantity) AS totalCommissionPerRule
-            FROM 
-                AccrualRules A
-            JOIN 
-                TitleOrders titles ON A.productId = titles.productId
-            JOIN 
-                Orders orders ON titles.orderId = orders.id
-            WHERE 
-                orders.status IN ('Оплачен', 'Отправлен', 'Получен')
-                AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
-                AND (A.accessType IS NULL OR A.generation IS NULL)
-                AND (A.accessType = titles.accessType OR A.generation = titles.generation)
-                AND NOT EXISTS (
-                    SELECT * FROM first_commission_summaries fcs
-                    WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND A.commisionRecieverId = :commisionRecieverId
-            GROUP BY 
-                titles.orderId;
-            
-            
-            
-            
-            CREATE TEMPORARY TABLE IF NOT EXISTS third_commission_summaries (
-                productId CHAR(35),
-                orderId CHAR(35),
-                dispatchDate DATETIME,
-                billNumber VARCHAR(255),
-                titlesId CHAR(35),
-                totalCommissionPerRule DECIMAL(10, 2)
-            );
-            
-            
-            INSERT INTO third_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
-            SELECT 
-                A.productId,
-                titles.orderId,
-                orders.dispatchDate,
-                orders.billNumber,
-                titles.id,
-                SUM(A.commision * titles.quantity) AS totalCommissionPerRule
-            FROM 
-                AccrualRules A
-            JOIN 
-                TitleOrders titles ON A.productId = titles.productId
-            JOIN 
-                Orders orders ON titles.orderId = orders.id
-            WHERE 
-                orders.status IN ('Оплачен', 'Отправлен', 'Получен')
-                AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
-                AND (A.accessType IS NULL AND A.generation IS NULL)
-                AND NOT EXISTS (
-                    SELECT * FROM first_commission_summaries fcs
-                    WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND NOT EXISTS (
-                    SELECT * FROM second_commission_summaries scs
-                    WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND A.commisionRecieverId = :commisionRecieverId
-            GROUP BY 
-                titles.orderId;
-            
-          
-            CREATE TEMPORARY TABLE IF NOT EXISTS fourth_commission_summaries (
-                orderId CHAR(35),
-                dispatchDate DATETIME,
-                billNumber VARCHAR(255),
-                titlesId CHAR(35),
-                totalCommissionPerRule DECIMAL(10, 2)
-            );
-            
-            INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
-            SELECT 
-                titles.orderId,
-                orders.dispatchDate,
-                orders.billNumber,
-                titles.id,
-                SUM(A.commision * titles.quantity) AS totalCommissionPerRule
-            FROM 
-                AccrualRules A
-            JOIN 
-                Products products ON A.productTypeId = products.productTypeId
-            JOIN 
-                TitleOrders titles ON titles.productId = products.id
-            JOIN 
-                Orders orders ON titles.orderId = orders.id
-            WHERE 
-                orders.status IN ('Оплачен', 'Отправлен', 'Получен')
-                AND NOT EXISTS (
-                    SELECT * FROM first_commission_summaries fcs
-                    WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND NOT EXISTS (
-                    SELECT * FROM second_commission_summaries scs
-                    WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND NOT EXISTS (
-                    SELECT * FROM third_commission_summaries tcs
-                    WHERE CAST(tcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
-                )
-                AND A.commisionRecieverId = :commisionRecieverId
-            GROUP BY 
-                titles.orderId;
+    
+                CREATE TEMPORARY TABLE IF NOT EXISTS second_commission_summaries (
+                    productId CHAR(35),
+                    orderId CHAR(35),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(35),
+                    accessType VARCHAR(255),
+                    generation VARCHAR(255),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+    
+                INSERT INTO second_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation, totalCommissionPerRule)
+                SELECT 
+                    A.productId,
+                    titles.orderId,
+                    orders.dispatchDate,
+                    orders.billNumber,
+                    titles.id,
+                    A.accessType,
+                    A.generation,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    TitleOrders titles ON A.productId = titles.productId
+                JOIN 
+                    Orders orders ON titles.orderId = orders.id
+                WHERE 
+                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
+                    AND (A.accessType IS NULL OR A.generation IS NULL)
+                    AND (A.accessType = titles.accessType OR A.generation = titles.generation)
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                GROUP BY 
+                    titles.orderId;
                 
+                CREATE TEMPORARY TABLE IF NOT EXISTS third_commission_summaries (
+                    productId CHAR(35),
+                    orderId CHAR(35),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(35),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+    
+                INSERT INTO third_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
+                SELECT 
+                    A.productId,
+                    titles.orderId,
+                    orders.dispatchDate,
+                    orders.billNumber,
+                    titles.id,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    TitleOrders titles ON A.productId = titles.productId
+                JOIN 
+                    Orders orders ON titles.orderId = orders.id
+                WHERE 
+                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
+                    AND (A.accessType IS NULL AND A.generation IS NULL)
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM second_commission_summaries scs
+                        WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                GROUP BY 
+                    titles.orderId;
                 
-            CREATE TEMPORARY TABLE IF NOT EXISTS combined_data (
-                orderId CHAR(35),
-                dispatchDate DATETIME,
-                billNumber VARCHAR(255),
-                totalCommissionPerRule DECIMAL(10, 2)
-            );
-            
-            
-            INSERT INTO combined_data (orderId, dispatchDate, billNumber, totalCommissionPerRule)
-            SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM first_commission_summaries
-            UNION ALL
-            SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM second_commission_summaries
-            UNION ALL
-            SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM third_commission_summaries
-            UNION ALL
-            SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM fourth_commission_summaries;
-            
-            SELECT 
-                orderId,
-                dispatchDate,
-                billNumber,
-                totalCommissionPerRule AS 'Spisanie'
-            FROM 
-                combined_data;
-            
-            `, {
-                replacements: { commisionRecieverId: req.params.commisionRecieverId}, 
-                type: sequelize.QueryTypes.SELECT 
+                CREATE TEMPORARY TABLE IF NOT EXISTS fourth_commission_summaries (
+                    orderId CHAR(35),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(35),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+    
+                INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
+                SELECT 
+                    titles.orderId,
+                    orders.dispatchDate,
+                    orders.billNumber,
+                    titles.id,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    Products products ON A.productTypeId = products.productTypeId
+                JOIN 
+                    TitleOrders titles ON titles.productId = products.id
+                JOIN 
+                    Orders orders ON titles.orderId = orders.id
+                WHERE 
+                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM second_commission_summaries scs
+                        WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM third_commission_summaries tcs
+                        WHERE CAST(tcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                    )
+                GROUP BY 
+                    titles.orderId;
+                
+                CREATE TEMPORARY TABLE IF NOT EXISTS combined_data (
+                    orderId CHAR(35),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+    
+                INSERT INTO combined_data (orderId, dispatchDate, billNumber, totalCommissionPerRule)
+                SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM first_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM second_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM third_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM fourth_commission_summaries;
+                `, { transaction: t });
+
+                    const results = await sequelize.query(`
+                    SELECT 
+                        orderId,
+                        dispatchDate,
+                        billNumber,
+                        totalCommissionPerRule AS 'Spisanie'
+                    FROM 
+                        combined_data;
+                    `, { type: sequelize.QueryTypes.SELECT, transaction: t });
+                    await transaction.commit();
+                    console.log(results);
+                }
+                catch (err) {
+                    await transaction.rollback();
+                    console.error(err);
+                }
+
             })
-        ]);
-    
-    
+
+        }
+
+
         if (commisionReceiver === null) {
             // No results.
             const err = new Error("Получатель комиссии не найден!");
             err.status = 404;
             return next(err);
         }
-    
+
         res.json({
             title: `Баланс получателя комиссии ${commisionReceiver.name}`,
             commisionReceiver: commisionReceiver,
-            allSpisanie: allSpisanie
+            allSpisanie: results
         });
     }
-    catch(err){
+    catch (err) {
         console.log(err);
     }
-    
+
 });
 
 
@@ -354,6 +345,7 @@ exports.commisionReciever_create_post = [
 
         if (!errors.isEmpty()) {
             res.json({
+                title: 'Некорректная форма создания получателя',
                 commisionReciever: commisionReciever,
                 errors: errors.array(),
             });

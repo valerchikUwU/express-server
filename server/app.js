@@ -128,7 +128,7 @@ const swaggerDefinition = {
   ],
   tags: [
     {name: 'Account'},
-    {name: 'AccuralRule'},
+    {name: 'AccrualRule'},
     {name: 'CommisionReciever'},
     {name: 'Order'},
     {name: 'OrganizationCustomer'},

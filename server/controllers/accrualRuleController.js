@@ -24,36 +24,41 @@ exports.accrualRule_create_get = asyncHandler(async (req, res, next) => {
 exports.accrualRule_create_post = [
 
 
-    body("productTypeId")
+    body("rulesToCreate.*.productTypeId")
         .if(body("productTypeId").exists())
         .isNumeric()
         .withMessage('Тип продукта должен быть числом')
         .isIn([1, 2, 3])
         .withMessage('Тип продукта может быть только 1, 2 или 3'),
-    body("productId")
+    body("rulesToCreate.*.productId")
         .if(body("productId").exists())
         .trim()
         .isLength({ min: 1 })
         .escape(),
-    body("generation")
+    body("rulesToCreate.*.generation")
         .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
         .escape()
         .matches(/^(Второе поколение|Первое поколение)$/i),
-    body("accessType")
+    body("rulesToCreate.*.accessType")
         .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
         .escape()
         .matches(/^(Электронный|Бумажный)$/i),
-    body("commision", "Размер комиссии должен быть указан!")
+    body("rulesToCreate.*.commision", "Размер комиссии должен быть указан!")
         .isInt({ min: 1 })
         .escape(),
     body().custom((value, { req }) => {
-        if (!req.body.productTypeId && !req.body.productId) {
-            throw new Error('Должен быть указан тип продукта или сам продукт!');
+        const rulesToCreate = req.body.rulesToCreate;
+        for (const rule of rulesToCreate) {
+            // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
+            if (rule.productTypeId !== null && rule.productId !== null) {
+                res.status(400).json({ error: 'Выберите категорию или конкретный товар!' });
+            }
         }
+        // Возвращаем true, если условие выполнено
         return true;
     }),
 
@@ -61,26 +66,30 @@ exports.accrualRule_create_post = [
 
         const errors = validationResult(req);
 
-
-        const rule = new AccrualRule({
-            productTypeId: req.body.productTypeId,
-            productId: req.body.productId,
-            accessType: req.body.accessType,
-            generation: req.body.generation,
-            commision: req.body.commision,
-            commisionRecieverId: req.params.commisionRecieverId
-        });
-
+        const rulesToCreate = req.body.rulesToCreate;
         if (!errors.isEmpty()) {
 
             res.json({
-                rule: rule,
+                rulesToCreate: rulesToCreate,
                 errors: errors.array(),
             });
         }
         else {
-            await rule.save();
-            res.status(200).send('Правило начисления комиссии успешно создано!');
+            for (const rule of rulesToCreate) {
+
+                const newRule = new AccrualRule({
+                    productTypeId: rule.productTypeId,
+                    productId: rule.productId,
+                    accessType: rule.accessType,
+                    generation: rule.generation,
+                    commision: rule.commision,
+                    commisionRecieverId: req.params.commisionRecieverId
+                });
+        
+        
+                await newRule.save();
+            }
+            res.status(200).send('Правила начисления комиссии успешно создано!');
         }
     }),
 ];
@@ -93,7 +102,7 @@ exports.accrualRule_update_put = [
 
 
     // Validate and sanitize fields.
-    body("productTypeId")
+    body("rulesToUpdate.*.productTypeId")
         .if(body("productTypeId").exists())
         .isNumeric()
         .withMessage('Тип продукта должен быть числом')
@@ -106,14 +115,17 @@ exports.accrualRule_update_put = [
         .isLength({ min: 1 })
         .escape(),
     body("rulesToUpdate.*.accessType")
-        .if(body("accessType").exists())
+        .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
     body("rulesToUpdate.*.generation")
         .optional({ checkFalsy: true })
+        .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("rulesToUpdate.*.commision")
         .isInt({ min: 1 })
         .escape(),
@@ -134,7 +146,6 @@ exports.accrualRule_update_put = [
         const errors = validationResult(req);
 
 
-        const commisionReciever = await CommisionReciever.findByPk(req.params.commisionRecieverId)
         const rulesToUpdate = req.body.rulesToUpdate;
         if (!errors.isEmpty()) {
             const [commisionReciever, rulesToUpdate] = await Promise.all([
