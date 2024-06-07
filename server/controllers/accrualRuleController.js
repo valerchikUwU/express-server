@@ -5,6 +5,7 @@ const AccrualRule = require('../../models/accrualRule');
 const Product = require('../../models/product');
 const ProductType = require('../../models/productType');
 const CommisionReciever = require('../../models/commisionReceiver');
+const sequelize = require('../../database/connection');
 
 exports.accrualRule_create_get = asyncHandler(async (req, res, next) => {
     const [allProducts, allProductTypes] = await Promise.all([
@@ -34,12 +35,18 @@ exports.accrualRule_create_post = [
         .trim()
         .isLength({ min: 1 })
         .escape(),
-    body("accessType")
-        .optional({ checkFalsy: true })
-        .escape(),
     body("generation")
         .optional({ checkFalsy: true })
-        .escape(),
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
+    body("accessType")
+        .optional({ checkFalsy: true })
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("commision", "Размер комиссии должен быть указан!")
         .isInt({ min: 1 })
         .escape(),
@@ -70,7 +77,7 @@ exports.accrualRule_create_post = [
                 rule: rule,
                 errors: errors.array(),
             });
-        } 
+        }
         else {
             await rule.save();
             res.status(200).send('Правило начисления комиссии успешно создано!');
@@ -80,25 +87,103 @@ exports.accrualRule_create_post = [
 
 
 
-exports.accrualRule_delete_get = asyncHandler(async (req, res, next) => {
-    const [rule] = await Promise.all([
-        AccrualRule.findByPk(req.params.ruleId)
-    ]);
+exports.accrualRule_update_put = [
 
-    if (rule === null) {
 
-        res.status(404).send('Такое правило не найдено!');
-    }
 
-    res.json({
-        title: "Удаление правила",
-        rule: rule
-    });
-});
+
+    // Validate and sanitize fields.
+    body("productTypeId")
+        .if(body("productTypeId").exists())
+        .isNumeric()
+        .withMessage('Тип продукта должен быть числом')
+        .isIn([1, 2, 3])
+        .withMessage('Тип продукта может быть только 1, 2 или 3')
+        .escape(),
+    body("rulesToUpdate.*.productId")
+        .if(body("productId").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("rulesToUpdate.*.accessType")
+        .if(body("accessType").exists())
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("rulesToUpdate.*.generation")
+        .optional({ checkFalsy: true })
+        .isLength({ min: 1 })
+        .escape(),
+    body("rulesToUpdate.*.commision")
+        .isInt({ min: 1 })
+        .escape(),
+    body().custom((value, { req }) => {
+        const rulesToUpdate = req.body.rulesToUpdate;
+        for (const rule of rulesToUpdate) {
+            // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
+            if (rule.productTypeId !== null && rule.productId !== null) {
+                res.status(400).json({ error: 'Выберите категорию или конкретный товар!' });
+            }
+        }
+        // Возвращаем true, если условие выполнено
+        return true;
+    }),
+
+
+    asyncHandler(async (req, res, next) => {
+        const errors = validationResult(req);
+
+
+        const commisionReciever = await CommisionReciever.findByPk(req.params.commisionRecieverId)
+        const rulesToUpdate = req.body.rulesToUpdate;
+        if (!errors.isEmpty()) {
+            const [commisionReciever, rulesToUpdate] = await Promise.all([
+                CommisionReciever.findByPk(req.params.commisionRecieverId),
+                AccrualRule.findAll({ where: { commisionRecieverId: req.params.commisionRecieverId } })
+            ]);
+
+
+            res.json({
+                title: "Некорректное обновление правил начисления",
+                rulesToUpdate: rulesToUpdate,
+                commisionReciever: commisionReciever,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+
+            for (const rule of rulesToUpdate) {
+                const oldRule = await AccrualRule.findByPk(rule.id);
+                if (oldRule) {
+                    // Проверяем, были ли предоставлены новые значения для полей
+
+                    if (rule.productTypeId) {
+                        oldRule.productTypeId = rule.productTypeId;
+                        oldRule.productId = null;
+                    }
+
+                    if (rule.productId) {
+                        oldRule.productId = rule.productId;
+                        oldRule.productTypeId = null;
+                    }
+
+                    if (rule.generation) {
+                        oldRule.generation = rule.generation;
+                    }
+                    if (rule.accessType) {
+                        oldRule.accessType = rule.addBooklet;
+                    }
+                    await oldRule.save();
+                }
+            }
+            res.status(200).send('Правила успешно обновлены!');
+        }
+    }),
+];
 
 
 exports.accrualRule_delete = asyncHandler(async (req, res, next) => {
-    
+
 
     const [rule] = await Promise.all([
         AccrualRule.findByPk(req.params.ruleId)

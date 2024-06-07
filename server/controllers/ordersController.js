@@ -426,7 +426,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
         ]);
 
 
-        
+
 
 
 
@@ -613,7 +613,7 @@ exports.user_order_create_post = [
             where: { activationDate: actualDate }
         });
 
-        if(priceDefinition === null){
+        if (priceDefinition === null) {
             res.status(400).send('У товара еще нет цены!')
         }
 
@@ -802,12 +802,14 @@ exports.admin_order_create_post = [
         .if(body("accessType").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("titlesToCreate.*.generation")
         .if(body("generation").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
     body("titlesToCreate.*.quantity")
         .if(body("quantity").exists())
         .trim()

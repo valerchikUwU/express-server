@@ -12,6 +12,7 @@ const CommisionReciever = require('../commisionReceiver');
 
 
 const { DataTypes } = require('sequelize');
+const { Session } = require('express-session');
 
 
 
@@ -143,7 +144,7 @@ Account.hasMany(Order, {
 });
 
 Order.belongsTo(Account, {
-   oreignKey: 'accountId',
+   foreignKey: 'accountId',
    as: 'account'
 })
 
