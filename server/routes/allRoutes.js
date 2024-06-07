@@ -324,16 +324,6 @@ router.get("/:accountId/statistics", checkAbilities('read', 'Statistics'), stati
 */
 
 
-router.post("/:accountId/:commisionRecieverId/newRule", checkAbilities('create', 'Rule'), rules_controller.accrualRule_create_post);
-
-
-
-/*
-============================================================
-ЗАПРОСЫ ДЛЯ ПРАВИЛ НАЧИСЛЕНИЯ КОМИССИИ
-============================================================
-*/
-
 
 router.get("/:accountId/commisionRecievers/:commisionRecieverId/balanceDetails", checkAbilities('read', 'CommisionReciever'), commisionReceiver_controller.commisionReciever_balance_details);
 
@@ -345,6 +335,19 @@ router.get("/:accountId/commisionRecievers", checkAbilities('read', 'CommisionRe
 
 
 router.post("/:accountId/newCommisionReciever", checkAbilities('create', 'CommisionReciever'), commisionReceiver_controller.commisionReciever_create_post);
+
+
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ ПРАВИЛ НАЧИСЛЕНИЯ КОМИССИИ
+============================================================
+*/
+
+
+router.put("/:accountId/commisionRecievers/:commisionRecieverId/rulesDetails/update", checkAbilities('update', 'Rule'), rules_controller.accrualRule_create_post);
+
+router.post("/:accountId/:commisionRecieverId/newRule", checkAbilities('create', 'Rule'), rules_controller.accrualRule_create_post);
+
 
 
 module.exports = router;
