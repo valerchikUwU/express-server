@@ -344,10 +344,10 @@ router.post("/:accountId/newCommisionReciever", checkAbilities('create', 'Commis
 */
 
 
-router.put("/:accountId/commisionRecievers/:commisionRecieverId/rulesDetails/update", checkAbilities('update', 'Rule'), rules_controller.accrualRule_create_post);
+router.put("/:accountId/commisionRecievers/:commisionRecieverId/rulesDetails/update", checkAbilities('update', 'Rule'), rules_controller.accrualRule_update_put);
 
 router.post("/:accountId/:commisionRecieverId/newRule", checkAbilities('create', 'Rule'), rules_controller.accrualRule_create_post);
 
-
+router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities('create', 'Rule'), rules_controller.accrualRule_delete);
 
 module.exports = router;

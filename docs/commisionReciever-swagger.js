@@ -219,7 +219,7 @@
  *            schema:
  *              type: object
  *              properties:
- *                name:
+ *                commisionRecieverName:
  *                    type: string
  *                    description: Название получателя
  *                    example: ООО Пипка
