@@ -149,6 +149,53 @@
  *                        type: string
  *                        description: ID получателя комиссии
  *                        example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
+ *                      prodName:
+ *                        type: string
+ *                        description: Название продукта
+ *                        example: "Товар для валеры"
+ *                      prodAbbreviation:
+ *                        type: string
+ *                        description: Аббревиатура продукта
+ *                        example: "ТДВ"
+ *                allProducts:
+ *                  type: array
+ *                  description: Все товары
+ *                  items:
+ *                    type: object
+ *                    properties:
+ *                      id:
+ *                        type: string
+ *                        description: Уникальный идентификатор правила
+ *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
+ *                      name:
+ *                        type: string
+ *                        description: Название продукта
+ *                        example: "Товар для валеры"
+ *                      abbreviation:
+ *                        type: string
+ *                        description: Аббревиатура продукта
+ *                        example: "ТДВ"
+ *                      createdAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата создания правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      updatedAt:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата последнего обновления правила
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      productTypeId:
+ *                        type: string
+ *                        nullable: true
+ *                        description: ID типа продукта
+ *                        example: 1
+ *                      activationDate:
+ *                        type: string
+ *                        format: date-time
+ *                        description: Дата активации
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      
  * 
  * 
  */
