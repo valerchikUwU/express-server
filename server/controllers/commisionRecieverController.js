@@ -48,9 +48,43 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
 
 exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) => {
 
-    const [commisionReciever, allRules] = await Promise.all([
+    const [commisionReciever, allRules, allProducts] = await Promise.all([
         CommisionReciever.findByPk(req.params.commisionRecieverId),
-        AccrualRule.findAll({ where: { commisionRecieverId: req.params.commisionRecieverId } })
+        AccrualRule.findAll({ 
+            where: 
+            { 
+                commisionRecieverId: req.params.commisionRecieverId 
+            },
+            include: 
+                [
+                    {
+                        model: Product,
+                        as: 'product',
+                        attributes: []
+                    }
+                ],
+                attributes:
+                {
+                    include:
+                        [
+                            [
+                                Sequelize.literal(`product.name`), 'prodName'
+                            ],
+                            [
+                                Sequelize.literal(`product.abbreviation`), 'prodAbbreviation'
+                            ]
+                        ]
+                },
+        }),
+        await sequelize.query(`
+                SELECT Products.*, PriceDefinitions.activationDate
+                FROM Products, PriceDefinitions
+                WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
+                (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+                AND Products.productTypeId <> 4
+            `, { type: sequelize.QueryTypes.SELECT }),
+         
+
     ]);
 
     if (commisionReciever === null) {
@@ -63,7 +97,8 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
     res.json({
         title: `Правила начисления получателя комиссии ${commisionReciever.name}`,
         commisionReciever: commisionReciever,
-        allRules: allRules
+        allRules: allRules,
+        allProducts: allProducts
     });
 });
 
@@ -74,9 +109,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             CommisionReciever.findByPk(req.params.commisionRecieverId),
             await sequelize.query(`
 
-            /**
-            Если accessType != NULL AND generation != NULL
-            */
+            
             CREATE TEMPORARY TABLE IF NOT EXISTS first_commission_summaries (
                 productId CHAR(35),
                 orderId CHAR(35),
@@ -88,7 +121,9 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                 totalCommissionPerRule DECIMAL(10, 2)
             );
             
-            INSERT INTO first_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation,  totalCommissionPerRule) 
+            INSERT INTO first_commission_summaries (
+                productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation,  totalCommissionPerRule
+            ) 
                 SELECT 
                     A.productId,
                     titles.orderId,
@@ -116,11 +151,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                     titles.orderId;
             
             
-            
-            /**
-            Если accessType = NULL OR generation = NULL
-            */
-            
+          
             
             CREATE TEMPORARY TABLE IF NOT EXISTS second_commission_summaries (
                 productId CHAR(35),
@@ -165,10 +196,6 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             
             
             
-            /**
-            Если accessType = NULL AND generation = NULL
-            */
-            
             
             CREATE TEMPORARY TABLE IF NOT EXISTS third_commission_summaries (
                 productId CHAR(35),
@@ -210,10 +237,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             GROUP BY 
                 titles.orderId;
             
-            
-            /**
-            Только для типов
-            */
+          
             CREATE TEMPORARY TABLE IF NOT EXISTS fourth_commission_summaries (
                 orderId CHAR(35),
                 dispatchDate DATETIME,
@@ -264,7 +288,6 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             );
             
             
-            -- Шаг 2: Заполнение временной таблицы данными
             INSERT INTO combined_data (orderId, dispatchDate, billNumber, totalCommissionPerRule)
             SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM first_commission_summaries
             UNION ALL
@@ -274,7 +297,6 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             UNION ALL
             SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM fourth_commission_summaries;
             
-            -- Шаг 3: Подсчет суммы по каждой категории
             SELECT 
                 orderId,
                 dispatchDate,
@@ -285,7 +307,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
             
             `, {
                 replacements: { commisionRecieverId: req.params.commisionRecieverId}, 
-                type: sequelize.QueryTypes.RAW 
+                type: sequelize.QueryTypes.SELECT 
             })
         ]);
     

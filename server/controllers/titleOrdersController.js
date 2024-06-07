@@ -26,16 +26,18 @@ exports.user_titleOrder_update_put = [
         .if(body("accessType").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("titlesToUpdate.*.generation")
         .if(body("generation").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
     body("titlesToUpdate.*.quantity")
         .if(body("quantity").exists())
         .trim()
-        .isLength({ min: 1 })
+        .isInt({ min: 1 })
         .escape(),
     body("titlesToUpdate.*.addBooklet")
         .if(body("addBooklet").exists())
@@ -58,7 +60,7 @@ exports.user_titleOrder_update_put = [
 
 
         const order = await Order.findByPk(req.params.orderId)
-        if (order.status !== 'Черновик'){
+        if (order.status !== 'Черновик') {
             res.status(400).send('Редактировать можно только черновик!')
         }
         const titlesToUpdate = req.body.titlesToUpdate;
@@ -82,7 +84,7 @@ exports.user_titleOrder_update_put = [
                 const oldTitle = await TitleOrders.findByPk(title.id);
                 if (oldTitle) {
                     // Проверяем, были ли предоставлены новые значения для полей
-                    
+
                     if (title.accessType) {
                         oldTitle.accessType = title.accessType;
                     }
@@ -169,19 +171,21 @@ exports.admin_titleOrder_update_put = [
         .isLength({ min: 1 })
         .escape(),
     body("titlesToUpdate.*.accessType")
-        .if(body("accessType").exists()) 
+        .if(body("accessType").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Электронный|Бумажный)$/i),
     body("titlesToUpdate.*.generation")
         .if(body("generation").exists())
         .trim()
         .isLength({ min: 1 })
-        .escape(),
+        .escape()
+        .matches(/^(Второе поколение|Первое поколение)$/i),
     body("titlesToUpdate.*.quantity")
         .if(body("quantity").exists())
         .trim()
-        .isLength({ min: 1 })
+        .isInt({ min: 1 })
         .escape(),
     body("titlesToUpdate.*.addBooklet")
         .if(body("addBooklet").exists())
@@ -248,7 +252,7 @@ exports.admin_titleOrder_update_put = [
                 const oldTitle = await TitleOrders.findByPk(title.id);
                 if (oldTitle) {
                     // Проверяем, были ли предоставлены новые значения для полей
-                    
+
                     if (title.accessType) {
                         oldTitle.accessType = title.accessType;
                     }
