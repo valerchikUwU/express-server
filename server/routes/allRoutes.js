@@ -10,6 +10,7 @@ const deposit_controller = require("../controllers/depositController");
 const statistics_controller = require("../controllers/statisticsController");
 const rules_controller = require('../controllers/accrualRuleController');
 const commisionReceiver_controller = require('../controllers/commisionRecieverController');
+const commisionReceiverOperations_controller = require('../controllers/commisionRecieverOperationsController');
 const checkAbilities = require('../../utils/checkAbility');
 
 
@@ -317,6 +318,18 @@ router.get("/:accountId/deposits", checkAbilities('read', 'Deposit'), deposit_co
 router.get("/:accountId/statistics", checkAbilities('read', 'Statistics'), statistics_controller.sells_list);
 
 
+
+
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ ОПЕРАЦИЙ БАЛАНСА ПОЛУЧАТЕЛЯ КОМИССИИ
+============================================================
+*/
+
+router.post("/:accountId/commisionRecievers/:commisionRecieverId/balanceDetails/newOperation", checkAbilities('create', 'CommisionReciever'), commisionReceiverOperations_controller.operation_create);
+
+
+
 /*
 ============================================================
 ЗАПРОСЫ ДЛЯ ПОЛУЧАТЕЛЕЙ КОМИССИИ
@@ -337,6 +350,8 @@ router.get("/:accountId/commisionRecievers", checkAbilities('read', 'CommisionRe
 router.post("/:accountId/newCommisionReciever", checkAbilities('create', 'CommisionReciever'), commisionReceiver_controller.commisionReciever_create_post);
 
 
+
+
 /*
 ============================================================
 ЗАПРОСЫ ДЛЯ ПРАВИЛ НАЧИСЛЕНИЯ КОМИССИИ
@@ -349,5 +364,10 @@ router.put("/:accountId/commisionRecievers/:commisionRecieverId/rulesDetails/upd
 router.post("/:accountId/:commisionRecieverId/newRule", checkAbilities('create', 'Rule'), rules_controller.accrualRule_create_post);
 
 router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities('create', 'Rule'), rules_controller.accrualRule_delete);
+
+
+
+
+
 
 module.exports = router;

@@ -220,6 +220,6 @@ exports.accrualRule_delete = asyncHandler(async (req, res, next) => {
 
 
     await AccrualRule.destroy({ where: { id: req.params.ruleId } });
-    res.status(200).send('Правило начисления комиссии успешно создано!');
+    res.status(200).send('Правило начисления комиссии успешно удалено!');
 
 });
