@@ -186,6 +186,19 @@ exports.accrualRule_update_put = [
                     }
                     await oldRule.save();
                 }
+                else {
+                    const newRule = new AccrualRule({
+                        productTypeId: rule.productTypeId,
+                        productId: rule.productId,
+                        accessType: rule.accessType,
+                        generation: rule.generation,
+                        commision: rule.commision,
+                        commisionRecieverId: req.params.commisionRecieverId
+                    });
+            
+            
+                    await newRule.save();
+                }
             }
             res.status(200).send('Правила успешно обновлены!');
         }
