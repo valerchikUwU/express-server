@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require("express-validator");
 const { Sequelize, Op, fn, col } = require('sequelize');
 const CommisionRecieverOperations = require('../../models/commisionRecieverOperations');
+const CommisionReciever = require('../../models/commisionReceiver');
 
 exports.operation_create = [
 
@@ -24,6 +25,7 @@ exports.operation_create = [
             billNumber: req.body.billNumber,
             Postyplenie: req.body.Postyplenie,
             dateOfOperation: new Date(),
+            commisionRecieverId: req.params.commisionRecieverId,
             Spisanie: null
         })
 
