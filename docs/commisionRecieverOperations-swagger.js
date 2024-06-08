@@ -2,7 +2,7 @@
  
 /**
  * @swagger
- * /{accountId}/commisionRecievers/{commisionRecieverId}/balanceDetails:                   
+ * /{accountId}/commisionRecievers/{commisionRecieverId}/balanceDetails/newOperation:                   
  *    post:
  *      tags:
  *          - CommisionRecieverOperations
