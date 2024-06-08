@@ -36,7 +36,7 @@
  *                                            productTypeId:
  *                                              type: integer
  *                                              description: ID категории
- *                                              example: 3
+ *                                              example: null
  *                                            productId:
  *                                              type: string
  *                                              description: ID товара
@@ -96,7 +96,7 @@
  *                                            productTypeId:
  *                                              type: integer
  *                                              description: ID категории
- *                                              example: 3
+ *                                              example: null
  *                                            productId:
  *                                              type: string
  *                                              description: ID товара
@@ -124,7 +124,7 @@
  * 
  * 
  * 
- * /{accountId}/{{commisionRecieverId}/{ruleId}/delete:
+ * /{accountId}/{commisionRecieverId}/{ruleId}/delete:
  *       delete:
  *           tags:
  *               - AccrualRule

@@ -46,6 +46,7 @@ const OrganizationCustomer = require('../models/organizationCustomer.js');
 const Order = require('../models/order.js');
 const TitleOrders = require('../models/titleOrders.js');
 const AccrualRule = require('../models/accrualRule.js');
+const CommisionRecieverOperations = require('../models/commisionRecieverOperations.js');
 
 
 
@@ -97,6 +98,7 @@ async function syncModels() {
      await Order.sync();
      await TitleOrders.sync();
      await AccrualRule.sync();
+     await CommisionRecieverOperations.sync();
      console.log('Syncronized successfully');
   } catch (error) {
      console.error('Error due to failed sycnronization:', error);
@@ -139,7 +141,8 @@ const swaggerDefinition = {
     {name: 'Role'},
     {name: 'TitleOrders'},
     {name: 'Authentication'},
-    {name: 'Statistics'}
+    {name: 'Statistics'},
+    {name: 'CommisionRecieverOperations'}
   ]
 };
 
