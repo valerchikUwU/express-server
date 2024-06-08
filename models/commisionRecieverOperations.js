@@ -18,11 +18,11 @@ const CommisionRecieverOperations = sequelize.define('CommisionRecieverOperation
    },
    Postyplenie: {
       type: DataTypes.DECIMAL,
-      allowNull: false
+      allowNull: true
    },
    Spisanie: {
       type: DataTypes.DECIMAL,
-      allowNull: false
+      allowNull: true
    },
    billNumber: {
        type: DataTypes.STRING,
