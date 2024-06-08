@@ -119,13 +119,13 @@ exports.accrualRule_update_put = [
         .trim()
         .isLength({ min: 1 })
         .escape()
-        .matches(/^(Второе поколение|Первое поколение)$/i),
+        .matches(/^(Электронный|Бумажный)$/i),
     body("rulesToUpdate.*.generation")
         .optional({ checkFalsy: true })
         .trim()
         .isLength({ min: 1 })
         .escape()
-        .matches(/^(Электронный|Бумажный)$/i),
+        .matches(/^(Второе поколение|Первое поколение)$/i),
     body("rulesToUpdate.*.commision")
         .isInt({ min: 1 })
         .escape(),
