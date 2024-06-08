@@ -10,6 +10,7 @@ const Product = require('../../models/product');
 const ProductType = require('../../models/productType');
 const sequelize = require('../../database/connection');
 const CommisionRecieverOperations = require('../../models/commisionRecieverOperations');
+const dateFns = require('date-fns');
 
 
 
@@ -107,7 +108,7 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
 exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) => {
     try {
         const commisionReceiver = await CommisionReciever.findByPk(req.params.commisionRecieverId);
-        const commisionReceiverOperations = await CommisionRecieverOperations.findAll({where: {commisionReceiverId: req.params.commisionReceiverId}});
+        const commisionReceiverOperations = await CommisionRecieverOperations.findAll({where: {commisionRecieverId: req.params.commisionRecieverId}});
 
         if (commisionReceiver === null) {
             // No results.
@@ -329,18 +330,18 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                                                                         .then(async () => {
                                                                                             await sequelize.query(query11, { type: Sequelize.QueryTypes.RAW })
                                                                                             .then(async (result) => {
-                                                                                                await transaction.commit();
                                                                                                 result.forEach(row => {
                                                                                                     row.formattedDate = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
                                                                                                 });
                                                                                                 commisionReceiverOperations.forEach(row => {
                                                                                                     row.formattedDate = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
                                                                                                 });
+                                                                                                await transaction.commit();
                                                                                                 res.json({
                                                                                                     title: `Баланс получателя комиссии ${commisionReceiver.name}`,
                                                                                                     commisionReceiver: commisionReceiver,
                                                                                                     operations: commisionReceiverOperations,
-                                                                                                    allSpisanie: result
+                                                                                                    allPostyplenie: result
                                                                                                 });
                                                                                             })
                                                                                         })

@@ -10,7 +10,7 @@ exports.operation_create = [
         .trim()
         .isLength({ min: 1 })
         .escape(),
-    body("Postyplenie", "Сумма поступления должна быть указана")
+    body("Spisanie", "Сумма списания должна быть указана")
         .trim()
         .isInt({ min: 1 })
         .escape(),
@@ -23,10 +23,10 @@ exports.operation_create = [
 
         const operation = new CommisionRecieverOperations({
             billNumber: req.body.billNumber,
-            Postyplenie: req.body.Postyplenie,
+            Spisanie: req.body.Spisanie,
             dateOfOperation: new Date(),
             commisionRecieverId: req.params.commisionRecieverId,
-            Spisanie: null
+            Postyplenie: null
         })
 
 
