@@ -9,10 +9,9 @@ const PriceDefinition = require('../priceDefinition');
 const TitleOrders = require('../titleOrders');
 const AccrualRule = require('../accrualRule');
 const CommisionReciever = require('../commisionReceiver');
-
+const CommisionRecieverOperations = require('../commisionRecieverOperations');
 
 const { DataTypes } = require('sequelize');
-const { Session } = require('express-session');
 
 
 
@@ -189,6 +188,21 @@ CommisionReciever.hasMany(AccrualRule, {
 });
 
 AccrualRule.belongsTo(CommisionReciever, {
+   foreignKey: 'commisionRecieverId',
+   as: 'commisionReciever'
+});
+
+
+CommisionReciever.hasMany(CommisionRecieverOperations, {
+   foreignKey: {
+      name: 'commisionRecieverId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'operations'
+});
+
+CommisionRecieverOperations.belongsTo(CommisionReciever, {
    foreignKey: 'commisionRecieverId',
    as: 'commisionReciever'
 });
