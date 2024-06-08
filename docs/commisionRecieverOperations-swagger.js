@@ -33,7 +33,7 @@
  *                      type: string
  *                      description: Номер счета
  *                      example: "123.43"
- *                  Postyplenie:
+ *                  Spisanie:
  *                    type: decimal
  *                    nullable: false
  *                    example: 5000
