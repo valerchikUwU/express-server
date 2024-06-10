@@ -33,14 +33,14 @@ exports.operation_create = [
         if (!errors.isEmpty()) {
 
             res.json({
-                title: "Некорректная форма создания прайс листа!",
+                title: "Некорректная форма создания операции!",
                 operation: operation,
                 errors: errors.array(),
             });
         }
         else {
             await operation.save();
-            res.status(200).send('Поступление для получателя комиссии успешно создано!');
+            res.status(200).send('Операция для получателя комиссии успешно создана!');
         }
     }),
 ];
