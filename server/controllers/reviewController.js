@@ -7,6 +7,10 @@ const PriceDefinition = require('../../models/priceDefinition');
 const Product = require('../../models/product');
 
 
+exports.review_list = asyncHandler(async (req, res, next))
+
+
+
 exports.review_details = asyncHandler(async (req, res, next) => {
 
 

@@ -134,7 +134,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
               [
 
                 [
-                  Sequelize.literal(`SUM(CASE WHEN productTypeId = 4 THEN (quantity*1) END) `), 'allDeposits'
+                  Sequelize.literal(`(SUM(CASE WHEN productTypeId = 4 THEN (quantity*1) END)) - (CASE WHEN status = 'Активный' OR status = 'Отправлен' OR status = 'Получен' THEN (SUM(CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)) END)`), 'allDeposits'
                 ]
               ]
           },

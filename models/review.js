@@ -20,6 +20,11 @@ const Review = sequelize.define('Review', {
       allowNull: false
    },
 
+   calculatedNumber:{
+      type: DataTypes.DECIMAL,
+      allowNull: false
+   },
+
 }, {
    // Можно добавить дополнительные настройки модели здесь
 });

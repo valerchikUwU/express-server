@@ -55,6 +55,7 @@ const API_ROOT = process.env.API_ROOT;
 
 // Импортируем модуль для сессий
 const session = require('express-session');
+const Review = require('../models/review.js');
 
 // Импортируем модуль для создания хранилища сессий
 const MySQLStore = require('express-mysql-session')(session);
@@ -99,6 +100,7 @@ async function syncModels() {
      await TitleOrders.sync();
      await AccrualRule.sync();
      await CommisionRecieverOperations.sync();
+     await Review.sync();
      console.log('Syncronized successfully');
   } catch (error) {
      console.error('Error due to failed sycnronization:', error);

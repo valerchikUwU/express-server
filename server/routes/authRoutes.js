@@ -38,12 +38,9 @@ router.post('/auth', async (req, res) => {
     console.log(`/auth: ${generatedToken}`);
     if (generatedToken === token) {
       if (foundNumber) {
-        Account.update({ telegramId: id }, { where: { telephoneNumber: foundNumber } });
+        await Account.update({ lastSeen: new Date(), telegramId: id }, { where: { telephoneNumber: foundNumber } });
         const account = await Account.findOne({ where: { telephoneNumber: foundNumber } });
         const accountId = account.id;
-        account.lastSeen = new Date()
-
-
         // Передаем accountId через URL
         await sendMessageToClient(sessionId, accountId);
         await setSessionAccountId(sessionId, accountId);
@@ -85,6 +82,7 @@ router.get('/homepage', async (req, res) => {
 
 
 router.post('/:accountId/logout', async (req, res) => {
+  await Account.update({ lastSeen: new Date()}, { where: { id: req.params.accountId } }); 
   req.session.destroy();
   res.status(200).send('Вы успешно вышли из аккаунта!')
 })
