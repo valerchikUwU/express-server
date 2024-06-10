@@ -239,6 +239,54 @@ exports.admin_titleOrder_update_put = [
 
 
             const oldOrder = await Order.findByPk(req.params.orderId);
+
+            if (oldOrder.status !== 'Оплачен' && oldOrder.status !== 'Отправлен' && oldOrder.status !== 'Отменен') {
+                for (const title of titlesToUpdate) {
+                    const oldTitle = await TitleOrders.findByPk(title.id);
+                    if (oldTitle) {
+                        // Проверяем, были ли предоставлены новые значения для полей
+
+                        if (title.accessType) {
+                            oldTitle.accessType = title.accessType;
+                        }
+
+                        if (title.productId) {
+                            oldTitle.productId = title.productId;
+                            const actualActivationDate = await sequelize.query(
+                                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                                {
+                                    replacements: { productId: title.productId },
+                                    type: sequelize.QueryTypes.SELECT
+                                }
+                            );
+                            const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                            const priceDef = await PriceDefinition.findOne({
+                                where: { activationDate: actualDate }
+                            });
+                            oldTitle.priceDefId = priceDef.id
+                        }
+
+                        if (title.generation) {
+                            oldTitle.generation = title.generation;
+                        }
+
+
+                        if (title.quantity) {
+                            oldTitle.quantity = title.quantity;
+                        }
+                        if (title.addBooklet === true) {
+                            oldTitle.addBooklet = title.addBooklet;
+                            oldTitle.accessType = null;
+                        }
+                        else {
+                            oldTitle.addBooklet = title.addBooklet;
+                        }
+                        await oldTitle.save();
+                    }
+                }
+            }
+
+
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = order.status;
             oldOrder.billNumber = order.billNumber;
@@ -247,50 +295,6 @@ exports.admin_titleOrder_update_put = [
             oldOrder.dispatchDate = order.dispatchDate;
             await oldOrder.save();
 
-
-            for (const title of titlesToUpdate) {
-                const oldTitle = await TitleOrders.findByPk(title.id);
-                if (oldTitle) {
-                    // Проверяем, были ли предоставлены новые значения для полей
-
-                    if (title.accessType) {
-                        oldTitle.accessType = title.accessType;
-                    }
-
-                    if (title.productId) {
-                        oldTitle.productId = title.productId;
-                        const actualActivationDate = await sequelize.query(
-                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
-                            {
-                                replacements: { productId: title.productId },
-                                type: sequelize.QueryTypes.SELECT
-                            }
-                        );
-                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-                        const priceDef = await PriceDefinition.findOne({
-                            where: { activationDate: actualDate }
-                        });
-                        oldTitle.priceDefId = priceDef.id
-                    }
-
-                    if (title.generation) {
-                        oldTitle.generation = title.generation;
-                    }
-
-
-                    if (title.quantity) {
-                        oldTitle.quantity = title.quantity;
-                    }
-                    if (title.addBooklet === true) {
-                        oldTitle.addBooklet = title.addBooklet;
-                        oldTitle.accessType = null;
-                    }
-                    else {
-                        oldTitle.addBooklet = title.addBooklet;
-                    }
-                    await oldTitle.save();
-                }
-            }
             res.status(200).send('Наименования успешно обновлены');
         }
     }),

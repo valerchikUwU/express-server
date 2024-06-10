@@ -295,7 +295,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                         orderId,
                         dispatchDate,
                         billNumber,
-                        totalCommissionPerRule AS 'Spisanie'
+                        totalCommissionPerRule AS 'Postyplenie'
                     FROM 
                         combined_data;
     

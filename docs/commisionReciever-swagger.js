@@ -286,99 +286,72 @@
  *                      format: date-time
  *                      description: Дата последнего обновления записи
  *                      example: "2024-06-03T13:01:13.000Z"
- *                allSpisanie:
+ *                operations:
  *                  type: array
- *                  description: Список всех правил начисления
+ *                  description: Список всех списаний
  *                  items:
  *                    type: object
  *                    properties:
  *                      id:
  *                        type: string
- *                        description: Уникальный идентификатор правила
+ *                        description: Уникальный идентификатор операции
  *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
- *                      commision:
+ *                      dateOfOperation:
  *                        type: string
- *                        description: Комиссия
- *                        example: "900"
- *                      accessType:
- *                        type: string
- *                        nullable: true
- *                        description: Тип доступа
+ *                        format: date-time
+ *                        description: Дата операции
+ *                        example: "2024-06-04T15:48:19.000Z"
+ *                      Postyplenie:
+ *                        type: decimal
+ *                        description: Пока что всегда null
  *                        example: null
- *                      generation:
+ *                      Spisanie:
+ *                        type: decimal
+ *                        description: Сумма списания
+ *                        example: 30000
+ *                      billNumber:
  *                        type: string
- *                        nullable: true
- *                        description: Генерация
- *                        example: null
+ *                        description: Номер операции
+ *                        nullable: false
+ *                        example: 130.af3
  *                      createdAt:
  *                        type: string
  *                        format: date-time
- *                        description: Дата создания правила
- *                        example: "2024-06-04T15:48:19.000Z"
+ *                        description: Дата создания операции
+ *                        example: "2024-06-03T13:01:13.000Z"
  *                      updatedAt:
  *                        type: string
  *                        format: date-time
- *                        description: Дата последнего обновления правила
+ *                        description: Дата последнего обновления 
  *                        example: "2024-06-04T15:48:19.000Z"
- *                      productTypeId:
- *                        type: string
- *                        nullable: true
- *                        description: ID типа продукта
- *                        example: null
- *                      productId:
- *                        type: string
- *                        description: ID продукта
- *                        example: "3c248e88-b431-4519-bf16-085058206aab"
  *                      commisionRecieverId:
  *                        type: string
  *                        description: ID получателя комиссии
  *                        example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
- *                      prodName:
- *                        type: string
- *                        description: Название продукта
- *                        example: "Товар для валеры"
- *                      prodAbbreviation:
- *                        type: string
- *                        description: Аббревиатура продукта
- *                        example: "ТДВ"
- *                allProducts:
+ *                allPostyplenie:
  *                  type: array
- *                  description: Все товары
+ *                  description: Все пополнения
  *                  items:
  *                    type: object
  *                    properties:
- *                      id:
+ *                      orderId:
  *                        type: string
- *                        description: Уникальный идентификатор правила
+ *                        description: Уникальный идентификатор заказа по которому идет начисление комиссии
  *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
- *                      name:
- *                        type: string
- *                        description: Название продукта
- *                        example: "Товар для валеры"
- *                      abbreviation:
- *                        type: string
- *                        description: Аббревиатура продукта
- *                        example: "ТДВ"
- *                      createdAt:
+ *                      dispatchDate:
  *                        type: string
  *                        format: date-time
- *                        description: Дата создания правила
+ *                        description: Дата отправки заказа
  *                        example: "2024-06-04T15:48:19.000Z"
- *                      updatedAt:
+ *                      billNumber:
  *                        type: string
- *                        format: date-time
- *                        description: Дата последнего обновления правила
- *                        example: "2024-06-04T15:48:19.000Z"
- *                      productTypeId:
- *                        type: string
- *                        nullable: true
- *                        description: ID типа продукта
- *                        example: 1
- *                      activationDate:
- *                        type: string
- *                        format: date-time
- *                        description: Дата активации
- *                        example: "2024-06-04T15:48:19.000Z"
+ *                        description: Номер заказа
+ *                        nullable: false
+ *                        example: 230030.af3
+ *                      Postyplenie:
+ *                        type: decimal
+ *                        description: Сумма поступления
+ *                        example: 30000
  * 
  * 
  * 
