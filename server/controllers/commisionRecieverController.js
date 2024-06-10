@@ -108,7 +108,11 @@ exports.commisionReciever_rules_details = asyncHandler(async (req, res, next) =>
 exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) => {
     try {
         const commisionReceiver = await CommisionReciever.findByPk(req.params.commisionRecieverId);
-        const commisionReceiverOperations = await CommisionRecieverOperations.findAll({where: {commisionRecieverId: req.params.commisionRecieverId}});
+        const commisionReceiverOperations = await CommisionRecieverOperations.findAll({ where: { commisionRecieverId: req.params.commisionRecieverId }, raw: true });
+
+        commisionReceiverOperations.forEach(row => {
+            row.formattedDateOfOperation = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
+        });
 
         if (commisionReceiver === null) {
             // No results.
@@ -120,24 +124,18 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
         const query1 = `
 
                 CREATE TEMPORARY TABLE IF NOT EXISTS first_commission_summaries (
-                    productId CHAR(35),
-                    orderId CHAR(35),
+                    orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
-                    titlesId CHAR(35),
-                    accessType VARCHAR(255),
-                    generation VARCHAR(255),
+                    titlesId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 )`
-        const query2 = `INSERT INTO first_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation, totalCommissionPerRule)
+        const query2 = `INSERT INTO first_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
-                    A.productId,
                     titles.orderId,
                     orders.dispatchDate,
                     orders.billNumber,
                     titles.id,
-                    A.accessType,
-                    A.generation,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -147,6 +145,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                 Orders orders ON titles.orderId = orders.id
             WHERE 
                 orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                AND A.commisionRecieverId = :commisionRecieverId 
                 AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                 AND A.accessType IS NOT NULL
                 AND A.generation IS NOT NULL
@@ -156,26 +155,20 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                 titles.orderId;`
 
         const query3 = `CREATE TEMPORARY TABLE IF NOT EXISTS second_commission_summaries (
-                    productId CHAR(35),
-                    orderId CHAR(35),
+                    orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
-                    titlesId CHAR(35),
-                    accessType VARCHAR(255),
-                    generation VARCHAR(255),
+                    titlesId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );`
 
         const query4 =
-            `INSERT INTO second_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, accessType, generation, totalCommissionPerRule)
+            `INSERT INTO second_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
-                    A.productId,
                     titles.orderId,
                     orders.dispatchDate,
                     orders.billNumber,
                     titles.id,
-                    A.accessType,
-                    A.generation,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -185,29 +178,28 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                     Orders orders ON titles.orderId = orders.id
                 WHERE 
                     orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND A.commisionRecieverId = :commisionRecieverId 
                     AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                     AND (A.accessType IS NULL OR A.generation IS NULL)
                     AND (A.accessType = titles.accessType OR A.generation = titles.generation)
                     AND NOT EXISTS (
                         SELECT * FROM first_commission_summaries fcs
-                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                 GROUP BY 
                     titles.orderId;`
         const query5 = `
                 CREATE TEMPORARY TABLE IF NOT EXISTS third_commission_summaries (
-                    productId CHAR(35),
-                    orderId CHAR(35),
+                    orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
-                    titlesId CHAR(35),
+                    titlesId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );
                 `
         const query6 =
-            `INSERT INTO third_commission_summaries (productId, orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
+            `INSERT INTO third_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
-                    A.productId,
                     titles.orderId,
                     orders.dispatchDate,
                     orders.billNumber,
@@ -221,24 +213,25 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                     Orders orders ON titles.orderId = orders.id
                 WHERE 
                     orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND A.commisionRecieverId = :commisionRecieverId 
                     AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                     AND (A.accessType IS NULL AND A.generation IS NULL)
                     AND NOT EXISTS (
                         SELECT * FROM first_commission_summaries fcs
-                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                     AND NOT EXISTS (
                         SELECT * FROM second_commission_summaries scs
-                        WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(scs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                 GROUP BY 
                     titles.orderId;`
         const query7 =
             `CREATE TEMPORARY TABLE IF NOT EXISTS fourth_commission_summaries (
-                    orderId CHAR(35),
+                    orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
-                    titlesId CHAR(35),
+                    titlesId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 )`
         const query8 = `
@@ -259,23 +252,24 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                     Orders orders ON titles.orderId = orders.id
                 WHERE 
                     orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    AND A.commisionRecieverId = :commisionRecieverId 
                     AND NOT EXISTS (
                         SELECT * FROM first_commission_summaries fcs
-                        WHERE CAST(fcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                     AND NOT EXISTS (
                         SELECT * FROM second_commission_summaries scs
-                        WHERE CAST(scs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(scs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                     AND NOT EXISTS (
                         SELECT * FROM third_commission_summaries tcs
-                        WHERE CAST(tcs.titlesId AS CHAR(35)) = CAST(titles.id AS CHAR(35))
+                        WHERE CAST(tcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
                     )
                 GROUP BY 
                     titles.orderId;`
         const query9 = `
                 CREATE TEMPORARY TABLE IF NOT EXISTS combined_data (
-                    orderId CHAR(35),
+                    orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
                     totalCommissionPerRule DECIMAL(10, 2)
@@ -304,23 +298,23 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
         try {
             await sequelize.query(query1, { type: Sequelize.QueryTypes.RAW })
                 .then(async () => {
-                    await sequelize.query(query2, { type: Sequelize.QueryTypes.RAW })
+                    await sequelize.query(query2, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
                         .then(async () => {
                             await sequelize.query(query3, { type: Sequelize.QueryTypes.RAW })
                                 .then(async () => {
-                                    await sequelize.query(query4, { type: Sequelize.QueryTypes.RAW })
+                                    await sequelize.query(query4, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
                                         .then(async () => {
 
                                             await sequelize.query(query5, { type: Sequelize.QueryTypes.RAW })
                                                 .then(async () => {
 
-                                                    await sequelize.query(query6, { type: Sequelize.QueryTypes.RAW })
+                                                    await sequelize.query(query6, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
                                                         .then(async () => {
 
                                                             await sequelize.query(query7, { type: Sequelize.QueryTypes.RAW })
                                                                 .then(async () => {
 
-                                                                    await sequelize.query(query8, { type: Sequelize.QueryTypes.RAW })
+                                                                    await sequelize.query(query8, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
                                                                         .then(async () => {
 
                                                                             await sequelize.query(query9, { type: Sequelize.QueryTypes.RAW })
@@ -328,22 +322,22 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
 
                                                                                     await sequelize.query(query10, { type: Sequelize.QueryTypes.RAW })
                                                                                         .then(async () => {
-                                                                                            await sequelize.query(query11, { type: Sequelize.QueryTypes.RAW })
-                                                                                            .then(async (result) => {
-                                                                                                result.forEach(row => {
-                                                                                                    row.formattedDate = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
-                                                                                                });
-                                                                                                commisionReceiverOperations.forEach(row => {
-                                                                                                    row.formattedDate = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
-                                                                                                });
-                                                                                                await transaction.commit();
-                                                                                                res.json({
-                                                                                                    title: `Баланс получателя комиссии ${commisionReceiver.name}`,
-                                                                                                    commisionReceiver: commisionReceiver,
-                                                                                                    operations: commisionReceiverOperations,
-                                                                                                    allPostyplenie: result
-                                                                                                });
-                                                                                            })
+                                                                                            await sequelize.query(query11, { type: Sequelize.QueryTypes.SELECT })
+                                                                                                .then(async (result) => {
+
+                                                                                                    result.forEach(row => {
+                                                                                                        row.formattedDate = row.dispatchDate ? dateFns.format(row.dispatchDate, 'dd-MM-yyyy') : null;
+                                                                                                    });
+                                                                                                    res.json({
+                                                                                                        title: `Баланс получателя комиссии ${commisionReceiver.name}`,
+                                                                                                        commisionReceiver: commisionReceiver,
+                                                                                                        operations: commisionReceiverOperations,
+                                                                                                        allPostyplenie: result
+                                                                                                    });
+
+
+                                                                                                    await transaction.commit();
+                                                                                                })
                                                                                         })
                                                                                 })
                                                                         })
@@ -354,7 +348,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                 })
                         })
                 })
-            
+
         }
         catch (err) {
             await transaction.rollback();

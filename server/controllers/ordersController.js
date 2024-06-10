@@ -96,18 +96,19 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
                 [
                     {
                         model: TitleOrders, // Добавляем модель TitleOrders
+                        attributes: [],
                         include:
                             [
                                 {
                                     model: PriceDefinition,
-                                    as: 'price',
-                                    attributes: ['priceAccess', 'priceBooklet']
+                                    attributes: [],
+                                    as: 'price'
                                 }
-                            ],
-                        attributes: ['quantity']
+                            ]
                     },
                     {
                         model: OrganizationCustomer,
+                        attributes: [],
                         as: 'organization'
                     }
                 ],
@@ -310,6 +311,7 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
         orders.forEach(order => {
             order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
         });
+        console.log(orders)
         res.json({
             title: "Архивные заказы (Получен, Отменен)",
             orders_list: orders
