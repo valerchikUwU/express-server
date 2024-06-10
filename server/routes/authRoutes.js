@@ -77,7 +77,8 @@ router.get('/homepage', async (req, res) => {
   res.json({
     token: token,
     sessionId: req.sessionID,
-    isLogged: req.session.isLogged
+    isLogged: req.session.isLogged,
+    accountId: req.session.accountId
   });
 })
 
