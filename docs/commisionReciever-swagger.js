@@ -263,7 +263,7 @@
  *                title:
  *                  type: string
  *                  description: Заголовок информации о получателе
- *                  example: "Правила начисления получателя комиссии OOO Gavnoedka"
+ *                  example: "Детали баланса получателя комиссии OOO Gavnoedka"
  *                commisionReciever:
  *                  type: object
  *                  description: Информация о получателе комиссии
