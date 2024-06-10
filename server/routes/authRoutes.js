@@ -19,6 +19,9 @@ wss.on('connection', (ws, req) => {
   const sessionId = obj.sessionId;
   console.log(`WSSSSSS: ${sessionId}`) // Получаем sessionId из сессии
   connections[sessionId] = ws; // Сохраняем WebSocket соединение
+  if (req.session.isLogged === true) {
+    sendMessageToClient(req.sessionID, req.session.accountId)
+ }
 });
 
 
@@ -45,14 +48,14 @@ router.post('/auth', async (req, res) => {
 
 
         // Передаем accountId через URL
-        sendMessageToClient(sessionId, accountId);
+        await sendMessageToClient(sessionId, accountId);
         await setSessionAccountId(sessionId, accountId);
         res.status(200).json({ message: 'Вы успешно аутентифицированы' });
       } else {
         res.status(404).json({ message: 'Номер телефона не найден' });
       }
     } else {
-      sendMessageToClient(sessionId, 'false')
+      await sendMessageToClient(sessionId, 'false')
       console.log('Ошибка аутентификации!');
       res.status(401).json({ message: 'Ошибка аутентификации!' });
     }
@@ -72,9 +75,6 @@ router.get('/homepage', async (req, res) => {
   if (req.session.isLogged === undefined) {
     req.session.isLogged = false;
   }
-  else if (req.session.isLogged === true) {
-    sendMessageToClient(req.sessionID, req.session.accountId)
-  }
   console.log(`/homepage: ${req.session.generatedToken}`)
   console.log(`/homepage: ${req.sessionID}`)
   res.json({
@@ -86,7 +86,7 @@ router.get('/homepage', async (req, res) => {
 
 
 
-router.post('/logout', async (req, res) => {
+router.post('/:accountId/logout', async (req, res) => {
   req.session.destroy();
   res.status(200).send('Вы успешно вышли из аккаунта!')
 })
@@ -172,7 +172,7 @@ async function getGeneratedToken(sessionID) {
 }
 
 
-function sendMessageToClient(sessionId, message) {
+async function sendMessageToClient(sessionId, message) {
   const ws = connections[sessionId];
   if (ws) {
     console.log(`ot servera klienty: ${message}`)
