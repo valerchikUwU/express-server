@@ -19,9 +19,6 @@ wss.on('connection', (ws, req) => {
   const sessionId = obj.sessionId;
   console.log(`WSSSSSS: ${sessionId}`) // Получаем sessionId из сессии
   connections[sessionId] = ws; // Сохраняем WebSocket соединение
-  if (req.session.isLogged === true) {
-    sendMessageToClient(req.sessionID, req.session.accountId)
- }
 });
 
 
