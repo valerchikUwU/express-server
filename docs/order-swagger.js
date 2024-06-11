@@ -182,6 +182,14 @@
  *                    title:
  *                      type: string
  *                      example: "Все активные заказы"
+ *                    productsInDraft:
+ *                      type: array
+ *                      items:
+ *                        type: object
+ *                        properties:
+ *                          productIds:
+ *                              type: string
+ *                              example: ""01584925-5783-428b-a592-e886cb8dca50,08b24a17-a152-46ad-aba4-c729cbae0cfc"
  *                    orders_list:
  *                      type: array
  *                      items:
@@ -246,33 +254,11 @@
  *                            type: string
  *                            nullable: false
  *                            example: "Санкт-Петербург"
- *                          TitleOrder:
- *                            type: object
- *                            properties:
- *                              quantity:
- *                                type: decimal
- *                                nullable: false
- *                                example: 3
- *                              addBooklet:
- *                                type: boolean
- *                                nullable: false
- *                                description: Флаг добавления брошюры к заказу (если true, то accessType устанавливается в null)
- *                                example: true
- *                              price:
- *                                type: object
- *                                properties:
- *                                  id:
- *                                    type: string
- *                                    format: uuid
- *                                    example: "377c60f7-4bf0-469b-92a9-0c7d6a123314"
- *                                  priceAccess:
- *                                    type: decimal
- *                                    nullable: false
- *                                    example: '15000 (в случае депозита устанавл. в 1)'
- *                                  priceBooklet:
- *                                    type: decimal
- *                                    nullable: false
- *                                    example: '1500 (в случае депозита устанавл. в 0)'
+ *                          titlesCount:
+ *                            type: integer
+ *                            description: Кол-во наименований в черновике
+ *                            nullable: false
+ *                            example: 3
  *                          formattedDispatchDate:
  *                            type: string
  *                            format: date-time

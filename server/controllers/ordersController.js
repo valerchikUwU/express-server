@@ -62,6 +62,7 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
                 ]
             },
             group: ['Order.id'],
+            raw: true
         });
 
 
