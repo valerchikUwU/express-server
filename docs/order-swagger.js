@@ -189,7 +189,7 @@
  *                        properties:
  *                          productIds:
  *                              type: string
- *                              example: ""01584925-5783-428b-a592-e886cb8dca50,08b24a17-a152-46ad-aba4-c729cbae0cfc"
+ *                              example: "01584925-5783-428b-a592-e886cb8dca50,08b24a17-a152-46ad-aba4-c729cbae0cfc"
  *                    orders_list:
  *                      type: array
  *                      items:
