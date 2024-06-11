@@ -141,7 +141,13 @@ exports.account_organization_create_post = [
                 errors: errors.array(),
             });
         } else {
-            await account.save();
+            try{
+                await account.save();
+
+            }
+            catch(err){
+                console.log(err)
+            }
             res.status(200).send('Аккаунт успешно создан!');
         }
     }),

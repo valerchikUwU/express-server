@@ -9,7 +9,7 @@ const Account = require("../models/account");
 const checkAbilities = (action, subject) => {
   return async (req, res, next) => {
     const sessionId = req.sessionID;
-    console.log(`checkability ${sessionId}`)
+    console.log(`checkability  ${sessionId}`)
     if(process.env.NODE_ENV === 'development'){
       try{
         const account = await getAccountById(req.params.accountId);
@@ -29,7 +29,8 @@ const checkAbilities = (action, subject) => {
         const accountId = await getAccountIdFromSession(sessionId);
         const account = await getAccountById(req.params.accountId);
         console.log(`checkability ${accountId}`);
-        console.log(`checkability ${account.id}`)
+        console.log(req.params)
+        console.log(`checkability ${req.params.accountId}`)
         if (!account) {
           return res.status(404).send('Такого аккаунта не существует');
         }

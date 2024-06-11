@@ -180,10 +180,6 @@ router.post("/:accountId/payees/newPayee", checkAbilities('create', 'SuperAdmin'
 ============================================================
 */
 
-/**
- * Запрос GET для получения всех прайс листов(PriceDefinition)
- */
-router.get("/:accountId/prices", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.prices_list);
 
 
 
@@ -208,6 +204,10 @@ router.get("/:accountId/prices/:priceDefId/update", checkAbilities('read', 'Pric
 router.put("/:accountId/prices/:priceDefId/update", checkAbilities('update', 'PriceDefinition'), priceDefinition_controller.price_update_put);
 
 
+/**
+ * Запрос GET для получения всех прайс листов(PriceDefinition)
+ */
+router.get("/:accountId/prices", checkAbilities('read', 'PriceDefinition'), priceDefinition_controller.prices_list);
 
 
 /*
