@@ -12,14 +12,6 @@ exports.payee_list = asyncHandler(async (req, res, next) => {
     })
 });
 
-exports.payee_create_get = asyncHandler(async (req, res, next) => {
-  
-    // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
-    res.json({
-      title: "Форма создания получателя платежа"
-    });
-  });
-
 
   
 exports.payee_create_post = [
