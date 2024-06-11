@@ -11,6 +11,7 @@ const ProductType = require('../../models/productType');
 const Payee = require('../../models/payee');
 const CommisionReciever = require('../../models/commisionReceiver');
 const sequelize = require('../../database/connection');
+const dateFns = require('date-fns');
 
 
 exports.review_list = asyncHandler(async (req, res, next) => {
@@ -30,7 +31,7 @@ exports.review_list = asyncHandler(async (req, res, next) => {
                     }
                 },
 
-
+                group: ['dispatchDate'],
                 include:
                     [
                         {
@@ -66,10 +67,13 @@ exports.review_list = asyncHandler(async (req, res, next) => {
                             ]
                         ]
                 },
+                raw: true
             }),
             await Review.findAll()
         ])
-
+        allPostyplenie.forEach(order => {
+            order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
+        });
         res.json({
             title: 'Все отчеты',
             allPostyplenie: allPostyplenie,
@@ -165,62 +169,96 @@ exports.ordersReview_create_post = [
             });
         }
         else {
-            const order = await Order.findAll({
-                where:
-                {
-                    status: req.body.status,
-                    organizationCustomerId:
+
+            if (viewType === 'Количество заказов') {
+                const order = await Order.findAll({
+                    where:
                     {
-                        [Op.in]:
+                        status: req.body.status,
+                        organizationCustomerId:
+                        {
+                            [Op.in]:
+                                [
+                                    req.body.organizationCustomerId
+                                ]
+                        },
+                        payeeId:
+                        {
+                            [Op.in]:
+                                [
+                                    req.body.payeeId
+                                ]
+                        }
+                    },
+                    attributes:
+                    {
+                        include:
                             [
-                                '1'
+
+                                [
+                                    sequelize.fn('count', sequelize.col('Order.id')), 'count'
+                                ]
                             ]
                     },
-                    payeeId:
+                })
+
+                const review = new Review({
+                    name: req.body.name,
+                    dataType: req.body.dataType
+                    // calculatedNumber: 
+                })
+            }
+            else {
+                const order = await Order.findAll({
+                    where:
                     {
-                        [Op.in]:
-                            [
-                                'c1b586ee-50f8-4173-a5a0-bd8b6c9dcd41'
-                            ]
-                    }
-                },
-                include:
-                    [
+                        status: req.body.status,
+                        organizationCustomerId:
                         {
-                            model: TitleOrders, // Добавляем модель TitleOrders
-                            include:
+                            [Op.in]:
                                 [
-                                    {
-                                        model: PriceDefinition,
-                                        as: 'price',
-                                        attributes: []
-                                    },
-                                    {
-                                        model: Product,
-                                        attributes: [],
-                                        as: 'product'
-                                    }
-                                ],
-                            attributes: []
+                                    req.body.organizationCustomerId
+                                ]
+                        },
+                        payeeId:
+                        {
+                            [Op.in]:
+                                [
+                                    req.body.payeeId
+                                ]
                         }
-                    ],
-                attributes:
-                {
+                    },
                     include:
                         [
+                            {
+                                model: TitleOrders, // Добавляем модель TitleOrders
+                                include:
+                                    [
+                                        {
+                                            model: PriceDefinition,
+                                            as: 'price',
+                                            attributes: []
+                                        },
+                                        {
+                                            model: Product,
+                                            attributes: [],
+                                            as: 'product'
+                                        }
+                                    ],
+                                attributes: []
+                            }
+                        ],
+                    attributes:
+                    {
+                        include:
                             [
-                                Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
-                            ],
-                            [
-                                sequelize.fn('count', sequelize.col('Order.id')), 'count'
+                                [
+                                    Sequelize.literal(`SUM(CASE WHEN productTypeId <> 4 THEN (CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END) END)`), 'SUM'
+                                ]
                             ]
-                        ]
-                },
-            })
-            if (viewType === 'Количество заказов') {
-
+                    },
+                })
             }
-
 
             const orderReview = new Review({
 
