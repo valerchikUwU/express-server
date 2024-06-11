@@ -24,10 +24,10 @@
 *
 *
 * /{accountId}/payees/newPayee:
-*  get:
+*  post:
 *      tags:
 *          - Payee
-*      summary: Запрос GET для получения формы для создания нового получателя платежа (Payee)
+*      summary: Запрос POST для создания нового получателя платежа (Payee)
 *      parameters:
 *        - in: path
 *          name: accountId
@@ -36,9 +36,20 @@
 *            type: string
 *            format: uuid
 *          description: ID пользователя
+ *      requestBody:
+ *        required: true
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                name:
+ *                    type: string
+ *                    description: Название получателя
+ *                    example: OOO Pipka
 *      responses:
 *        200:
-*          description: Список получателей платежа
+*          description: Получатель успешно создан!
 *        403:
 *          description: У вас нет прав доступа или вы были заблокированы!
 */

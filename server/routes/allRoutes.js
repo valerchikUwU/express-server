@@ -167,10 +167,6 @@ router.put("/:accountId/orders/:orderId/update", checkAbilities('update', 'Title
 router.get("/:accountId/payees", checkAbilities('read', 'SuperAdmin'), payees_controller.payee_list);
 
 /**
- * Запрос GET для получения формы для создания нового получателя платежа (Payee)
- */
-router.get("/:accountId/payees/newPayee", checkAbilities('read', 'SuperAdmin'), payees_controller.payee_create_get);
-/**
  * Запрос POST для создания нового получателя платежа (Payee)
  */
 router.post("/:accountId/payees/newPayee", checkAbilities('create', 'SuperAdmin'), payees_controller.payee_create_post);
