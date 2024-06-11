@@ -10,7 +10,7 @@ const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
-        
+
     const pricesInit = await PriceDefinition.findAll({
         include: [{
             model: Product,
@@ -21,7 +21,7 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
-                as: 'product',
+            as: 'product',
             where: { productTypeId: 1 }
 
         }],
@@ -56,7 +56,7 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
-                as: 'product',
+            as: 'product',
             where: { productTypeId: 2 }
         }],
         attributes: {
@@ -88,7 +88,7 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                     'id',
                     'productTypeId'
                 ],
-                as: 'product',
+            as: 'product',
             where: { productTypeId: 3 }
         }],
         attributes: {
@@ -135,50 +135,30 @@ exports.price_create_get = asyncHandler(async (req, res, next) => {
         Product.findAll()
     ]);
     const order = await Order.findAll({
-        distincs: true,
         where:
         {
             organizationCustomerId: '1',
-            payeeId:
-                        'c1b586ee-50f8-4173-a5a0-bd8b6c9dcd41'
+            payeeId: 'c1b586ee-50f8-4173-a5a0-bd8b6c9dcd41'
         },
-        include:
-            [
-                {
-                    model: TitleOrders, // Добавляем модель TitleOrders
-                    include:
-                        [
-                            {
-                                model: PriceDefinition,
-                                as: 'price',
-                                attributes: []
-                            },
-                            {
-                                model: Product,
-                                attributes: [],
-                                as: 'product'
-                            }
-                        ],
-                    attributes: []
-                }
-            ],
         attributes:
         {
             include:
                 [
+
                     [
-                        Sequelize.literal(`SUM(CASE WHEN productTypeId <> 4 THEN (CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)END )`), 'SUM'
-                    ],
-                    [
-                        sequelize.fn('count', sequelize.col('Order.orderNumber')), 'count'
+                        sequelize.fn('count', sequelize.col('Order.id')), 'count'
                     ]
                 ]
-        }
+        },
     })
+
+    const count = order[0];
+    console.log(count)
+    console.log(count.dataValues.count)
     res.json({
         title: "Форма создания прайс - листа",
         products: products,
-        orders: order
+        orders: count.dataValues.count
     });
 });
 
