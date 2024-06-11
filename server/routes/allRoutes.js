@@ -11,6 +11,7 @@ const statistics_controller = require("../controllers/statisticsController");
 const rules_controller = require('../controllers/accrualRuleController');
 const commisionReceiver_controller = require('../controllers/commisionRecieverController');
 const commisionReceiverOperations_controller = require('../controllers/commisionRecieverOperationsController');
+const review_controller = require('../controllers/reviewController');
 const checkAbilities = require('../../utils/checkAbility');
 
 
@@ -364,6 +365,14 @@ router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities(
 
 
 
+/*
+============================================================
+ЗАПРОСЫ ДЛЯ ОТЧЕТОВ
+============================================================
+*/
+
+
+router.get("/:accountId/reviews", checkAbilities('read', 'Reviews'), review_controller.review_list);
 
 
 module.exports = router;

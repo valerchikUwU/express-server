@@ -6,6 +6,8 @@ const Product = require('../../models/product');
 const ProductType = require('../../models/productType');
 const dateFns = require('date-fns');
 const sequelize = require('../../database/connection');
+const Order = require('../../models/order');
+const TitleOrders = require('../../models/titleOrders');
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
         
@@ -132,10 +134,51 @@ exports.price_create_get = asyncHandler(async (req, res, next) => {
     const [products] = await Promise.all([
         Product.findAll()
     ]);
-
+    const order = await Order.findAll({
+        distincs: true,
+        where:
+        {
+            organizationCustomerId: '1',
+            payeeId:
+                        'c1b586ee-50f8-4173-a5a0-bd8b6c9dcd41'
+        },
+        include:
+            [
+                {
+                    model: TitleOrders, // Добавляем модель TitleOrders
+                    include:
+                        [
+                            {
+                                model: PriceDefinition,
+                                as: 'price',
+                                attributes: []
+                            },
+                            {
+                                model: Product,
+                                attributes: [],
+                                as: 'product'
+                            }
+                        ],
+                    attributes: []
+                }
+            ],
+        attributes:
+        {
+            include:
+                [
+                    [
+                        Sequelize.literal(`SUM(CASE WHEN productTypeId <> 4 THEN (CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)END )`), 'SUM'
+                    ],
+                    [
+                        sequelize.fn('count', sequelize.col('Order.orderNumber')), 'count'
+                    ]
+                ]
+        }
+    })
     res.json({
         title: "Форма создания прайс - листа",
         products: products,
+        orders: order
     });
 });
 

@@ -286,17 +286,18 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                 `;
         const query11 = `
                         SELECT 
-                        orderId,
+                        DISTINCT (orderId),
                         dispatchDate,
                         billNumber,
                         totalCommissionPerRule AS 'Postyplenie'
                     FROM 
                         combined_data;
-    
                         `;
 
+ 
         try {
-            await sequelize.query(query1, { type: Sequelize.QueryTypes.RAW })
+            await sequelize.query(`FLUSH TABLES;`, { type: Sequelize.QueryTypes.RAW }).then(async () => {
+                await sequelize.query(query1, { type: Sequelize.QueryTypes.RAW })
                 .then(async () => {
                     await sequelize.query(query2, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
                         .then(async () => {
@@ -328,15 +329,16 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                                                                                     result.forEach(row => {
                                                                                                         row.formattedDate = row.dispatchDate ? dateFns.format(row.dispatchDate, 'dd-MM-yyyy') : null;
                                                                                                     });
+                                                                                                    const ress = result;
+                                                                                                    console.log(ress)
+
+                                                                                                    await transaction.commit();
                                                                                                     res.json({
                                                                                                         title: `Баланс получателя комиссии ${commisionReceiver.name}`,
                                                                                                         commisionReceiver: commisionReceiver,
                                                                                                         operations: commisionReceiverOperations,
                                                                                                         allPostyplenie: result
                                                                                                     });
-
-
-                                                                                                    await transaction.commit();
                                                                                                 })
                                                                                         })
                                                                                 })
@@ -348,11 +350,13 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                 })
                         })
                 })
+            })
+            
 
         }
         catch (err) {
-            await transaction.rollback();
             console.error(err);
+            await transaction.rollback();
         }
 
     }
