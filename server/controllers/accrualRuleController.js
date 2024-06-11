@@ -103,14 +103,14 @@ exports.accrualRule_update_put = [
 
     // Validate and sanitize fields.
     body("rulesToUpdate.*.productTypeId")
-        .if(body("productTypeId").exists())
+        .if(body("rulesToUpdate.*.productTypeId").exists())
         .isNumeric()
         .withMessage('Тип продукта должен быть числом')
         .isIn([1, 2, 3])
         .withMessage('Тип продукта может быть только 1, 2 или 3')
         .escape(),
     body("rulesToUpdate.*.productId")
-        .if(body("productId").exists())
+        .if(body("rulesToUpdate.*.productId").exists())
         .trim()
         .isLength({ min: 1 })
         .escape(),
