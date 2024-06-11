@@ -134,31 +134,9 @@ exports.price_create_get = asyncHandler(async (req, res, next) => {
     const [products] = await Promise.all([
         Product.findAll()
     ]);
-    const order = await Order.findAll({
-        where:
-        {
-            organizationCustomerId: '1',
-            payeeId: 'c1b586ee-50f8-4173-a5a0-bd8b6c9dcd41'
-        },
-        attributes:
-        {
-            include:
-                [
-
-                    [
-                        sequelize.fn('count', sequelize.col('Order.id')), 'count'
-                    ]
-                ]
-        },
-    })
-
-    const count = order[0];
-    console.log(count)
-    console.log(count.dataValues.count)
     res.json({
         title: "Форма создания прайс - листа",
-        products: products,
-        orders: count.dataValues.count
+        products: products
     });
 });
 

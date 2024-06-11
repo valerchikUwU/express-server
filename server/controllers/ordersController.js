@@ -21,7 +21,7 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
             where: {
                 accountId: accountId,
                 status: {
-                    [Op.ne]: 'Получен'
+                    [Op.notIn]: ['Получен', 'Отменен']
                 }
             },
             include: [
@@ -32,19 +32,20 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
                             {
                                 model: PriceDefinition,
                                 as: 'price',
-                                attributes:
-                                    [
-                                        'priceAccess',
-                                        'priceBooklet'
-                                    ]
+                                attributes: []
+                            },
+                            {
+                                model: Product,
+                                attributes: [],
+                                as: 'product'
                             }
                         ],
-                    attributes: ['quantity', 'addBooklet'] // Добавляем addBooklet в атрибуты
+                    attributes: [] 
                 },
                 {
                     model: OrganizationCustomer,
                     as: 'organization',
-                    attributes: ['organizationName']
+                    attributes: []
                 }
             ],
             attributes: {
@@ -54,19 +55,37 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
                     ],
                     [
                         Sequelize.literal(`organizationName`), 'organizationName'
-                    ]
+                    ],
+                    [
+                        sequelize.fn('count', sequelize.col('TitleOrder.id')), 'titlesCount'
+                    ],
                 ]
             },
             group: ['Order.id'],
-            raw: true
+        });
+
+
+        const productsInDraft = await sequelize.query(`
+            SELECT  
+                   GROUP_CONCAT(DISTINCT Products.id) AS productIds
+            FROM Orders
+            LEFT JOIN TitleOrders ON Orders.id = TitleOrders.orderId
+            LEFT JOIN Products ON TitleOrders.productId = Products.id
+            WHERE Orders.accountId = :accountId AND Orders.status = 'Черновик'
+        `, {
+            replacements: { accountId: accountId },
+            type: sequelize.QueryTypes.SELECT
         });
 
         activeOrders.forEach(order => {
             order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
         });
 
+
+
         res.json({
             title: "Все активные заказы",
+            productsInDraft: productsInDraft,
             orders_list: activeOrders,
             organizationList: organizationList
         })
@@ -90,7 +109,9 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
             {
 
                 accountId: accountId,
-                status: 'Получен'
+                status: {
+                    [Op.notIn]: ['Получен', 'Отменен']
+                }
             },
             include:
                 [
@@ -311,7 +332,6 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
         orders.forEach(order => {
             order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
         });
-        console.log(orders)
         res.json({
             title: "Архивные заказы (Получен, Отменен)",
             orders_list: orders
@@ -1015,7 +1035,6 @@ async function getFirstOrganizationCustomerName(accountId) {
         if (account.id !== null) {
             const organizationsList = account.organizationList;
             const firstOrganization = organizationsList[0];
-            console.log(firstOrganization);
             return firstOrganization;
         } else {
             return null;
