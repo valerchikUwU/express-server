@@ -296,7 +296,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
 
  
         try {
-            await sequelize.query(`FLUSH TABLES;`, { type: Sequelize.QueryTypes.RAW }).then(async () => {
+            
                 await sequelize.query(query1, { type: Sequelize.QueryTypes.RAW })
                 .then(async () => {
                     await sequelize.query(query2, {replacements: { commisionRecieverId: req.params.commisionRecieverId }, type: Sequelize.QueryTypes.RAW })
@@ -350,7 +350,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                 })
                         })
                 })
-            })
+           
             
 
         }

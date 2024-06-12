@@ -49,7 +49,12 @@ const Account = sequelize.define('Account', {
       autoIncrement: true, // Указываем, что поле будет автоинкрементироваться
       unique: true, // Указываем, что значение поля должно быть уникальным
       allowNull: false // Указываем, что поле не может быть null
-  }
+  },
+  isSignedUpPush:{
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+    allowNull: false
+   }
 },
    {
       // Можно добавить дополнительные настройки модели здесь
