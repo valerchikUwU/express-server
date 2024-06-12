@@ -49,6 +49,7 @@ const Order = require("../models/order.js");
 const TitleOrders = require("../models/titleOrders.js");
 const AccrualRule = require("../models/accrualRule.js");
 const CommisionRecieverOperations = require("../models/commisionRecieverOperations.js");
+const Subscriptions = require("../models/subscriptions.js");
 
 // Корень URL
 const API_ROOT = process.env.API_ROOT;
@@ -99,6 +100,7 @@ async function syncModels() {
     await AccrualRule.sync();
     await CommisionRecieverOperations.sync();
     await Review.sync();
+    await Subscriptions.sync();
     console.log("Syncronized successfully");
   } catch (error) {
     console.error("Error due to failed sycnronization:", error);

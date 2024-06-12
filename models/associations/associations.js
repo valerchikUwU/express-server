@@ -12,6 +12,7 @@ const CommisionReciever = require('../commisionReceiver');
 const CommisionRecieverOperations = require('../commisionRecieverOperations');
 
 const { DataTypes } = require('sequelize');
+const Subscriptions = require('../subscriptions');
 
 
 
@@ -43,6 +44,11 @@ OrganizationCustomer.hasMany(Order, {
    as: 'orders'
 });
 
+Order.belongsTo(OrganizationCustomer, {
+   foreignKey: 'organizationCustomerId',
+   as: 'organization'
+});
+
 Payee.hasMany(Order, {
    foreignKey: {
       name: 'payeeId',
@@ -52,10 +58,6 @@ Payee.hasMany(Order, {
    as: 'orders'
 });
 
-Order.belongsTo(OrganizationCustomer, {
-   foreignKey: 'organizationCustomerId',
-   as: 'organization'
-});
 
 Order.belongsTo(Payee, {
    foreignKey: 'payeeId',
@@ -207,3 +209,15 @@ CommisionRecieverOperations.belongsTo(CommisionReciever, {
    as: 'commisionReciever'
 });
 
+
+Account.hasOne(Subscriptions, {
+   foreignKey: {
+      name: 'accountId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   }
+});
+
+Subscriptions.belongsTo(Account, {
+   foreignKey: 'accountId'
+});

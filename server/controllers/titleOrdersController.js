@@ -288,7 +288,7 @@ exports.admin_titleOrder_update_put = [
             }
 
             if(order.status !== null) {
-                sendNotification(oldOrder.accountId,oldOrder.orderNumber, oldOrder.status, order.status)
+                webPush(oldOrder.accountId,oldOrder.orderNumber, oldOrder.status, order.status)
             }
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = order.status;
