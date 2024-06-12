@@ -1,6 +1,7 @@
 const express = require("express");
 const Account = require("../../models/account");
 const Subscriptions = require("../../models/subscriptions");
+const checkAbilities = require('../../utils/checkAbility');
 const router = express.Router();
 
 router.post("/:accountId/save-subscription", checkAbilities('create', 'WebPush') , async (req, res) => {

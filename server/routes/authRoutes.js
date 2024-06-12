@@ -40,9 +40,10 @@ router.post('/auth', async (req, res) => {
         await Account.update({ lastSeen: new Date(), telegramId: id }, { where: { telephoneNumber: foundNumber } });
         const account = await Account.findOne({ where: { telephoneNumber: foundNumber } });
         const accountId = account.id;
+        const accountRoleId = account.roleId;
         // Передаем accountId через URL
-        await sendMessageToClient(sessionId, accountId);
-        await setSessionAccountId(sessionId, accountId);
+        await sendMessageToClient(sessionId, accountId, accountRoleId);
+        await setSessionAccountId(sessionId, accountId, accountRoleId);
         res.status(200).json({ message: 'Вы успешно аутентифицированы' });
       } else {
         res.status(404).json({ message: 'Номер телефона не найден' });
@@ -74,7 +75,8 @@ router.get('/homepage', async (req, res) => {
     token: token,
     sessionId: req.sessionID,
     isLogged: req.session.isLogged,
-    accountId: req.session.accountId
+    accountId: req.session.accountId,
+    accountRoleId: req.session.accountRoleId
   });
 })
 
@@ -119,12 +121,12 @@ async function getTelephoneNumber(telephoneNumber) {
 
 
 
-async function setSessionAccountId(sessionID, accountId) {
+async function setSessionAccountId(sessionID, accountId, accountRoleId) {
   try {
     const updatedRows = await sequelize.query(
-      `UPDATE sessions SET data = JSON_SET(data, '$.accountId', :accountId, '$.isLogged', true) WHERE session_id = :sessionId`,
+      `UPDATE sessions SET data = JSON_SET(data, '$.accountId', :accountId, '$.isLogged', true, '$.accountRoleId', :accountRoleId) WHERE session_id = :sessionId`,
       {
-        replacements: { sessionId: sessionID, accountId: accountId },
+        replacements: { sessionId: sessionID, accountId: accountId, accountRoleId: accountRoleId },
         type: sequelize.QueryTypes.UPDATE
       }
     );
@@ -167,11 +169,11 @@ async function getGeneratedToken(sessionID) {
 }
 
 
-async function sendMessageToClient(sessionId, message) {
+async function sendMessageToClient(sessionId, accountId, accountRoleId) {
   const ws = connections[sessionId];
   if (ws) {
-    console.log(`ot servera klienty: ${message}`)
-    const jsonMessage = JSON.stringify({ message });
+    console.log(`ot servera klienty: ${accountId}, ${accountRoleId}`)
+    const jsonMessage = JSON.stringify({ accountId, accountRoleId});
     ws.send(jsonMessage);
   } else {
     console.error('WebSocket connection not found for sessionId:', sessionId);
