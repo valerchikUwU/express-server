@@ -56,91 +56,107 @@ exports.user_titleOrder_update_put = [
 
 
     asyncHandler(async (req, res, next) => {
-        const errors = validationResult(req);
+        try{
+            const errors = validationResult(req);
 
 
-        const order = await Order.findByPk(req.params.orderId)
-        if (order.status !== 'Черновик') {
-            res.status(400).send('Редактировать можно только черновик!')
-        }
-        const titlesToUpdate = req.body.titlesToUpdate;
-        if (!errors.isEmpty()) {
-            const [order, titleOrders] = await Promise.all([
-                Order.findByPk(req.params.orderId),
-                TitleOrders.findAll({ where: { orderId: req.params.orderId } })
-            ]);
-
-
-            res.json({
-                title: "Некорректное обновление наименований в заказе",
-                titleOrders: titleOrders,
-                order: order,
-                errors: errors.array(),
-            });
-            return;
-        } else {
-
-            for (const title of titlesToUpdate) {
-                const oldTitle = await TitleOrders.findByPk(title.id);
-                if (oldTitle) {
-                    // Проверяем, были ли предоставлены новые значения для полей
-
-                    if (title.accessType) {
-                        oldTitle.accessType = title.accessType;
-                    }
-
-                    if (title.productId) {
-                        oldTitle.productId = title.productId;
-                        const actualActivationDate = await sequelize.query(
-                            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
-                            {
-                                replacements: { productId: title.productId },
-                                type: sequelize.QueryTypes.SELECT
-                            }
-                        );
-                        const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-                        const priceDef = await PriceDefinition.findOne({
-                            where: { activationDate: actualDate }
-                        });
-                        oldTitle.priceDefId = priceDef.id
-                    }
-
-                    if (title.generation) {
-                        oldTitle.generation = title.generation;
-                    }
-
-
-                    if (title.quantity) {
-                        oldTitle.quantity = title.quantity;
-                    }
-                    if (title.addBooklet === true) {
-                        oldTitle.addBooklet = title.addBooklet;
-                        oldTitle.accessType = null;
-                    }
-                    else {
-                        oldTitle.addBooklet = title.addBooklet;
-                    }
-                    await oldTitle.save();
-                }
+            const order = await Order.findByPk(req.params.orderId)
+            if (order.status !== 'Черновик') {
+                res.status(400).send('Редактировать можно только черновик!')
             }
-            res.status(200).send('Наименования успешно обновлены!');
+            const titlesToUpdate = req.body.titlesToUpdate;
+            if (!errors.isEmpty()) {
+                const [order, titleOrders] = await Promise.all([
+                    Order.findByPk(req.params.orderId),
+                    TitleOrders.findAll({ where: { orderId: req.params.orderId } })
+                ]);
+    
+    
+                res.json({
+                    title: "Некорректное обновление наименований в заказе",
+                    titleOrders: titleOrders,
+                    order: order,
+                    errors: errors.array(),
+                });
+                return;
+            } else {
+    
+                for (const title of titlesToUpdate) {
+                    const oldTitle = await TitleOrders.findByPk(title.id);
+                    if (oldTitle) {
+                        // Проверяем, были ли предоставлены новые значения для полей
+    
+                        if (title.accessType) {
+                            oldTitle.accessType = title.accessType;
+                        }
+    
+                        if (title.productId) {
+                            oldTitle.productId = title.productId;
+                            const actualActivationDate = await sequelize.query(
+                                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                                {
+                                    replacements: { productId: title.productId },
+                                    type: sequelize.QueryTypes.SELECT
+                                }
+                            );
+                            const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                            const priceDef = await PriceDefinition.findOne({
+                                where: { activationDate: actualDate }
+                            });
+                            oldTitle.priceDefId = priceDef.id
+                        }
+    
+                        if (title.generation) {
+                            oldTitle.generation = title.generation;
+                        }
+    
+    
+                        if (title.quantity) {
+                            oldTitle.quantity = title.quantity;
+                        }
+                        if (title.addBooklet === true) {
+                            oldTitle.addBooklet = title.addBooklet;
+                            oldTitle.accessType = null;
+                        }
+                        else {
+                            oldTitle.addBooklet = title.addBooklet;
+                        }
+                        await oldTitle.save();
+                    }
+                }
+                res.status(200).json({message: 'Наименования успешно обновлены!'});
+            }
         }
+        catch(err){
+            
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+        }
+        
     }),
 ];
 
 
 
 exports.title_delete = asyncHandler(async (req, res, next) => {
+    try{
 
-    const title = await TitleOrders.findByPk(req.params.titleId);
+        const title = await TitleOrders.findByPk(req.params.titleId);
 
-    if (title === null) {
-        // No results.
-        res.status(404).send('Наименование не найдено!');
+        if (title === null) {
+            // No results.
+            res.status(404).send('Наименование не найдено!');
+        }
+    
+        await TitleOrders.destroy({ where: { id: req.params.titleId } });
+        res.status(200).send('Наименование успешно удалено!');
+    }
+    catch(err){
+        
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
     }
 
-    await TitleOrders.destroy({ where: { id: req.params.titleId } });
-    res.status(200).send('Наименование успешно удалено!');
 
 });
 
@@ -202,102 +218,111 @@ exports.admin_titleOrder_update_put = [
     }),
 
     asyncHandler(async (req, res, next) => {
-        const errors = validationResult(req);
+
+        try{
+            const errors = validationResult(req);
 
 
-        const titlesToUpdate = req.body.titlesToUpdate;
-        const organizationCustomer = await OrganizationCustomer.findOne({
-            where: { organizationName: req.body.organizationName }
-        });
-
-        const order = new Order({
-            organizationCustomerId: organizationCustomer.id,
-            status: req.body.status,
-            billNumber: req.body.billNumber,
-            payeeId: req.body.payeeId,
-            isFromDeposit: req.body.isFromDeposit,
-            dispatchDate: req.body.status === 'Отправлен' ? new Date() : null,
-            _id: req.params.orderId
-        });
-
-
-        if (!errors.isEmpty()) {
-            const [order, titleOrders] = await Promise.all([
-                Order.findByPk(req.params.orderId),
-                TitleOrders.findAll({ where: { orderId: req.params.orderId } })
-            ]);
-
-
-            res.json({
-                title: "Некорректная форма обновления!",
-                titleOrders: titleOrders,
-                order: order,
-                errors: errors.array(),
+            const titlesToUpdate = req.body.titlesToUpdate;
+            const organizationCustomer = await OrganizationCustomer.findOne({
+                where: { organizationName: req.body.organizationName }
             });
-            return;
-        } else {
-
-
-            const oldOrder = await Order.findByPk(req.params.orderId);
-
-            if (oldOrder.status !== 'Оплачен' && oldOrder.status !== 'Отправлен' && oldOrder.status !== 'Отменен') {
-                for (const title of titlesToUpdate) {
-                    const oldTitle = await TitleOrders.findByPk(title.id);
-                    if (oldTitle) {
-                        // Проверяем, были ли предоставлены новые значения для полей
-
-                        if (title.accessType) {
-                            oldTitle.accessType = title.accessType;
+    
+            const order = new Order({
+                organizationCustomerId: organizationCustomer.id,
+                status: req.body.status,
+                billNumber: req.body.billNumber,
+                payeeId: req.body.payeeId,
+                isFromDeposit: req.body.isFromDeposit,
+                dispatchDate: req.body.status === 'Отправлен' ? new Date() : null,
+                _id: req.params.orderId
+            });
+    
+    
+            if (!errors.isEmpty()) {
+                const [order, titleOrders] = await Promise.all([
+                    Order.findByPk(req.params.orderId),
+                    TitleOrders.findAll({ where: { orderId: req.params.orderId } })
+                ]);
+    
+    
+                res.json({
+                    title: "Некорректная форма обновления!",
+                    titleOrders: titleOrders,
+                    order: order,
+                    errors: errors.array(),
+                });
+                return;
+            } else {
+    
+    
+                const oldOrder = await Order.findByPk(req.params.orderId);
+    
+                if (oldOrder.status !== 'Оплачен' && oldOrder.status !== 'Отправлен' && oldOrder.status !== 'Отменен') {
+                    for (const title of titlesToUpdate) {
+                        const oldTitle = await TitleOrders.findByPk(title.id);
+                        if (oldTitle) {
+                            // Проверяем, были ли предоставлены новые значения для полей
+    
+                            if (title.accessType) {
+                                oldTitle.accessType = title.accessType;
+                            }
+    
+                            if (title.productId) {
+                                oldTitle.productId = title.productId;
+                                const actualActivationDate = await sequelize.query(
+                                    `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
+                                    {
+                                        replacements: { productId: title.productId },
+                                        type: sequelize.QueryTypes.SELECT
+                                    }
+                                );
+                                const actualDate = actualActivationDate[0]['MAX(activationDate)'];
+                                const priceDef = await PriceDefinition.findOne({
+                                    where: { activationDate: actualDate }
+                                });
+                                oldTitle.priceDefId = priceDef.id
+                            }
+    
+                            if (title.generation) {
+                                oldTitle.generation = title.generation;
+                            }
+    
+    
+                            if (title.quantity) {
+                                oldTitle.quantity = title.quantity;
+                            }
+                            if (title.addBooklet === true) {
+                                oldTitle.addBooklet = title.addBooklet;
+                                oldTitle.accessType = null;
+                            }
+                            else {
+                                oldTitle.addBooklet = title.addBooklet;
+                            }
+                            await oldTitle.save();
                         }
-
-                        if (title.productId) {
-                            oldTitle.productId = title.productId;
-                            const actualActivationDate = await sequelize.query(
-                                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId`,
-                                {
-                                    replacements: { productId: title.productId },
-                                    type: sequelize.QueryTypes.SELECT
-                                }
-                            );
-                            const actualDate = actualActivationDate[0]['MAX(activationDate)'];
-                            const priceDef = await PriceDefinition.findOne({
-                                where: { activationDate: actualDate }
-                            });
-                            oldTitle.priceDefId = priceDef.id
-                        }
-
-                        if (title.generation) {
-                            oldTitle.generation = title.generation;
-                        }
-
-
-                        if (title.quantity) {
-                            oldTitle.quantity = title.quantity;
-                        }
-                        if (title.addBooklet === true) {
-                            oldTitle.addBooklet = title.addBooklet;
-                            oldTitle.accessType = null;
-                        }
-                        else {
-                            oldTitle.addBooklet = title.addBooklet;
-                        }
-                        await oldTitle.save();
                     }
                 }
+    
+                if(order.status !== null) {
+                    webPush(oldOrder.accountId,oldOrder.orderNumber, oldOrder.status, order.status)
+                }
+                oldOrder.organizationCustomerId = order.organizationCustomerId;
+                oldOrder.status = order.status;
+                oldOrder.billNumber = order.billNumber;
+                oldOrder.payeeId = order.payeeId;
+                oldOrder.isFromDeposit = order.isFromDeposit;
+                oldOrder.dispatchDate = order.dispatchDate;
+                await oldOrder.save();
+    
+                res.status(200).json({message: 'Наименования успешно обновлены'});
             }
-
-            if(order.status !== null) {
-                webPush(oldOrder.accountId,oldOrder.orderNumber, oldOrder.status, order.status)
-            }
-            oldOrder.organizationCustomerId = order.organizationCustomerId;
-            oldOrder.status = order.status;
-            oldOrder.billNumber = order.billNumber;
-            oldOrder.payeeId = order.payeeId;
-            oldOrder.isFromDeposit = order.isFromDeposit;
-            oldOrder.dispatchDate = order.dispatchDate;
-            await oldOrder.save();
-
-            res.status(200).send('Наименования успешно обновлены');
         }
+        catch(err){
+            
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+        }
+        
     }),
 ];

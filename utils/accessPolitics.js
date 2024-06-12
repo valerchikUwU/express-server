@@ -28,14 +28,15 @@ if (account.isBlocked) {
       break;
     case 2: // Админ
       can('read',   ['Order_Admin', 'Account', 'PriceDefinition', 'Deposit', 'Product']); // Админ может читать все
-      can('create', ['Order_Admin', 'Account', 'PriceDefinition']); // Админ может создавать заказы
+      can('create', ['Order_Admin', 'Account', 'PriceDefinition', 'WebPush']); // Админ может создавать заказы
       can('update', ['Order_Admin', 'Account', 'PriceDefinition', 'TitleOrder_Admin']); // Админ может обновлять заказы
+      can('delete', ['WebPush']); // Пользователь может удалять свои наименования
       break;
     case 3: // Пользователь
-      can('read',   ['Order_User', 'Product', 'TitleOrder_User']); // Пользователь может читать свои заказы
-      can('create', ['Order_User', 'TitleOrder_User']); // Пользователь может создавать заказы
+      can('read',   ['Order_User', 'Product', 'TitleOrder_User'], { accountId: account.id }); // Пользователь может читать свои заказы
+      can('create', ['Order_User', 'TitleOrder_User', 'WebPush']); // Пользователь может создавать заказы
       can('update', ['Order_User', 'TitleOrder_User'], { accountId: account.id }); // Пользователь может обновлять свои заказы
-      can('delete', ['TitleOrder_User'], { accountId: account.id }); // Пользователь может удалять свои наименования
+      can('delete', ['TitleOrder_User', 'WebPush'], { accountId: account.id }); // Пользователь может удалять свои наименования
       break;
     default:
       // Политика по умолчанию, если роль не определена

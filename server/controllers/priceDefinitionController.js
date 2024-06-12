@@ -10,25 +10,57 @@ const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
-
-    const pricesInit = await PriceDefinition.findAll({
-        include: [{
-            model: Product,
+    try{
+        const pricesInit = await PriceDefinition.findAll({
+            include: [{
+                model: Product,
+                attributes:
+                    [
+                        'name',
+                        'abbreviation',
+                        'id',
+                        'productTypeId'
+                    ],
+                as: 'product',
+                where: { productTypeId: 1 }
+    
+            }],
             attributes:
-                [
-                    'name',
-                    'abbreviation',
-                    'id',
-                    'productTypeId'
-                ],
-            as: 'product',
-            where: { productTypeId: 1 }
-
-        }],
-        attributes:
-        {
-            include:
-                [
+            {
+                include:
+                    [
+                        [
+                            Sequelize.literal(`product.name`), 'productName'
+                        ],
+                        [
+                            Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
+                        ],
+                        [
+                            Sequelize.literal(`product.id`), 'productId'
+                        ],
+                        [
+                            Sequelize.literal(`product.productTypeId`), 'productTypeId'
+                        ],
+                    ]
+            },
+            group: ['PriceDefinition.id'],
+            raw: true
+        });
+        const pricesMain = await PriceDefinition.findAll({
+            include: [{
+                model: Product,
+                attributes:
+                    [
+                        'name',
+                        'abbreviation',
+                        'id',
+                        'productTypeId'
+                    ],
+                as: 'product',
+                where: { productTypeId: 2 }
+            }],
+            attributes: {
+                include: [
                     [
                         Sequelize.literal(`product.name`), 'productName'
                     ],
@@ -42,102 +74,85 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
                         Sequelize.literal(`product.productTypeId`), 'productTypeId'
                     ],
                 ]
-        },
-        group: ['PriceDefinition.id'],
-        raw: true
-    });
-    const pricesMain = await PriceDefinition.findAll({
-        include: [{
-            model: Product,
-            attributes:
-                [
-                    'name',
-                    'abbreviation',
-                    'id',
-                    'productTypeId'
-                ],
-            as: 'product',
-            where: { productTypeId: 2 }
-        }],
-        attributes: {
-            include: [
-                [
-                    Sequelize.literal(`product.name`), 'productName'
-                ],
-                [
-                    Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
-                ],
-                [
-                    Sequelize.literal(`product.id`), 'productId'
-                ],
-                [
-                    Sequelize.literal(`product.productTypeId`), 'productTypeId'
-                ],
-            ]
-        },
-        group: ['PriceDefinition.id'],
-        raw: true
-    });
-    const pricesForEmployers = await PriceDefinition.findAll({
-        include: [{
-            model: Product,
-            attributes:
-                [
-                    'name',
-                    'abbreviation',
-                    'id',
-                    'productTypeId'
-                ],
-            as: 'product',
-            where: { productTypeId: 3 }
-        }],
-        attributes: {
-            include: [
-                [
-                    Sequelize.literal(`product.name`), 'productName'
-                ],
-                [
-                    Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
-                ],
-                [
-                    Sequelize.literal(`product.id`), 'productId'
-                ],
-                [
-                    Sequelize.literal(`product.productTypeId`), 'productTypeId'
-                ],
-            ]
-        },
-        group: ['PriceDefinition.id'],
-        raw: true
-    });
-    pricesInit.forEach(prices => {
-        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
-    });
-    pricesMain.forEach(prices => {
-        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
-    });
-    pricesForEmployers.forEach(prices => {
-        prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
-    });
-    res.json({
-        title: "Список прайс листов",
-        pricesInit: pricesInit,
-        pricesMain: pricesMain,
-        pricesForEmployers: pricesForEmployers,
-    });
+            },
+            group: ['PriceDefinition.id'],
+            raw: true
+        });
+        const pricesForEmployers = await PriceDefinition.findAll({
+            include: [{
+                model: Product,
+                attributes:
+                    [
+                        'name',
+                        'abbreviation',
+                        'id',
+                        'productTypeId'
+                    ],
+                as: 'product',
+                where: { productTypeId: 3 }
+            }],
+            attributes: {
+                include: [
+                    [
+                        Sequelize.literal(`product.name`), 'productName'
+                    ],
+                    [
+                        Sequelize.literal(`product.abbreviation`), 'productAbbreviation'
+                    ],
+                    [
+                        Sequelize.literal(`product.id`), 'productId'
+                    ],
+                    [
+                        Sequelize.literal(`product.productTypeId`), 'productTypeId'
+                    ],
+                ]
+            },
+            group: ['PriceDefinition.id'],
+            raw: true
+        });
+        pricesInit.forEach(prices => {
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+        });
+        pricesMain.forEach(prices => {
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+        });
+        pricesForEmployers.forEach(prices => {
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+        });
+        res.json({
+            title: "Список прайс листов",
+            pricesInit: pricesInit,
+            pricesMain: pricesMain,
+            pricesForEmployers: pricesForEmployers,
+        });
+    }
+    catch(err){
+
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+    }
+    
 }
 );
 
 
 
 exports.price_create_get = asyncHandler(async (req, res, next) => {
-    const [products] = await Promise.all([
-        Product.findAll()
-    ]);
-    res.json({
-        title: "Форма создания прайс - листа",
-        products: products
-    });
+    try{
+        const [products] = await Promise.all([
+            Product.findAll()
+        ]);
+        res.json({
+            title: "Форма создания прайс - листа",
+            products: products
+        });
+    }
+    catch(err){
+
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+    }
+    
 });
 
 
@@ -175,73 +190,86 @@ exports.price_create_post = [
 
     asyncHandler(async (req, res, next) => {
 
-        const errors = validationResult(req);
+        try{
+            const errors = validationResult(req);
 
 
 
 
 
-        if (!errors.isEmpty()) {
-
-            res.json({
-                title: "Некорректная форма создания прайс листа!",
-                errors: errors.array(),
-            });
-        }
-        else {
-            const findProd = await Product.findOne({ where: { name: req.body.name } })
-
-            if (findProd === null) {
-                const product = new Product({
-                    name: req.body.name,
-                    abbreviation: req.body.abbreviation,
-                    productTypeId: req.body.productTypeId
-                })
-
-                await product.save();
-
-                const price = new PriceDefinition({
-                    priceAccess: req.body.priceAccess,
-                    priceBooklet: req.body.priceBooklet,
-                    productId: product.id,
-                    activationDate: req.body.activationDate
+            if (!errors.isEmpty()) {
+    
+                res.json({
+                    title: "Некорректная форма создания прайс листа!",
+                    errors: errors.array(),
                 });
-
-                await price.save();
             }
             else {
-                const price = new PriceDefinition({
-                    priceAccess: req.body.priceAccess,
-                    priceBooklet: req.body.priceBooklet,
-                    productId: findProd.id,
-                    activationDate: req.body.activationDate
-                });
-                await price.save();
+                const findProd = await Product.findOne({ where: { name: req.body.name } })
+    
+                if (findProd === null) {
+                    const product = new Product({
+                        name: req.body.name,
+                        abbreviation: req.body.abbreviation,
+                        productTypeId: req.body.productTypeId
+                    })
+    
+                    await product.save();
+    
+                    const price = new PriceDefinition({
+                        priceAccess: req.body.priceAccess,
+                        priceBooklet: req.body.priceBooklet,
+                        productId: product.id,
+                        activationDate: req.body.activationDate
+                    });
+    
+                    await price.save();
+                }
+                else {
+                    const price = new PriceDefinition({
+                        priceAccess: req.body.priceAccess,
+                        priceBooklet: req.body.priceBooklet,
+                        productId: findProd.id,
+                        activationDate: req.body.activationDate
+                    });
+                    await price.save();
+                }
+                res.status(200).json({message: "Прайс лист успешно создан!"});
             }
-            res.status(200).send("Прайс лист успешно создан!");
         }
+        catch(err){
+            
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+        }
+        
     }),
 ];
 
 
 
 exports.price_update_get = asyncHandler(async (req, res, next) => {
-    const [price] = await Promise.all([
-        PriceDefinition.findByPk(req.params.priceDefId, { include: [{ model: Product }] })
-    ]);
-
-    if (price.id === null) {
-        const err = new Error("Такой прайс лист не найден!");
-        err.status = 404;
-        return next(err);
+    try{
+        const [price] = await Promise.all([
+            PriceDefinition.findByPk(req.params.priceDefId, { include: [{ model: Product }] })
+        ]);
+    
+        if (price.id === null) {
+            res.status(404).json({message:'Такой прайс лист не найден!'});
+        }
+    
+    
+    
+        res.json({
+            title: "Форма обновления прайс - листа",
+            price: price,
+        });
     }
-
-
-
-    res.json({
-        title: "Форма обновления прайс - листа",
-        price: price,
-    });
+    catch(err){
+        
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+    }
 });
 
 
@@ -258,37 +286,44 @@ exports.price_update_put = [
         .escape(),
 
     asyncHandler(async (req, res, next) => {
-        const errors = validationResult(req);
+        try{
+            const errors = validationResult(req);
 
 
-        const oldPrice = await PriceDefinition.findByPk(req.params.priceDefId);
-
-        const price = new PriceDefinition({
-            priceAccess: req.body.priceAccess,
-            priceBooklet: req.body.priceBooklet,
-            _id: req.body.priceDefId
-        });
-
-
-        if (!errors.isEmpty()) {
-
-
-
-            res.json({
-                title: "Некорректная форма обновления прайс листа",
-                price: price,
-                errors: errors.array(),
+            const oldPrice = await PriceDefinition.findByPk(req.params.priceDefId);
+    
+            const price = new PriceDefinition({
+                priceAccess: req.body.priceAccess,
+                priceBooklet: req.body.priceBooklet,
+                _id: req.body.priceDefId
             });
-            return;
-        } else {
-
-            oldPrice.priceAccess = price.priceAccess;
-            oldPrice.priceBooklet = price.priceBooklet;
-
-            await oldPrice.save();
-
-            // Перенаправляем на страницу с деталями продукта.
-            res.status(200).send("Прайс лист успешно обновлен!");
+    
+    
+            if (!errors.isEmpty()) {
+    
+    
+    
+                res.json({
+                    title: "Некорректная форма обновления прайс листа",
+                    price: price,
+                    errors: errors.array(),
+                });
+                return;
+            } else {
+    
+                oldPrice.priceAccess = price.priceAccess;
+                oldPrice.priceBooklet = price.priceBooklet;
+    
+                await oldPrice.save();
+    
+                // Перенаправляем на страницу с деталями продукта.
+                res.status(200).json({message: "Прайс лист успешно обновлен!"});
+            }
+        }
+        catch(err){
+            
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так!'})
         }
     }),
 ];
