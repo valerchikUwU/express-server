@@ -1,25 +1,25 @@
 const Account = require("../models/account");
 
-async function sendNotifications(accountId, orderNumber, oldStatus, newStatus) {
+const webpush = require("web-push");
+const Subscriptions = require("../models/subscriptions");
+async function webPush(accountId, orderNumber, oldStatus, newStatus) {
   try {
-    const subscription = await Account.findOne({
-      where: { id: accountId, isSignedUpPush: true },
+    const subscription = await Subscriptions.findOne({
+      where: { accountId: accountId},
     });
-    if (!subscription) {
+    if (!subscription.endPoint || !subscription) {
       console.log('Subscription not found');
       return; // Если подписка не найдена, прекращаем выполнение функции
     }
 
-    await webpush.sendNotification(
-      subscription,
-      JSON.stringify({
-        title: `Статус заказа ${orderNumber} изменен`,
-        content: `Статус c ${oldStatus} изменен на ${newStatus}`,
-      })
-    );
+    const payload = JSON.stringify({
+      title: `Статус заказа ${orderNumber} изменен`,
+      content: `Статус c ${oldStatus} изменен на ${newStatus}`,
+    })
+    await webpush.sendNotification(subscription, payload);
   } catch (error) {
     console.error('Error sending notification:', error);
   }
 }
 
-module.exports = { sendNotifications };
+module.exports = { webPush };
