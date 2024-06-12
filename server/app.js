@@ -192,6 +192,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 } else {
   app.use('/pwa', express.static(path.join(__dirname, '../../PWA')));
+  app.use('/desktop', express.static(path.join(__dirname, '../../react-app/build')))
 }
 app.use("/api", authRoutes);
 app.use("/api", allRoutes);

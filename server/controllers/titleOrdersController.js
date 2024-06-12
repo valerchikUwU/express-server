@@ -6,8 +6,7 @@ const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
 const OrganizationCustomer = require('../../models/organizationCustomer');
 const sequelize = require('../../database/connection');
-const {sendNotifications} = require('../../utils/webPush');
-const { sendNotification } = require('web-push');
+const {webPush} = require('../../utils/webPush');
 
 
 
