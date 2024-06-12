@@ -12,7 +12,7 @@ const Subscriptions = sequelize.define('Subscriptions', {
       allowNull: false
    },
 
-   endPoint: {
+   endpoint: {
       type: DataTypes.STRING,
       allowNull: false
    },
