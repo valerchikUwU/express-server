@@ -1,4 +1,19 @@
 {
   "messages": [],
-  "sessions": []
+  "sessions": [
+    {
+      "id": "803348257:803348257",
+      "data": {
+        "token": "4786e997257d1aa50f66",
+        "sessionId": "MEr-b9b8_URzlLOj9VPQJGW3i8oFp6_w"
+      }
+    },
+    {
+      "id": "453120600:453120600",
+      "data": {
+        "token": "94a8a3b26b9b851c37b3",
+        "sessionId": "qvwVjUIS-1jk7QJZvT0BQ5q30edGT0C4"
+      }
+    }
+  ]
 }
