@@ -6,6 +6,7 @@ const WebSocket = require('ws');
 const url = require('url');
 const Account = require('../../models/account');
 const crypto = require('crypto');
+const { message } = require('telegraf/filters');
 
 
 const wss = new WebSocket.Server({ port: 3002 });
@@ -82,7 +83,7 @@ router.get('/homepage', async (req, res) => {
 router.post('/:accountId/logout', async (req, res) => {
   await Account.update({ lastSeen: new Date()}, { where: { id: req.params.accountId } }); 
   req.session.destroy();
-  res.status(200).send('Вы успешно вышли из аккаунта!')
+  res.status(200).json({message: 'Вы успешно вышли из аккаунта!'})
 })
 
 
@@ -174,6 +175,7 @@ async function sendMessageToClient(sessionId, message) {
     ws.send(jsonMessage);
   } else {
     console.error('WebSocket connection not found for sessionId:', sessionId);
+    throw new Error('WebSocket connection not found for sessionId:', sessionId)
   }
 }
 

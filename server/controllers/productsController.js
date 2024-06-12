@@ -12,19 +12,26 @@ const sequelize = require('../../database/connection');
 
 
 exports.all_products = asyncHandler(async (req, res, next) => {
-  const allProduct = Product.findAll()
+  try{
+    const allProduct = Product.findAll()
 
-  res.json({
-    title: "Все продукты",
-    allProduct: allProduct,
-  });
+    res.json({
+      title: "Все продукты",
+      allProduct: allProduct,
+    });
+  }
+  catch(err){
+    
+    console.error(err);
+    res.status(500).json({message: 'Ой, что - то пошло не так!'})
+  }
 })
 
 
 
 exports.products_list = asyncHandler(async (req, res, next) => {
   const productTypeId = parseInt(req.params.typeId, 10);
-
+try{
   if (isNaN(productTypeId)) {
     return res.status(400).json({ error: 'Неверный тип товара!' });
   }
@@ -152,6 +159,12 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       break;
 
   }
+}
+  catch(err){
+    
+    console.error(err);
+    res.status(500).json({message: 'Ой, что - то пошло не так!'})
+  }
 
 });
 
@@ -178,6 +191,6 @@ async function getOrganizationList(accountId) {
     }
   } catch (error) {
     console.error('Ошибка получения списка организаций данного аккаунта:', error);
-    return null;
+    throw new Error(error.message);
   }
 }

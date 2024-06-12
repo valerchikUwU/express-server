@@ -5,6 +5,7 @@ const Account = require('../../models/account');
 const OrganizationCustomer = require('../../models/organizationCustomer');
 const Role = require('../../models/role');
 const dateFns = require('date-fns');
+const createHttpError = require('http-errors');
 
 exports.accounts_list = asyncHandler(async (req, res, next) => {
     const accounts = await Account.findAll({ where: { roleId: 3 }, raw: true })
@@ -106,18 +107,25 @@ exports.account_organization_create_post = [
 
 
         const errors = validationResult(req);
-
-        for (const organization of req.body.organizationList) {
-            if (await OrganizationCustomer.findOne({ where: { organizationName: organization } }) === null) {
-                const org = await OrganizationCustomer.create(
-                    {
-                        organizationName: organization
-                    }
-                )
-                await org.save();
+        try{
+            for (const organization of req.body.organizationList) {
+                if (await OrganizationCustomer.findOne({ where: { organizationName: organization } }) === null) {
+                    const org = await OrganizationCustomer.create(
+                        {
+                            organizationName: organization
+                        }
+                    )
+                    await org.save();
+                }
+    
             }
-
         }
+        catch(err){
+            console.log(err)
+            res.status(500).json({message: 'Ой, что - то пошло не так'})
+        }
+
+        
 
 
         const account = new Account({
@@ -148,7 +156,7 @@ exports.account_organization_create_post = [
             catch(err){
                 console.log(err)
             }
-            res.status(200).send('Аккаунт успешно создан!');
+            res.status(200).json({message: 'Аккаунт успешно создан!'});
         }
     }),
 ];
@@ -157,21 +165,28 @@ exports.account_organization_create_post = [
 
 
 exports.superAdmin_account_organization_create_get = asyncHandler(async (req, res, next) => {
-    const [allOrganizations, allRoles] = await Promise.all([
-        OrganizationCustomer.findAll({ order: [['name']] }),
-        Role.findAll({
-            where: {
-                id: {
-                    [Op.ne]: 1
+    try{
+        const [allOrganizations, allRoles] = await Promise.all([
+            OrganizationCustomer.findAll({ order: [['name']] }),
+            Role.findAll({
+                where: {
+                    id: {
+                        [Op.ne]: 1
+                    }
                 }
-            }
-        })
-    ]);
-    res.json({
-        title: "Форма создания аккаунта для суперАдмина",
-        organizations: allOrganizations,
-        allRoles: allRoles
-    });
+            })
+        ]);
+        res.json({
+            title: "Форма создания аккаунта для суперАдмина",
+            organizations: allOrganizations,
+            allRoles: allRoles
+        });
+    }
+    catch(err){
+        res.status(500).json({message: 'Ой, что - то пошло не так'})
+    }
+    
+    
 });
 
 
@@ -218,16 +233,21 @@ exports.superAdmin_account_organization_create_post = [
 
         const errors = validationResult(req);
 
-        for (const organization of req.body.organizationList) {
-            if (await OrganizationCustomer.findOne({ where: { organizationName: organization } }) === null) {
-                const org = await OrganizationCustomer.create(
-                    {
-                        organizationName: organization
-                    }
-                )
-                await org.save();
+        try{
+            for (const organization of req.body.organizationList) {
+                if (await OrganizationCustomer.findOne({ where: { organizationName: organization } }) === null) {
+                    const org = await OrganizationCustomer.create(
+                        {
+                            organizationName: organization
+                        }
+                    )
+                    await org.save();
+                }
+    
             }
-
+        }
+        catch(err){
+            res.status(500).json({message: 'Ой, что - то пошло не так'})
         }
 
 
@@ -240,6 +260,7 @@ exports.superAdmin_account_organization_create_post = [
         });
 
         if (!errors.isEmpty()) {
+            
             const [allOrganizations, allRoles] = await Promise.all([
                 OrganizationCustomer.findAll({ order: [['name']] }),
                 Role.findAll({
@@ -259,8 +280,14 @@ exports.superAdmin_account_organization_create_post = [
                 errors: errors.array(),
             });
         } else {
-            await account.save();
-            res.status(200).send('Аккаунт успешно создан!');
+            try{
+                await account.save();
+            }
+            catch(err){
+                console.error(err)
+                res.status(500).json({message: 'Ой, что - то пошло не так'})
+            }
+            res.status(200).json({message: 'Аккаунт успешно создан!'});
         }
     }),
 ];
@@ -269,26 +296,33 @@ exports.superAdmin_account_organization_create_post = [
 
 
 exports.account_update_get = asyncHandler(async (req, res, next) => {
-    const [account, allOrganizations] = await Promise.all([
-        Account.findByPk(req.params.accountFocusId, {raw: true}),
-        OrganizationCustomer.findAll()
-    ]);
-
-    account.formattedLastSeen = (account.lastSeen !== null) ? dateFns.format(account.lastSeen, 'HH:mm dd-MM') : null;
+    try{
+        const [account, allOrganizations] = await Promise.all([
+            Account.findByPk(req.params.accountFocusId, {raw: true}),
+            OrganizationCustomer.findAll()
+        ]);
     
-    if (!account) {
-        const err = new Error("Аккаунт не найден!");
-        err.status = 404;
-        return next(err);
+        account.formattedLastSeen = (account.lastSeen !== null) ? dateFns.format(account.lastSeen, 'HH:mm dd-MM') : null;
+        
+        if (!account) {
+            const err = new Error("Аккаунт не найден!");
+            err.status = 404;
+            return next(err);
+        }
+    
+    
+    
+        res.json({
+            title: "Форма обновления аккаунта для админа",
+            organizations: allOrganizations,
+            account: account,
+        });
     }
-
-
-
-    res.json({
-        title: "Форма обновления аккаунта для админа",
-        organizations: allOrganizations,
-        account: account,
-    });
+    catch(err){
+        console.error(err);
+        res.status(500).json({message: 'Ой, что - то пошло не так'})
+    }
+    
 });
 
 
@@ -344,15 +378,22 @@ exports.account_update_put = [
             return;
         } else {
             // Данные из формы валидны. Обновляем запись.
-            const oldAccount = await Account.findByPk(req.params.accountFocusId)
-            oldAccount.firstName = account.firstName;
-            oldAccount.lastName = account.lastName;
-            oldAccount.telephoneNumber = account.telephoneNumber;
-            oldAccount.organizationList = account.organizationList;
 
-            await oldAccount.save();
-
-            res.status(200).send('Аккаунт успешно обновлен!');
+            try{
+                const oldAccount = await Account.findByPk(req.params.accountFocusId)
+                oldAccount.firstName = account.firstName;
+                oldAccount.lastName = account.lastName;
+                oldAccount.telephoneNumber = account.telephoneNumber;
+                oldAccount.organizationList = account.organizationList;
+    
+                await oldAccount.save();
+            }
+            catch(err){
+                res.status(500).json({message: 'Ой, что - то пошло не так'})
+            }
+            
+    
+            res.status(200).json({message: 'Аккаунт успешно обновлен!'});
         }
     }),
 ];

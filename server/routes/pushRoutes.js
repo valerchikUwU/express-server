@@ -3,7 +3,7 @@ const Account = require("../../models/account");
 const Subscriptions = require("../../models/subscriptions");
 const router = express.Router();
 
-router.post("/:accountId/save-subscription", async (req, res) => {
+router.post("/:accountId/save-subscription", checkAbilities('create', 'WebPush') , async (req, res) => {
     const accountId = req.params.accountId;
     try {
         const subscription = new Subscriptions({
@@ -22,7 +22,7 @@ router.post("/:accountId/save-subscription", async (req, res) => {
 });
 
 
-router.post("/:accountId/delete-subscription", async (req, res) => {
+router.post("/:accountId/delete-subscription", checkAbilities('delete', 'WebPush'), async (req, res) => {
     const accountId = req.params.accountId;
 
     try {
