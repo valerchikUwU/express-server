@@ -1,7 +1,9 @@
 //Переменные среды
 require('dotenv').config({path: '../.env'});
 
+const webpush = require('web-push'); 
 
+const path = require('path');
 // Импортируем Express, фреймворк для создания веб-приложений на Node.js
 const express = require('express');
 
@@ -26,8 +28,12 @@ const authRoutes = require('./routes/authRoutes');
 // Импортируем все маршруты приложения
 const allRoutes = require('./routes/allRoutes');
 
+// Импортируем все маршруты для уведомлений
+const pushRoutes = require('./routes/pushRoutes');
+
 // Создаем экземпляр приложения Express
 const app = express();
+
 
 
 
@@ -159,6 +165,13 @@ const swaggerSpec = swaggerJSDoc(options);
 
 
 
+webpush.setVapidDetails(
+  'mailto:your-email@example.com',
+  'proccess.env.VAPID_PUBLIC_KEY',
+  'proccess.env.VAPID_PRIVATE_KEY'
+);
+
+
 // // Set up rate limiter: maximum of twenty requests per minute
 // const RateLimit = require("express-rate-limit");
 // const limiter = RateLimit({
@@ -171,7 +184,7 @@ const swaggerSpec = swaggerJSDoc(options);
 
 // Включаем CORS для всех маршрутов
 app.use(cors());
-app.use(helmet());
+// app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
@@ -189,10 +202,13 @@ app.use(session({
 if(process.env.NODE_ENV !== 'production'){
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
+else {
+  app.use('/pwa', express.static('C:/Users/koval/electron-store-app/react-app/build'));
+}
 app.use('/api', authRoutes);
-app.use('/api', allRoutes );
+app.use('/api', allRoutes);
+app.use('/api', pushRoutes)
 
- 
 
 
 // Запуск Express сервера

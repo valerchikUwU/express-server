@@ -1,4 +1,3 @@
-require('dotenv').config();
 const { startBot } = require('../../utils/tgBotLogic');
 const express = require('express');
 const router = express.Router();
@@ -9,7 +8,6 @@ const Account = require('../../models/account');
 const crypto = require('crypto');
 
 
-const apiRoot = process.env.API_ROOT;
 const wss = new WebSocket.Server({ port: 3002 });
 const connections = {};
 

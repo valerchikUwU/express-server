@@ -6,7 +6,8 @@ const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
 const OrganizationCustomer = require('../../models/organizationCustomer');
 const sequelize = require('../../database/connection');
-
+const {sendNotifications} = require('../../utils/webPush');
+const { sendNotification } = require('web-push');
 
 
 
@@ -286,7 +287,9 @@ exports.admin_titleOrder_update_put = [
                 }
             }
 
-
+            if(order.status !== null) {
+                sendNotification(oldOrder.accountId,oldOrder.orderNumber, oldOrder.status, order.status)
+            }
             oldOrder.organizationCustomerId = order.organizationCustomerId;
             oldOrder.status = order.status;
             oldOrder.billNumber = order.billNumber;
