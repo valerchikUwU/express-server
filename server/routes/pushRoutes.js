@@ -8,7 +8,7 @@ router.post("/:accountId/save-subscription", checkAbilities('create', 'WebPush')
     const accountId = req.params.accountId;
     try {
         const subscription = new Subscriptions({
-            endPoint: req.body.endpoint,
+            endpoint: req.body.endpoint,
             expirationTime: req.body.expirationTime,
             keys: req.body.keys,
             accountId: accountId
