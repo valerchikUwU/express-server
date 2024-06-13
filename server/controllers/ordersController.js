@@ -577,7 +577,7 @@ exports.user_order_create_post = [
       });
 
       if (priceDefinition === null) {
-        res.status(400).json({ message: "У товара еще нет цены!" });
+        return res.status(400).json({ message: "У товара еще нет цены!" });
       }
 
       const productId = req.body.productId;
@@ -596,9 +596,38 @@ exports.user_order_create_post = [
             status: "Черновик депозита",
             accountId: accountId,
           },
+          include: [
+            {
+              model: TitleOrders,
+              attributes: [],
+            },
+          ],
+          attributes: {
+            include: [
+              [
+                sequelize.fn("count", sequelize.col("TitleOrder.id")),
+                "titlesCount",
+              ],
+            ],
+          },
           raw: true,
         });
-        if (draftOrder !== null) {
+        console.log(draftOrder.titlesCount)
+        if(draftOrder.titlesCount === 0){
+            await TitleOrders.create({
+                productId: productId,
+                orderId: draftOrder.id,
+                accessType: accessType,
+                generation: generation,
+                addBooklet: addBooklet,
+                quantity: quantity,
+                priceDefId: priceDefinition.id,
+              });
+              console.log(200)
+              return res.status(200).json({ message: "Товар добавлен в заказ" });
+        }
+        else if (draftOrder.titlesCount > 0) {
+            console.log(400)
           return res.status(400).json({ message: "Измените черновик депозита!" });
         }
 
@@ -622,7 +651,7 @@ exports.user_order_create_post = [
           quantity: quantity,
           priceDefId: priceDefinition.id,
         });
-        res.status(200).json({ message: "Товар добавлен в заказ" });
+        return res.status(200).json({ message: "Товар добавлен в заказ" });
       } else if (
         (await Order.findOne({
           where: { status: "Черновик", accountId: accountId },
