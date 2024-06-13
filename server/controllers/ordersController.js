@@ -613,7 +613,7 @@ exports.user_order_create_post = [
           raw: true,
         });
         console.log(draftOrder.titlesCount)
-        if(draftOrder.titlesCount === 0){
+        if(draftOrder && draftOrder.titlesCount === 0){
             await TitleOrders.create({
                 productId: productId,
                 orderId: draftOrder.id,
