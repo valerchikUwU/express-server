@@ -599,7 +599,7 @@ exports.user_order_create_post = [
           raw: true,
         });
         if (draftOrder !== null) {
-          res.status(400).json({ message: "Измените черновик депозита!" });
+          return res.status(400).json({ message: "Измените черновик депозита!" });
         }
 
         const organizationCustomerId = await OrganizationCustomer.findOne({

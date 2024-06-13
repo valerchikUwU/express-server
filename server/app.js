@@ -173,7 +173,7 @@ webpush.setVapidDetails(
 
 // Включаем CORS для всех маршрутов
 app.use(cors());
-// app.use(helmet());
+app.use(helmet());
 app.use(compression());
 app.use(express.json());
 
@@ -184,15 +184,19 @@ app.use(
     store: sessionStore,
     resave: false, // Не сохранять сессию при каждом запросе, если она не изменилась
     saveUninitialized: false, // Сохранять сессию, если она была инициализирована, но не изменена
-    cookie: { secure: false }, // Установите secure в true, если используете HTTPS
+    cookie: {
+      secure: false, // Используйте true, если ваш сайт работает через HTTPS
+      httpOnly: true, // Рекомендуется для повышения безопасности
+      maxAge: 24 * 60 * 60 * 1000, // 24 часа, время жизни cookies
+    },
   })
 );
 
 if (process.env.NODE_ENV !== "production") {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 } else {
-  app.use('/pwa', express.static(path.join(__dirname, '../../PWA')));
-  app.use('/desktop', express.static(path.join(__dirname, '../../react-app/build')))
+  app.use("/pwa", express.static(path.join(__dirname, "../../PWA")));
+  app.use("/desktop", express.static(path.join(__dirname, "../../build")));
 }
 app.use("/api", authRoutes);
 app.use("/api", allRoutes);
