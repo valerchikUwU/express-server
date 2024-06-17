@@ -36,6 +36,23 @@ router.post("/:accountId/delete-subscription",  async (req, res) => {
     }
 });
 
+
+router.get("/:accountId/check-subscription",  async (req, res) => {
+    const accountId = req.params.accountId;
+
+    try {
+        const subscription = await Subscriptions.findOne({where: {accountId: accountId}})
+        res.status(200).json({
+            message: "Подписка успешно найдена",
+            subscription: subscription
+        })
+    }
+    catch(err){
+        console.log(err)
+        res.status(500).json({message: "Ошибка при поиске подписки"})
+    }
+});
+
 module.exports = router;
 
 
