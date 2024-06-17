@@ -65,7 +65,6 @@ router.post('/auth', async (req, res) => {
 router.get('/homepage', async (req, res) => {
   const token = crypto.randomBytes(10).toString('hex')
   req.session.generatedToken = token;
-  console.log(req.session.isLogged)
   if (req.session.isLogged === undefined) {
     req.session.isLogged = false;
   }
