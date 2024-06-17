@@ -323,7 +323,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     ]);
     if (draftOrder === null) {
       // No results.
-      const err = new Error("Заказ не найден");
+      const err = new Error("Заказ не найден!");
       err.status = 404;
       throw err;
     }
@@ -427,6 +427,9 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
+    if(err.status === 404) {
+        res.status(404).json({ message: "Такой заказ не найден!" });
+    }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -543,6 +546,9 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
+    if(err.status === 404) {
+        res.status(404).json({ message: "Такой заказ не найден!" });
+    }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -617,8 +623,32 @@ exports.user_order_create_post = [
           },
           raw: true,
         });
+        console.log(draftOrder)
         console.log(draftOrder.titlesCount)
-        if(draftOrder && draftOrder.titlesCount === 0){
+        if(draftOrder.id === null){
+            const organizationCustomerId = await OrganizationCustomer.findOne({
+                where: { organizationName: organizationName },
+              });
+              const status = "Черновик депозита";
+      
+              const order = await Order.create({
+                status: status,
+                accountId: accountId,
+                organizationCustomerId: organizationCustomerId.id,
+              });
+      
+              await TitleOrders.create({
+                productId: productId,
+                orderId: order.id,
+                accessType: accessType,
+                generation: generation,
+                addBooklet: addBooklet,
+                quantity: quantity,
+                priceDefId: priceDefinition.id,
+              });
+              return res.status(200).json({ message: "Товар добавлен в заказ" });
+        }
+        else if(draftOrder && draftOrder.titlesCount === 0){
             await TitleOrders.create({
                 productId: productId,
                 orderId: draftOrder.id,
@@ -636,27 +666,7 @@ exports.user_order_create_post = [
           return res.status(400).json({ message: "Измените черновик депозита!" });
         }
 
-        const organizationCustomerId = await OrganizationCustomer.findOne({
-          where: { organizationName: organizationName },
-        });
-        const status = "Черновик депозита";
-
-        const order = await Order.create({
-          status: status,
-          accountId: accountId,
-          organizationCustomerId: organizationCustomerId.id,
-        });
-
-        await TitleOrders.create({
-          productId: productId,
-          orderId: order.id,
-          accessType: accessType,
-          generation: generation,
-          addBooklet: addBooklet,
-          quantity: quantity,
-          priceDefId: priceDefinition.id,
-        });
-        return res.status(200).json({ message: "Товар добавлен в заказ" });
+        
       } else if (
         (await Order.findOne({
           where: { status: "Черновик", accountId: accountId },
