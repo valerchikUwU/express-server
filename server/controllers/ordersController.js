@@ -520,8 +520,12 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
             `,
         { type: sequelize.QueryTypes.SELECT }
       ),
-      Payee.findAll(),
+      Payee.findAll()
     ]);
+
+
+    const allOrganizations = order.accountId === null ? await OrganizationCustomer.findAll() : null;
+
     if (order.id === null) {
       // No results.
       const err = new Error("Заказ не найден");
@@ -535,6 +539,7 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       titles: titles,
       products: products,
       payees: payees,
+      allOrganizations: allOrganizations
     });
   } catch (err) {
     console.error(err);
