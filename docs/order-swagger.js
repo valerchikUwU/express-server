@@ -929,6 +929,48 @@
  *                                  activationDate: 
  *                                    type: string
  *                                    example: "2024-04-25T12:44:40.000Z"
+ *                            payees:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                      id:
+ *                                        type: string
+ *                                        format: uuid
+ *                                        example: 4240e557-6247-4f12-a9d8-534d59c09318
+ *                                      name:
+ *                                        type: string
+ *                                        nullable: false
+ *                                        example: OOO PIPKA     
+ *                                      createdAt:
+ *                                        type: string
+ *                                        format: date-time
+ *                                        example: "2024-05-21T12:56:42.000Z"
+ *                                      updatedAt:
+ *                                        type: string
+ *                                        format: date-time
+ *                                        example: "2024-05-21T12:56:42.000Z"            
+ *                            allOrganizations:
+ *                                 type: array
+ *                                 items:
+ *                                   type: object
+ *                                   properties:
+ *                                      id:
+ *                                        type: string
+ *                                        format: uuid
+ *                                        example: 2424357-6247-4f12-a9d8-534d59c09318
+ *                                      organizationName:
+ *                                        type: string
+ *                                        nullable: false
+ *                                        example: Севастополь     
+ *                                      createdAt:
+ *                                        type: string
+ *                                        format: date-time
+ *                                        example: "2024-05-21T12:56:42.000Z"
+ *                                      updatedAt:
+ *                                        type: string
+ *                                        format: date-time
+ *                                        example: "2024-05-21T12:56:42.000Z"            
  *        404:
  *          description: Заказ не найден
  *        403:
