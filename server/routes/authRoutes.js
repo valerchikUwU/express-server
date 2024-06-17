@@ -119,7 +119,6 @@ async function getTelephoneNumber(telephoneNumber) {
 
 
 
-
 async function setSessionAccountId(sessionID, accountId, accountRoleId) {
   try {
     const updatedRows = await sequelize.query(
@@ -129,6 +128,8 @@ async function setSessionAccountId(sessionID, accountId, accountRoleId) {
         type: sequelize.QueryTypes.UPDATE
       }
     );
+    
+    console.log(updatedRows);
     console.log(`setSessionAccountId ${updatedRows[1]}`)
     if (updatedRows[1] > 0) {
       console.log(`Updated ${updatedRows} rows.`);
