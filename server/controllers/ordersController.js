@@ -584,7 +584,7 @@ exports.user_order_create_post = [
       );
       const actualDate = actualActivationDate[0]["MAX(activationDate)"];
       const priceDefinition = await PriceDefinition.findOne({
-        where: { activationDate: actualDate },
+        where: { activationDate: actualDate, productId: req.body.productId },
       });
 
       if (priceDefinition === null) {
@@ -843,20 +843,21 @@ exports.admin_order_create_post = [
           );
           const actualDate = actualActivationDate[0]["MAX(activationDate)"];
           const priceDefinition = await PriceDefinition.findOne({
-            where: { activationDate: actualDate },
+            where: { activationDate: actualDate, productId: title.productId },
           });
-
-          title.orderId = order.id;
-          title.priceDefId = priceDefinition.id;
+          if (priceDefinition === null) {
+            return res.status(400).json({ message: "У товара еще нет цены!" });
+          }
+    
 
           await TitleOrders.create({
             productId: title.productId,
-            orderId: title.orderId,
+            orderId: order.id,
             accessType: title.accessType,
             generation: title.generation,
             addBooklet: title.addBooklet,
             quantity: title.quantity,
-            priceDefId: title.priceDefId,
+            priceDefId: priceDefinition.id,
           });
         }
         res.status(200).json({ message: "Заказ успешно создан!" });
