@@ -72,7 +72,7 @@ exports.review_list = asyncHandler(async (req, res, next) => {
             await Review.findAll()
         ])
         allPostyplenie.forEach(order => {
-            order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd-MM-yyyy') : null;
+            order.formattedDispatchDate = order.dispatchDate ? dateFns.format(order.dispatchDate, 'dd.MM.yyyy') : null;
         });
         res.json({
             title: 'Все отчеты',

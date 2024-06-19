@@ -138,7 +138,7 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 
     orders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd-MM-yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
 
