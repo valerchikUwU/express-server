@@ -153,12 +153,14 @@ exports.admin_titleOrder_update_put = [
     .isLength({ min: 1 })
     .escape(),
   body("titlesToUpdate.*.accessType")
+    .optional({nullable: true})
     .if(body("accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToUpdate.*.generation")
+    .optional({nullable: true})
     .if(body("generation").exists())
     .trim()
     .isLength({ min: 1 })
