@@ -111,13 +111,13 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
             raw: true
         });
         pricesInit.forEach(prices => {
-            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd.MM.yyyy') : null;
         });
         pricesMain.forEach(prices => {
-            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd.MM.yyyy') : null;
         });
         pricesForEmployers.forEach(prices => {
-            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd-MM-yyyy') : null;
+            prices.formattedActivationDate = prices.activationDate ? dateFns.format(prices.activationDate, 'dd.MM.yyyy') : null;
         });
         res.json({
             title: "Список прайс листов",
@@ -166,11 +166,11 @@ exports.price_create_post = [
         .trim()
         .isLength({ min: 1 })
         .escape(),
-    body("priceAccess", "Цена доступа должна быть указана")
-        .isInt({ min: 1 })
+    body("priceAccess", "Цена доступа не может быть отрицательной")
+        .isInt({ min: 0 })
         .escape(),
-    body("priceBooklet", "Цена буклета должна быть указана")
-        .isInt({ min: 1 })
+    body("priceBooklet", "Цена буклета не может быть отрицательной")
+        .isInt({ min: 0 })
         .escape(),
     body("productTypeId")
         .isNumeric()
@@ -178,14 +178,8 @@ exports.price_create_post = [
         .isIn([1, 2, 3])
         .withMessage('Тип продукта может быть только 1, 2 или 3')
         .escape(),
-    body("activationDate", "Дата активации должна быть не раньше текущей!")
-        .toDate()
-        .custom((value) => {
-            // Проверяем, что дата не раньше сегодня
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Устанавливаем время на начало дня
-            return value >= today;
-        }),
+    body("activationDate", "Дата активации должна быть не раньше текущей!") //отменить изменения
+        .toDate(),
 
 
     asyncHandler(async (req, res, next) => {

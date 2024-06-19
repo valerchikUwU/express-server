@@ -111,7 +111,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
         const commisionReceiverOperations = await CommisionRecieverOperations.findAll({ where: { commisionRecieverId: req.params.commisionRecieverId }, raw: true });
 
         commisionReceiverOperations.forEach(row => {
-            row.formattedDateOfOperation = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd-MM-yyyy') : null;
+            row.formattedDateOfOperation = row.dateOfOperation ? dateFns.format(row.dateOfOperation, 'dd.MM.yyyy') : null;
         });
 
         if (commisionReceiver === null) {
@@ -327,7 +327,7 @@ exports.commisionReciever_balance_details = asyncHandler(async (req, res, next) 
                                                                                                 .then(async (result) => {
 
                                                                                                     result.forEach(row => {
-                                                                                                        row.formattedDate = row.dispatchDate ? dateFns.format(row.dispatchDate, 'dd-MM-yyyy') : null;
+                                                                                                        row.formattedDate = row.dispatchDate ? dateFns.format(row.dispatchDate, 'dd.MM.yyyy') : null;
                                                                                                     });
                                                                                                     const ress = result;
                                                                                                     console.log(ress)

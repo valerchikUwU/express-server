@@ -83,7 +83,7 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
 
     activeOrders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd-MM-yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
 
@@ -146,7 +146,7 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
 
     finishedOrders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd-MM-yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
     res.json({
@@ -230,7 +230,7 @@ exports.admin_orders_list = asyncHandler(async (req, res, next) => {
 
     orders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd-MM-yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
     res.json({
@@ -300,7 +300,7 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
 
     orders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd-MM-yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
     res.json({
@@ -427,8 +427,8 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
-    if(err.status === 404) {
-        res.status(404).json({ message: "Такой заказ не найден!" });
+    if (err.status === 404) {
+      res.status(404).json({ message: "Такой заказ не найден!" });
     }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
@@ -523,11 +523,11 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
             `,
         { type: sequelize.QueryTypes.SELECT }
       ),
-      Payee.findAll()
+      Payee.findAll(),
     ]);
 
-
-    const allOrganizations = order.accountId === null ? await OrganizationCustomer.findAll() : null;
+    const allOrganizations =
+      order.accountId === null ? await OrganizationCustomer.findAll() : null;
 
     if (order.id === null) {
       // No results.
@@ -542,12 +542,12 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       titles: titles,
       products: products,
       payees: payees,
-      allOrganizations: allOrganizations
+      allOrganizations: allOrganizations,
     });
   } catch (err) {
     console.error(err);
-    if(err.status === 404) {
-        res.status(404).json({ message: "Такой заказ не найден!" });
+    if (err.status === 404) {
+      res.status(404).json({ message: "Такой заказ не найден!" });
     }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
@@ -623,50 +623,48 @@ exports.user_order_create_post = [
           },
           raw: true,
         });
-        console.log(draftOrder)
-        console.log(draftOrder.titlesCount)
-        if(draftOrder.id === null){
-            const organizationCustomerId = await OrganizationCustomer.findOne({
-                where: { organizationName: organizationName },
-              });
-              const status = "Черновик депозита";
-      
-              const order = await Order.create({
-                status: status,
-                accountId: accountId,
-                organizationCustomerId: organizationCustomerId.id,
-              });
-      
-              await TitleOrders.create({
-                productId: productId,
-                orderId: order.id,
-                accessType: accessType,
-                generation: generation,
-                addBooklet: addBooklet,
-                quantity: quantity,
-                priceDefId: priceDefinition.id,
-              });
-              return res.status(200).json({ message: "Товар добавлен в заказ" });
-        }
-        else if(draftOrder && draftOrder.titlesCount === 0){
-            await TitleOrders.create({
-                productId: productId,
-                orderId: draftOrder.id,
-                accessType: accessType,
-                generation: generation,
-                addBooklet: addBooklet,
-                quantity: quantity,
-                priceDefId: priceDefinition.id,
-              });
-              console.log(200)
-              return res.status(200).json({ message: "Товар добавлен в заказ" });
-        }
-        else if (draftOrder.titlesCount > 0) {
-            console.log(400)
-          return res.status(400).json({ message: "Измените черновик депозита!" });
-        }
+        console.log(draftOrder);
+        console.log(draftOrder.titlesCount);
+        if (draftOrder.id === null) {
+          const organizationCustomerId = await OrganizationCustomer.findOne({
+            where: { organizationName: organizationName },
+          });
+          const status = "Черновик депозита";
 
-        
+          const order = await Order.create({
+            status: status,
+            accountId: accountId,
+            organizationCustomerId: organizationCustomerId.id,
+          });
+
+          await TitleOrders.create({
+            productId: productId,
+            orderId: order.id,
+            accessType: accessType,
+            generation: generation,
+            addBooklet: addBooklet,
+            quantity: quantity,
+            priceDefId: priceDefinition.id,
+          });
+          return res.status(200).json({ message: "Товар добавлен в заказ" });
+        } else if (draftOrder && draftOrder.titlesCount === 0) {
+          await TitleOrders.create({
+            productId: productId,
+            orderId: draftOrder.id,
+            accessType: accessType,
+            generation: generation,
+            addBooklet: addBooklet,
+            quantity: quantity,
+            priceDefId: priceDefinition.id,
+          });
+          console.log(200);
+          return res.status(200).json({ message: "Товар добавлен в заказ" });
+        } else if (draftOrder.titlesCount > 0) {
+          console.log(400);
+          return res
+            .status(400)
+            .json({ message: "Измените черновик депозита!" });
+        }
       } else if (
         (await Order.findOne({
           where: { status: "Черновик", accountId: accountId },
@@ -756,41 +754,48 @@ exports.admin_order_create_post = [
     .trim()
     .isLength({ min: 1 })
     .escape(),
-  body("billNumber").optional({ checkFalsy: true }).trim().escape(),
-  body("payeeId").optional({ checkFalsy: true }).trim().escape(),
-  body("isFromDeposit").escape(),
+  body("billNumber")
+    .optional({ checkFalsy: true })
+    .trim()
+    .escape(),
+  body("payeeId")
+    .optional({ checkFalsy: true })
+    .trim()
+    .escape(),
+  body("isFromDeposit")
+    .escape(),
   body("titlesToCreate.*.productId")
-    .if(body("productId").exists())
+    .if(body("titlesToCreate.*.productId").exists())
     .trim()
     .isLength({ min: 1 })
     .escape(),
   body("titlesToCreate.*.accessType")
-    .if(body("accessType").exists())
+    .if(body("titlesToCreate.*.accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
-    .if(body("generation").exists())
+    .if(body("titlesToCreate.*.generation").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Второе поколение|Первое поколение)$/i),
   body("titlesToCreate.*.quantity")
-    .if(body("quantity").exists())
+    .if(body("titlesToCreate.*.quantity").exists())
     .trim()
     .isLength({ min: 1 })
     .escape(),
-  body("titlesToCreate.*.addBooklet").if(body("addBooklet").exists()).escape(),
+  body("titlesToCreate.*.addBooklet")
+    .if(body("titlesToCreate.*.addBooklet").exists())
+    .escape(),
   body().custom((value, { req }) => {
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
       if (title.addBooklet === true && title.accessType !== null) {
-        res
-          .status(400)
-          .json({
-            message: "Буклет представлен только в виде бумажного формата!",
-          });
+        res.status(400).json({
+          message: "Буклет представлен только в виде бумажного формата!",
+        });
       }
     }
     // Возвращаем true, если условие выполнено

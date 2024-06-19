@@ -12,7 +12,7 @@ exports.accounts_list = asyncHandler(async (req, res, next) => {
     const accounts = await Account.findAll({ where: { roleId: 3 }, raw: true });
     accounts.forEach((account) => {
       account.formattedLastSeen = account.lastSeen
-        ? dateFns.format(account.lastSeen, "HH:mm dd-MM")
+        ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
         : null;
     });
     res.json({
@@ -37,7 +37,7 @@ exports.superAdmin_accounts_list = asyncHandler(async (req, res, next) => {
     });
     accounts.forEach((account) => {
       account.formattedLastSeen = account.lastSeen
-        ? dateFns.format(account.lastSeen, "HH:mm dd-MM")
+        ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
         : null;
     });
     res.json({
@@ -296,7 +296,7 @@ exports.account_update_get = asyncHandler(async (req, res, next) => {
 
     account.formattedLastSeen =
       account.lastSeen !== null
-        ? dateFns.format(account.lastSeen, "HH:mm dd-MM")
+        ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
         : null;
 
     if (!account) {
