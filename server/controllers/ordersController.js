@@ -754,28 +754,25 @@ exports.admin_order_create_post = [
     .trim()
     .isLength({ min: 1 })
     .escape(),
-  body("billNumber")
-    .optional({ checkFalsy: true })
-    .trim()
-    .escape(),
-  body("payeeId")
-    .optional({ checkFalsy: true })
-    .trim()
-    .escape(),
-  body("isFromDeposit")
-    .escape(),
+  body("billNumber").optional({ checkFalsy: true }).trim().escape(),
+  body("payeeId").optional({ checkFalsy: true }).trim().escape(),
+  body("isFromDeposit").escape(),
   body("titlesToCreate.*.productId")
     .if(body("titlesToCreate.*.productId").exists())
     .trim()
     .isLength({ min: 1 })
     .escape(),
   body("titlesToCreate.*.accessType")
+    .optional()
+    .not().isNull()
     .if(body("titlesToCreate.*.accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
+    .optional()
+    .not().isNull()
     .if(body("titlesToCreate.*.generation").exists())
     .trim()
     .isLength({ min: 1 })
@@ -848,7 +845,6 @@ exports.admin_order_create_post = [
           if (priceDefinition === null) {
             return res.status(400).json({ message: "У товара еще нет цены!" });
           }
-    
 
           await TitleOrders.create({
             productId: title.productId,
