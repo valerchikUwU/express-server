@@ -763,14 +763,14 @@ exports.admin_order_create_post = [
     .isLength({ min: 1 })
     .escape(),
   body("titlesToCreate.*.accessType")
-    .optional()
+    .optional({nullable: true})
     .if(body("titlesToCreate.*.accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
-    .optional()
+    .optional({nullable: true})
     .if(body("titlesToCreate.*.generation").exists())
     .trim()
     .isLength({ min: 1 })
