@@ -764,7 +764,6 @@ exports.admin_order_create_post = [
     .escape(),
   body("titlesToCreate.*.accessType")
     .optional()
-    .not().isNull()
     .if(body("titlesToCreate.*.accessType").exists())
     .trim()
     .isLength({ min: 1 })
@@ -772,7 +771,6 @@ exports.admin_order_create_post = [
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
     .optional()
-    .not().isNull()
     .if(body("titlesToCreate.*.generation").exists())
     .trim()
     .isLength({ min: 1 })
