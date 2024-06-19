@@ -62,9 +62,6 @@ async function startBot() {
           const account = await Account.findOne({
             where: { telegramId: telegramId },
           });
-          console.log(account);
-          
-          console.log(account.telegramId);
           if (account !== null) {
             await authRequest(
               account.telephoneNumber ,
