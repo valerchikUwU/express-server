@@ -120,6 +120,32 @@
  *                                                type: integer
  *                                                description: Количество товара 
  *                                                example: 20
+ *                                      titlesToCreate:
+ *                                          type: array
+ *                                          description: Список заголовков для создания
+ *                                          items:
+ *                                              type: object
+ *                                              properties:
+ *                                                  productId:
+ *                                                      type: string
+ *                                                      description: ID продукта
+ *                                                      example: "8eb897f2-22b1-4d32-aef8-e9a379b5c0e8"
+ *                                                  generation:
+ *                                                      type: string
+ *                                                      description: Генерация продукта
+ *                                                      example: "Второе поколение"
+ *                                                  accessType:
+ *                                                      type: string
+ *                                                      description: Тип доступа к продукту
+ *                                                      example: "Электронный"
+ *                                                  quantity:
+ *                                                      type: integer
+ *                                                      description: Количество единиц продукта
+ *                                                      example: 5
+ *                                                  addBooklet:
+ *                                                      type: boolean
+ *                                                      description: Флаг, указывающий, нужно ли добавить буклет
+ *                                                      example: false
  *      responses:
  *        200:
  *          description: Наименования успешно обновлены
