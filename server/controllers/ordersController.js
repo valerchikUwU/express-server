@@ -805,7 +805,7 @@ exports.admin_order_create_post = [
       const order = new Order({
         organizationCustomerId: req.body.organizationCustomerId,
         accountId: req.params.accountId,
-        dispatchDate: req.body.status === "Отправлен" ? new Date() : null,
+        dispatchDate: new Date(),
         status: req.body.status,
         billNumber: req.body.billNumber,
         payeeId: req.body.payeeId,
