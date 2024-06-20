@@ -322,7 +322,7 @@ exports.admin_titleOrder_update_put = [
     
               await TitleOrders.create({
                 productId: title.productId,
-                orderId: order.id,
+                orderId: oldOrder.id,
                 accessType: title.accessType,
                 generation: title.generation,
                 addBooklet: title.addBooklet,
