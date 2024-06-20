@@ -804,6 +804,7 @@ exports.admin_order_create_post = [
       const titlesToCreate = req.body.titlesToCreate;
       const order = new Order({
         organizationCustomerId: req.body.organizationCustomerId,
+        accountId: req.params.accountId,
         dispatchDate: req.body.status === "Отправлен" ? new Date() : null,
         status: req.body.status,
         billNumber: req.body.billNumber,
