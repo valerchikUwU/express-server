@@ -221,6 +221,7 @@ exports.admin_titleOrder_update_put = [
       const errors = validationResult(req);
 
       const titlesToUpdate = req.body.titlesToUpdate;
+      const titlesToCreate = req.body.titlesToCreate;
       const organizationCustomer = await OrganizationCustomer.findOne({
         where: { organizationName: req.body.organizationName },
       });
@@ -248,8 +249,17 @@ exports.admin_titleOrder_update_put = [
         });
         return;
       } else {
+        
+        
         const oldOrder = await Order.findByPk(req.params.orderId);
-
+        if (order.status !== null && oldOrder.status !== order.status) {
+          webPush(
+            oldOrder.accountId,
+            oldOrder.orderNumber,
+            oldOrder.status,
+            order.status
+          );
+        }
         if (oldOrder.status !== "Оплачен" && oldOrder.status !== "Отправлен") {
           for (const title of titlesToUpdate) {
             const oldTitle = await TitleOrders.findByPk(title.id);
@@ -293,57 +303,51 @@ exports.admin_titleOrder_update_put = [
               await oldTitle.save();
             }
           }
-
-          for (const title of titlesToCreate) {
-            const actualActivationDate = await sequelize.query(
-              `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
-              {
-                replacements: { productId: title.productId },
-                type: sequelize.QueryTypes.SELECT,
+          if(titlesToCreate.length > 0){
+            for (const title of titlesToCreate) {
+              const actualActivationDate = await sequelize.query(
+                `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
+                {
+                  replacements: { productId: title.productId },
+                  type: sequelize.QueryTypes.SELECT,
+                }
+              );
+              const actualDate = actualActivationDate[0]["MAX(activationDate)"];
+              const priceDefinition = await PriceDefinition.findOne({
+                where: { activationDate: actualDate, productId: title.productId },
+              });
+              if (priceDefinition === null) {
+                return res.status(400).json({ message: "У товара еще нет цены!" });
               }
-            );
-            const actualDate = actualActivationDate[0]["MAX(activationDate)"];
-            const priceDefinition = await PriceDefinition.findOne({
-              where: { activationDate: actualDate, productId: title.productId },
-            });
-            if (priceDefinition === null) {
-              return res.status(400).json({ message: "У товара еще нет цены!" });
+    
+              await TitleOrders.create({
+                productId: title.productId,
+                orderId: order.id,
+                accessType: title.accessType,
+                generation: title.generation,
+                addBooklet: title.addBooklet,
+                quantity: title.quantity,
+                priceDefId: priceDefinition.id,
+              });
             }
-  
-            await TitleOrders.create({
-              productId: title.productId,
-              orderId: order.id,
-              accessType: title.accessType,
-              generation: title.generation,
-              addBooklet: title.addBooklet,
-              quantity: title.quantity,
-              priceDefId: priceDefinition.id,
-            });
           }
+          
         } else {
-          oldOrder.status = order.status;
           if(oldOrder.status !== order.status){
             oldOrder.dispatchDate = new Date()
           }
+          oldOrder.status = order.status;
           await oldOrder.save();
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
-        if (order.status !== null && oldOrder.status !== order.status) {
-          webPush(
-            oldOrder.accountId,
-            oldOrder.orderNumber,
-            oldOrder.status,
-            order.status
-          );
-        }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
+        if(oldOrder.status !== order.status){
+          oldOrder.dispatchDate = new Date()
+        }
         oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
-        if(oldOrder.status !== order.status){
-          oldOrder.dispatchDate = new Date()
-        }
         await oldOrder.save();
 
         res.status(200).json({ message: "Наименования успешно обновлены!" });
