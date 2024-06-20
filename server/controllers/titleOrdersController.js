@@ -124,7 +124,7 @@ exports.title_delete = asyncHandler(async (req, res, next) => {
 
     if (title === null) {
       // No results.
-      res.status(404).send("Наименование не найдено!");
+     return res.status(404).send("Наименование не найдено!");
     }
 
     await TitleOrders.destroy({ where: { id: req.params.titleId } });
@@ -171,9 +171,42 @@ exports.admin_titleOrder_update_put = [
     .trim()
     .isInt({ min: 1 })
     .escape(),
-  body("titlesToUpdate.*.addBooklet").if(body("addBooklet").exists()).escape(),
+  body("titlesToUpdate.*.addBooklet").if(body("addBooklet").exists())
+    .escape(),
+  body("titlesToCreate.*.productId")
+    .if(body("productId").exists())
+    .trim()
+    .isLength({ min: 1 })
+    .escape(),
+  body("titlesToCreate.*.accessType")
+    .optional({nullable: true})
+    .if(body("accessType").exists())
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .matches(/^(Электронный|Бумажный)$/i),
+  body("titlesToCreate.*.generation")
+    .optional({nullable: true})
+    .if(body("generation").exists())
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .matches(/^(Второе поколение|Первое поколение)$/i),
+  body("titlesToCreate.*.quantity")
+    .if(body("quantity").exists())
+    .trim()
+    .isInt({ min: 1 })
+    .escape(),
+  body("titlesToCreate.*.addBooklet").if(body("addBooklet").exists())
+    .escape(),
   body().custom((value, { req }) => {
     const titlesToUpdate = req.body.titlesToUpdate;
+    const titlesToCreate = req.body.titlesToCreate;
+    for (const title of titlesToCreate) {
+      if (title.addBooklet === 1 && title.accessType !== null) {
+        throw new Error("Буклет представлен только в виде бумажного формата!");
+      }
+    }
     for (const title of titlesToUpdate) {
       if (title.addBooklet === 1 && title.accessType !== null) {
         throw new Error("Буклет представлен только в виде бумажного формата!");
@@ -198,7 +231,6 @@ exports.admin_titleOrder_update_put = [
         billNumber: req.body.billNumber,
         payeeId: req.body.payeeId,
         isFromDeposit: req.body.isFromDeposit,
-        dispatchDate: req.body.status === "Отправлен" ? new Date() : null,
         _id: req.params.orderId,
       });
 
@@ -261,12 +293,42 @@ exports.admin_titleOrder_update_put = [
               await oldTitle.save();
             }
           }
+
+          for (const title of titlesToCreate) {
+            const actualActivationDate = await sequelize.query(
+              `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
+              {
+                replacements: { productId: title.productId },
+                type: sequelize.QueryTypes.SELECT,
+              }
+            );
+            const actualDate = actualActivationDate[0]["MAX(activationDate)"];
+            const priceDefinition = await PriceDefinition.findOne({
+              where: { activationDate: actualDate, productId: title.productId },
+            });
+            if (priceDefinition === null) {
+              return res.status(400).json({ message: "У товара еще нет цены!" });
+            }
+  
+            await TitleOrders.create({
+              productId: title.productId,
+              orderId: order.id,
+              accessType: title.accessType,
+              generation: title.generation,
+              addBooklet: title.addBooklet,
+              quantity: title.quantity,
+              priceDefId: priceDefinition.id,
+            });
+          }
         } else {
           oldOrder.status = order.status;
+          if(oldOrder.status !== order.status){
+            oldOrder.dispatchDate = new Date()
+          }
           await oldOrder.save();
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
-        if (order.status !== null) {
+        if (order.status !== null && oldOrder.status !== order.status) {
           webPush(
             oldOrder.accountId,
             oldOrder.orderNumber,
@@ -279,7 +341,9 @@ exports.admin_titleOrder_update_put = [
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
-        oldOrder.dispatchDate = order.dispatchDate;
+        if(oldOrder.status !== order.status){
+          oldOrder.dispatchDate = new Date()
+        }
         await oldOrder.save();
 
         res.status(200).json({ message: "Наименования успешно обновлены!" });
