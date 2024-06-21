@@ -40,11 +40,17 @@ try{
     case 1:
       const productsInit = await sequelize.query(`
       SELECT Products.*
-        FROM Products, PriceDefinitions
-        JOIN Images images ON images.id = Products.imageId
-        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
-          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
-          AND Products.productTypeId = 1
+        FROM Products
+        JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
+        JOIN Images images ON images.id = Products.imageId 
+        WHERE PriceDefinitions.activationDate = (
+            SELECT MAX(activationDate) 
+            FROM PriceDefinitions 
+            WHERE PriceDefinitions.productId = Products.id 
+            AND activationDate < NOW()
+        )
+        AND Products.productTypeId = 1;
+
       `, { type: sequelize.QueryTypes.SELECT });
 
       res.json({
@@ -54,10 +60,16 @@ try{
       break;
     case 2:
       const productsMain = await sequelize.query(`
-      SELECT Products.*
-        FROM Products, PriceDefinitions
-        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
-          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+      SELECT Products.*, images.*
+        FROM Products
+        JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
+        JOIN Images images ON images.id = Products.imageId 
+        WHERE PriceDefinitions.activationDate = (
+            SELECT MAX(activationDate) 
+            FROM PriceDefinitions 
+            WHERE PriceDefinitions.productId = Products.id 
+            AND activationDate < NOW()
+        )
           AND Products.productTypeId = 2
       `, { type: sequelize.QueryTypes.SELECT });
 
@@ -68,10 +80,16 @@ try{
       break;
     case 3:
       const productsForEmployers = await sequelize.query(`
-      SELECT Products.*
-        FROM Products, PriceDefinitions
-        WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
-          (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
+      SELECT Products.*, images.*
+        FROM Products
+        JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
+        JOIN Images images ON images.id = Products.imageId 
+        WHERE PriceDefinitions.activationDate = (
+            SELECT MAX(activationDate) 
+            FROM PriceDefinitions 
+            WHERE PriceDefinitions.productId = Products.id 
+            AND activationDate < NOW()
+        )
           AND Products.productTypeId = 3
       `, { type: sequelize.QueryTypes.SELECT });
 
