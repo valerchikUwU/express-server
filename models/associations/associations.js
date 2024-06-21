@@ -10,9 +10,9 @@ const TitleOrders = require('../titleOrders');
 const AccrualRule = require('../accrualRule');
 const CommisionReciever = require('../commisionReceiver');
 const CommisionRecieverOperations = require('../commisionRecieverOperations');
-
-const { DataTypes } = require('sequelize');
+const Image = require('../image');
 const Subscriptions = require('../subscriptions');
+const { DataTypes } = require('sequelize');
 
 
 
@@ -220,4 +220,19 @@ Account.hasOne(Subscriptions, {
 
 Subscriptions.belongsTo(Account, {
    foreignKey: 'accountId'
+});
+
+
+Image.hasOne(Product, {
+   foreignKey: {
+      name: 'imageId',
+      type: DataTypes.UUID,
+      allowNull: true,
+      onUpdate: 'CASCADE',
+      onDelete: 'SET NULL',
+   }
+});
+
+Product.belongsTo(Image, {
+   foreignKey: 'imageId'
 });

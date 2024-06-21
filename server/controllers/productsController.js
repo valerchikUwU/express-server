@@ -41,6 +41,7 @@ try{
       const productsInit = await sequelize.query(`
       SELECT Products.*
         FROM Products, PriceDefinitions
+        JOIN Images images ON images.id = Products.imageId
         WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
           (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
           AND Products.productTypeId = 1
