@@ -39,7 +39,7 @@ try{
   switch (productTypeId) {
     case 1:
       const productsInit = await sequelize.query(`
-      SELECT Products.*
+      SELECT Products.*, images.path
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
         JOIN Images images ON images.id = Products.imageId 
@@ -60,7 +60,7 @@ try{
       break;
     case 2:
       const productsMain = await sequelize.query(`
-      SELECT Products.*, images.*
+      SELECT Products.*, images.path
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
         JOIN Images images ON images.id = Products.imageId 
@@ -80,7 +80,7 @@ try{
       break;
     case 3:
       const productsForEmployers = await sequelize.query(`
-      SELECT Products.*, images.*
+      SELECT Products.*, images.path
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
         JOIN Images images ON images.id = Products.imageId 
