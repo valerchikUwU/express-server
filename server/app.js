@@ -51,6 +51,7 @@ const TitleOrders = require("../models/titleOrders.js");
 const AccrualRule = require("../models/accrualRule.js");
 const CommisionRecieverOperations = require("../models/commisionRecieverOperations.js");
 const Subscriptions = require("../models/subscriptions.js");
+const Image = require("../models/image.js")
 
 // Корень URL
 const API_ROOT = process.env.API_ROOT;
@@ -96,6 +97,7 @@ async function syncModels() {
     await Payee.sync();
     await ProductType.sync();
     await OrganizationCustomer.sync();
+    await Image.sync();
     await Product.sync();
     await PriceDefinition.sync();
     await CommisionReciever.sync();
@@ -179,6 +181,7 @@ webpush.setVapidDetails(
 app.use(cors());
 app.use(helmet());
 app.use(compression());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Настройка сессии

@@ -21,11 +21,6 @@ const Product = sequelize.define('Product', {
       allowNull: false
    },
 
-
-
-
-
-
 }, {
    // Можно добавить дополнительные настройки модели здесь
 });
