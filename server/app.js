@@ -1,8 +1,12 @@
 //Переменные среды
 require("dotenv").config({ path: "../.env" });
+require('winston-daily-rotate-file');
 
 const webpush = require("web-push");
 
+const winston = require('winston');
+
+const morgan = require('morgan');
 
 const path = require("path");
 // Импортируем Express, фреймворк для создания веб-приложений на Node.js
@@ -14,14 +18,21 @@ const compression = require("compression");
 // Импортируем модуль для управления CORS (Cross-Origin Resource Sharing), позволяющий безопасно делать запросы между доменами
 const cors = require("cors");
 
-// Импортируем Swagger JSDoc для документирования API с использованием JSDoc комментариев
-const swaggerJSDoc = require("swagger-jsdoc");
+// В начале файла app.js
+const swaggerSpec = require('../configuration/swaggerConf.js');
+
 
 // Импортируем Swagger UI Express для отображения документации API в веб-интерфейсе
 const swaggerUi = require("swagger-ui-express");
 
 // Импортируем модуль Helmet для защиты приложения от некоторых видов атак
 const helmet = require("helmet");
+
+// В начале файла app.js
+const { sessionStore } = require('../configuration/sessionsConf.js');
+
+const session = require("express-session");
+
 
 // Импортируем маршруты аутентификации
 const authRoutes = require("./routes/authRoutes");
@@ -53,39 +64,55 @@ const CommisionRecieverOperations = require("../models/commisionRecieverOperatio
 const Subscriptions = require("../models/subscriptions.js");
 const Image = require("../models/image.js")
 
-// Корень URL
-const API_ROOT = process.env.API_ROOT;
+
 
 // Импортируем модуль для сессий
-const session = require("express-session");
 const Review = require("../models/review.js");
 
 // Импортируем модуль для создания хранилища сессий
-const MySQLStore = require("express-mysql-session")(session);
 
-// Опции хранилища
-const optionsStore = {
-  host: process.env.host,
-  port: process.env.port,
-  user: process.env.db_user,
-  password: process.env.password,
-  database: process.env.db_name,
-  // Whether or not to automatically check for and clear expired sessions:
-  clearExpired: true,
-  // How frequently expired sessions will be cleared; milliseconds:
-  checkExpirationInterval: 360000000,
-  // The maximum age of a valid session; milliseconds:
-  expiration: 86400000,
-  // Whether or not to create the sessions database table, if one does not already exist:
-  createDatabaseTable: true,
-  // Whether or not to end the database connection when the store is closed.
-  // The default value of this option depends on whether or not a connection was passed to the constructor.
-  // If a connection object is passed to the constructor, the default value for this option is false.
-  endConnectionOnClose: true,
-};
+const { combine, timestamp, json } = winston.format;
 
-// Создание хранилища
-const sessionStore = new MySQLStore(optionsStore);
+const fileRotateTransport = new winston.transports.DailyRotateFile({
+  filename: 'combined-%DATE%.log',
+  datePattern: 'DD-MM-YYYY',
+  maxFiles: '30d',
+});
+
+const logger = winston.createLogger({
+  level: 'http',
+  format: combine(
+    timestamp({
+      format: 'DD-MM-YYYY hh:mm:ss.SSS A',
+    }),
+    json(),
+  ),
+  transports: [fileRotateTransport],
+});
+
+const morganMiddleware = morgan(
+  function (tokens, req, res) {
+    return JSON.stringify({
+      method: tokens.method(req, res),
+      url: tokens.url(req, res),
+      status: Number.parseFloat(tokens.status(req, res)),
+      content_length: tokens.res(req, res, 'content-length'),
+      response_time: Number.parseFloat(tokens['response-time'](req, res)),
+    });
+  },
+  {
+    stream: {
+      // Configure Morgan to use our custom logger with the http severity
+      write: (message) => {
+        const data = JSON.parse(message);
+        logger.http(`incoming-request`, data);
+      },
+    },
+  }
+);
+
+
+
 
 
 
@@ -113,54 +140,6 @@ async function syncModels() {
   }
 }
 
-const swaggerDefinition = {
-  openapi: "3.0.0",
-  info: {
-    title: "Express API for electron-app",
-    version: "1.0.0",
-    description:
-      "This is a REST API application made with Express. It retrieves data from electron-app.",
-    license: {
-      name: "Licensed Under MIT",
-      url: "https://spdx.org/licenses/MIT.html",
-    },
-    contact: {
-      name: "electron-app",
-      url: "https://jsonplaceholder.typicode.com",
-    },
-  },
-  servers: [
-    {
-      url: API_ROOT,
-      description: "Development server",
-    },
-  ],
-  tags: [
-    { name: "Account" },
-    { name: "AccrualRule" },
-    { name: "CommisionReciever" },
-    { name: "Order" },
-    { name: "OrganizationCustomer" },
-    { name: "Payee" },
-    { name: "PriceDefinition" },
-    { name: "Product" },
-    { name: "ProductType" },
-    { name: "Role" },
-    { name: "TitleOrders" },
-    { name: "Authentication" },
-    { name: "Statistics" },
-    { name: "CommisionRecieverOperations" },
-    { name: "WebPush" },
-  ],
-};
-
-const options = {
-  swaggerDefinition,
-  // Paths to files containing OpenAPI definitions
-  apis: ["../docs/*.js"],
-};
-
-const swaggerSpec = swaggerJSDoc(options);
 
 webpush.setVapidDetails(
   "mailto:your-email@example.com",
@@ -205,6 +184,7 @@ if (process.env.NODE_ENV !== "production") {
   app.use("/pwa", express.static(path.join(__dirname, "../../PWA")));
   app.use("/desktop", express.static(path.join(__dirname, "../../build")));
 }
+app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
 app.use("/api", authRoutes);
 app.use("/api", allRoutes);
 app.use("/api", pushRoutes);
