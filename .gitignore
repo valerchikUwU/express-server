@@ -95,4 +95,8 @@ server/*.json
 
 *.pem
 
+uploads/*.png
 
+uploads/*.jpeg
+
+uploads/*.jpg
