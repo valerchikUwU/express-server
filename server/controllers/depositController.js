@@ -154,10 +154,6 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 });
 
 exports.deposit_create_post = [
-  body("oraganizationName", "Должна быть указана организация")
-    .trim()
-    .isLength({ min: 1 })
-    .escape(),
   body("deposit").optional({ checkFalsy: true }).escape(),
   body("withdraw").optional({ checkFalsy: true }).escape(),
   body().custom((value, { req }) => {
@@ -170,9 +166,7 @@ exports.deposit_create_post = [
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
     try {
-      const organizationCustomer = await OrganizationCustomer.findOne({
-        where: { organizationName: req.body.organizationName },
-      });
+      const organizationCustomer = await OrganizationCustomer.findByPk(req.params.organizationCustomerId);
       const order = new Order({
         organizationCustomerId: organizationCustomer.id,
         status: "Активный",
@@ -185,13 +179,10 @@ exports.deposit_create_post = [
       });
 
       if (!errors.isEmpty()) {
-        const [allOrganizations] = await Promise.all([
-          OrganizationCustomer.findAll(),
-        ]);
+        
 
         res.json({
           title: "Создание депозита",
-          allOrganizations: allOrganizations,
           order: order,
           errors: errors.array(),
         });
