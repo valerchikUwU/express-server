@@ -910,6 +910,7 @@ exports.user_draftOrder_updateStatus_put = [
         }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         oldOrder.status = "Активный";
+        oldOrder.dispatchDate = new Date();
         await oldOrder.save();
         res
           .status(200)
@@ -939,6 +940,7 @@ exports.user_receivedOrder_updateStatus_put = [
           res.status(400).json({ message: "Этот заказ еще не отправлен!" });
         }
         oldOrder.status = "Получен";
+        oldOrder.dispatchDate = new Date();
         await oldOrder.save();
         res
           .status(200)

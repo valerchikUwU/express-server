@@ -91,6 +91,8 @@ typings/
 # Electron-Forge
 out/
 
-server/.json
+server/*.json
 
 *.pem
+
+

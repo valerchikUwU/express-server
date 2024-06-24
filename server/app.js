@@ -71,24 +71,60 @@ const Review = require("../models/review.js");
 
 // Импортируем модуль для создания хранилища сессий
 
-const { combine, timestamp, json } = winston.format;
+const { combine, timestamp, json, errors } = winston.format;
 
-const fileRotateTransport = new winston.transports.DailyRotateFile({
+
+const errorFilter = winston.format((info, opts) => {
+  return info.level === 'error' ? info : false;
+});
+
+const infoFilter = winston.format((info, opts) => {
+  return info.level === 'info' ? info : false;
+});
+
+
+const combinedFileRotateTransport = new winston.transports.DailyRotateFile({
   filename: 'combined-%DATE%.log',
   datePattern: 'DD-MM-YYYY',
   maxFiles: '30d',
 });
 
+const errorFileRotateTransport = new winston.transports.DailyRotateFile({
+  filename: 'app-error-%DATE%.log',
+  level: 'error',
+  datePattern: 'DD-MM-YYYY',
+  maxFiles: '30d',
+  format: combine(errorFilter(), timestamp(), json()),
+});
+
+
+const infoFileRotateTransport = new winston.transports.DailyRotateFile({
+  filename: 'app-info-%DATE%.log',
+  level: 'info',
+  datePattern: 'DD-MM-YYYY',
+  maxFiles: '30d',
+  format: combine(infoFilter(), timestamp(), json()),
+});
+
 const logger = winston.createLogger({
+  exitOnError: false,
   level: 'http',
   format: combine(
+    errors({ stack: true }),
     timestamp({
       format: 'DD-MM-YYYY hh:mm:ss.SSS A',
     }),
     json(),
   ),
-  transports: [fileRotateTransport],
+  transports: [combinedFileRotateTransport, errorFileRotateTransport, infoFileRotateTransport],
+  exceptionHandlers: [
+    new winston.transports.File({ filename: 'exception.log' }),
+  ],
+  rejectionHandlers: [
+    new winston.transports.File({ filename: 'rejections.log' }),
+  ],
 });
+
 
 const morganMiddleware = morgan(
   function (tokens, req, res) {
@@ -158,6 +194,7 @@ webpush.setVapidDetails(
 
 // Включаем CORS для всех маршрутов
 app.use(cors());
+app.use(morganMiddleware);
 app.use(helmet());
 app.use(compression());
 app.use(express.urlencoded({ extended: true }));
@@ -173,7 +210,7 @@ app.use(
     cookie: {
       secure: false, // Используйте true, если ваш сайт работает через HTTPS
       httpOnly: true, // Рекомендуется для повышения безопасности
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 24 часа, время жизни cookies
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 365 дней, время жизни cookies
     },
   })
 );
