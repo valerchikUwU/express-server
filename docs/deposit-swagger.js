@@ -177,4 +177,58 @@
  *                                  
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * /{accountId}/deposits/{organizationCustomerId}/newDeposit:
+ *  post:
+ *      tags:
+ *          - Deposit
+ *      summary: Запрос POST для создания пополнения или вычета с баланса депозита у определенной организации
+ *      parameters:
+ *        - in: path
+ *          name: accountId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID пользователя
+ *        - in: path
+ *          name: organizationCustomerId
+ *          required: true
+ *          schema:
+ *            type: string
+ *            format: uuid
+ *          description: ID организации
+ *      requestBody:
+ *              required: true
+ *              content:
+ *                  application/json:
+ *                      schema: 
+ *                          type: object
+ *                          properties:
+ *                              deposit:
+ *                                  type: decimal
+ *                                  nullable: true
+ *                                  description: Депозит на баланс (что то одно должно быть пустым, т.е. null)
+ *                                  example: 4000
+ *                              withdraw:
+ *                                  type: decimal
+ *                                  nullable: true
+ *                                  description: Списание с баланса (что то одно должно быть пустым, т.е. null)
+ *                                  example: 5000
+ *      responses:
+ *        200:
+ *          description: Депозит успешно создан!
+ *        403:
+ *          description: У вас нет прав доступа или вы были заблокированы!
+ *        500:
+ *          description: Ой, что - то пошло не так!
+ *  
  */
