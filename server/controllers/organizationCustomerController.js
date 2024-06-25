@@ -7,12 +7,18 @@ const { logger } = require("../../configuration/loggerConf")
 exports.organizations_list = asyncHandler(async (req, res, next) => {
   try {
     const organizations = await OrganizationCustomer.findAll({ raw: true });
+
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Список организаций!`
+    );
     res.json({
       title: "Список организаций",
       organizations: organizations,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так!" });
   }
 });

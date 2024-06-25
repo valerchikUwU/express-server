@@ -8,9 +8,9 @@ const dateFns = require("date-fns");
 const sequelize = require("../../database/connection");
 const Order = require("../../models/order");
 const TitleOrders = require("../../models/titleOrders");
-const Image = require("../../models/image.js")
+const Image = require("../../models/image.js");
 const multer = require("../../configuration/multerConf");
-const { logger } = require("../../configuration/loggerConf")
+const { logger } = require("../../configuration/loggerConf");
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
   try {
@@ -89,6 +89,10 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(prices.activationDate, "dd.MM.yyyy")
         : null;
     });
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Список прайс листов`
+    );
     res.json({
       title: "Список прайс листов",
       pricesInit: pricesInit,
@@ -96,7 +100,8 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
       pricesForEmployers: pricesForEmployers,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так!" });
   }
 });
@@ -104,20 +109,25 @@ exports.prices_list = asyncHandler(async (req, res, next) => {
 exports.price_create_get = asyncHandler(async (req, res, next) => {
   try {
     const [products] = await Promise.all([Product.findAll()]);
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Форма создания прайс - листа"!`
+    );
     res.json({
       title: "Форма создания прайс - листа",
       products: products,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так!" });
   }
 });
 
 exports.price_create_post = [
-
-
-    multer.single("image"),
+  multer.single("image"),
 
   body("name", "Название должно быть указано")
     .trim()
@@ -139,15 +149,21 @@ exports.price_create_post = [
     .isIn([1, 2, 3])
     .withMessage("Тип продукта может быть только 1, 2 или 3")
     .escape(),
-  body("activationDate", "Дата активации должна быть не раньше текущей!") //отменить изменения
-    .toDate(),
-
+  body("activationDate", "Дата активации должна быть не раньше текущей!")
+    .toDate()
+    .custom((value) => {
+      // Проверяем, что дата не раньше сегодня
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Устанавливаем время на начало дня
+      return value >= today;
+    }),
 
   asyncHandler(async (req, res, next) => {
     try {
       const errors = validationResult(req);
-        
+
       if (!errors.isEmpty()) {
+        logger.error(errors.array());
         res.json({
           title: "Некорректная форма создания прайс листа!",
           body: req.body,
@@ -167,10 +183,9 @@ exports.price_create_post = [
             })
           : null;
 
-          
-          if (file !== null) {
-            await file.save();
-          }
+        if (file !== null) {
+          await file.save();
+        }
         if (findProd === null) {
           const product = new Product({
             name: req.body.name,
@@ -188,10 +203,13 @@ exports.price_create_post = [
 
           await product.save();
           await price.save();
-          
-         return res.status(200).json({ message: "Прайс лист успешно создан!" });
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Прайс лист и товар успешно созданы!`
+          );
+          return res
+            .status(200)
+            .json({ message: "Прайс лист и товар успешно созданы!" });
         } else {
-            console.log(file.id)
           findProd.imageId = file !== null ? file.id : null;
 
           await findProd.save();
@@ -203,12 +221,16 @@ exports.price_create_post = [
           });
 
           await price.save();
-          
-         res.status(200).json({ message: "Прайс лист успешно обновлен!" });
+
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Прайс лист успешно создан!`
+          );
+          res.status(200).json({ message: "Прайс лист успешно создан!" });
         }
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),

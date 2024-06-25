@@ -9,65 +9,77 @@ const { logger } = require("../../configuration/loggerConf")
 
 
 exports.sells_list = asyncHandler(async (req, res, next) => {
-    const [orders] = await Promise.all([
-        Order.findAll({
-            where:
-            {
-                status:
+    try{
+        const [orders] = await Promise.all([
+            Order.findAll({
+                where:
                 {
-                    [Op.in]:
-                        [
-                            'Отправлен',
-                            'Получен'
-                        ]
-                }
-            },
-
-            include:
-                [
+                    status:
                     {
-                        model: TitleOrders,
-                        include:
+                        [Op.in]:
                             [
-                                {
-                                    model: PriceDefinition,
-                                    attributes: [],
-                                    as: 'price'
-                                }
-                            ],
-                        attributes: []
-                    },
-                    {
-                        model: OrganizationCustomer,
-                        as: 'organization',
-                        attributes: []
+                                'Отправлен',
+                                'Получен'
+                            ]
                     }
-                ],
-            attributes:
-            {
+                },
+    
                 include:
                     [
+                        {
+                            model: TitleOrders,
+                            include:
+                                [
+                                    {
+                                        model: PriceDefinition,
+                                        attributes: [],
+                                        as: 'price'
+                                    }
+                                ],
+                            attributes: []
+                        },
+                        {
+                            model: OrganizationCustomer,
+                            as: 'organization',
+                            attributes: []
+                        }
+                    ],
+                attributes:
+                {
+                    include:
                         [
-                            Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
-                        ],
-                        [
-                            Sequelize.literal(`dispatchDate`), 'dispatchDate'
-                        ],
-                        [
-                            Sequelize.literal(`organizationName`), 'organizationName'
+                            [
+                                Sequelize.literal(`SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`), 'SUM'
+                            ],
+                            [
+                                Sequelize.literal(`dispatchDate`), 'dispatchDate'
+                            ],
+                            [
+                                Sequelize.literal(`organizationName`), 'organizationName'
+                            ]
                         ]
-                    ]
-            },
+                },
+    
+                group: ['Order.id'],
+                raw: true
+            })
+        ]);
+    
+    
+    
+        logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Статистика продаж!`
+          );
+        res.json({
+            title: "Статистика продаж",
+            orders: orders,
+        });
+    }
+    catch(err){
 
-            group: ['Order.id'],
-            raw: true
-        })
-    ]);
-
-
-
-    res.json({
-        title: "Статистика продаж",
-        orders: orders,
-    });
+        err.ip = req.ip;
+        logger.error(err);
+        res.status(500).json({ message: "Ой, что - то пошло не так!" });
+    }
+    
 });

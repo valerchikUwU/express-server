@@ -402,7 +402,9 @@ exports.account_update_put = [
   
           await oldAccount.save();
         
-  
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Аккаунт успешно обновлен!`
+          );
         res.status(200).json({ message: "Аккаунт успешно обновлен!" });
       }
     }
@@ -410,9 +412,6 @@ exports.account_update_put = [
 
       err.ip = req.ip;
       logger.error(err);
-      if (err.status === 404) {
-        res.status(404).json({ message: err.message });
-      }
       res.status(500).json({ message: "Ой, что - то пошло не так" });
     }
   }),
