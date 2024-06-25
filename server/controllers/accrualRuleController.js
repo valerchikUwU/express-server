@@ -15,13 +15,20 @@ exports.accrualRule_create_get = asyncHandler(async (req, res, next) => {
       ProductType.findAll(),
     ]);
 
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Создание правила пополнения!`
+    );
     res.json({
       title: "Создание правила пополнения",
       allProducts: allProducts,
       allProductTypes: allProductTypes,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -58,9 +65,11 @@ exports.accrualRule_create_post = [
     for (const rule of rulesToCreate) {
       // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
       if (rule.productTypeId !== null && rule.productId !== null) {
-        res
-          .status(400)
-          .json({ message: "Выберите категорию или конкретный товар!" });
+        const err = new Error("Выберите категорию или конкретный товар!")
+        err.status = 400;
+        err.ip = req.ip
+        logger.error(err)
+        return res.status(400).json({ message: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -68,36 +77,45 @@ exports.accrualRule_create_post = [
   }),
 
   asyncHandler(async (req, res, next) => {
-    const errors = validationResult(req);
+    try{
+      const errors = validationResult(req);
 
-    const rulesToCreate = req.body.rulesToCreate;
-    if (!errors.isEmpty()) {
-      res.json({
-        rulesToCreate: rulesToCreate,
-        errors: errors.array(),
-      });
-    } else {
-      for (const rule of rulesToCreate) {
-        const newRule = new AccrualRule({
-          productTypeId: rule.productTypeId,
-          productId: rule.productId,
-          accessType: rule.accessType,
-          generation: rule.generation,
-          commision: rule.commision,
-          commisionRecieverId: req.params.commisionRecieverId,
+      const rulesToCreate = req.body.rulesToCreate;
+      if (!errors.isEmpty()) {
+        res.json({
+          rulesToCreate: rulesToCreate,
+          errors: errors.array(),
         });
-
-        try {
-          await newRule.save();
-        } catch (err) {
-          console.error(err);
-          res.status(500).json({ message: "Ой, что - то пошло не так" });
+      } else {
+        for (const rule of rulesToCreate) {
+          const newRule = new AccrualRule({
+            productTypeId: rule.productTypeId,
+            productId: rule.productId,
+            accessType: rule.accessType,
+            generation: rule.generation,
+            commision: rule.commision,
+            commisionRecieverId: req.params.commisionRecieverId,
+          });
+  
+            await newRule.save();
         }
+        
+      logger.info(
+        `${chalk.yellow("OK!")} - ${chalk.red(
+          req.ip
+        )}  - Правила начисления комиссии успешно создано!`
+      );
+        res.status(200).json({ message: "Правила начисления комиссии успешно создано!" });
       }
-      res
-        .status(200)
-        .json({ message: "Правила начисления комиссии успешно создано!" });
     }
+    catch(err){
+      
+      err.ip = req.ip;
+      logger.error(err);
+      res.status(500).json({ message: "Ой, что - то пошло не так" });
+
+    }
+    
   }),
 ];
 
@@ -133,9 +151,11 @@ exports.accrualRule_update_put = [
     for (const rule of rulesToUpdate) {
       // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
       if (rule.productTypeId !== null && rule.productId !== null) {
-        res
-          .status(400)
-          .json({ message: "Выберите категорию или конкретный товар!" });
+        const err = new Error("Выберите категорию или конкретный товар!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+        return res.status(400).json({ message: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -143,66 +163,76 @@ exports.accrualRule_update_put = [
   }),
 
   asyncHandler(async (req, res, next) => {
-    const errors = validationResult(req);
+    try{
 
-    const rulesToUpdate = req.body.rulesToUpdate;
-    if (!errors.isEmpty()) {
-      const [commisionReciever, rulesToUpdate] = await Promise.all([
-        CommisionReciever.findByPk(req.params.commisionRecieverId),
-        AccrualRule.findAll({
-          where: { commisionRecieverId: req.params.commisionRecieverId },
-        }),
-      ]);
+      const errors = validationResult(req);
 
-      res.json({
-        title: "Некорректное обновление правил начисления",
-        rulesToUpdate: rulesToUpdate,
-        commisionReciever: commisionReciever,
-        errors: errors.array(),
-      });
-      return;
-    } else {
-      try {
-        for (const rule of rulesToUpdate) {
-          const oldRule = await AccrualRule.findByPk(rule.id);
-          if (oldRule) {
-            // Проверяем, были ли предоставлены новые значения для полей
-
-            if (rule.productTypeId) {
-              oldRule.productTypeId = rule.productTypeId;
-              oldRule.productId = null;
+      const rulesToUpdate = req.body.rulesToUpdate;
+      if (!errors.isEmpty()) {
+        const [commisionReciever, rulesToUpdate] = await Promise.all([
+          CommisionReciever.findByPk(req.params.commisionRecieverId),
+          AccrualRule.findAll({
+            where: { commisionRecieverId: req.params.commisionRecieverId },
+          }),
+        ]);
+  
+        res.json({
+          title: "Некорректное обновление правил начисления",
+          rulesToUpdate: rulesToUpdate,
+          commisionReciever: commisionReciever,
+          errors: errors.array(),
+        });
+        return;
+      } else {
+          for (const rule of rulesToUpdate) {
+            const oldRule = await AccrualRule.findByPk(rule.id);
+            if (oldRule) {
+              // Проверяем, были ли предоставлены новые значения для полей
+  
+              if (rule.productTypeId) {
+                oldRule.productTypeId = rule.productTypeId;
+                oldRule.productId = null;
+              }
+  
+              if (rule.productId) {
+                oldRule.productId = rule.productId;
+                oldRule.productTypeId = null;
+              }
+  
+              if (rule.generation) {
+                oldRule.generation = rule.generation;
+              }
+              if (rule.accessType) {
+                oldRule.accessType = rule.addBooklet;
+              }
+              await oldRule.save();
+            } else {
+              const newRule = new AccrualRule({
+                productTypeId: rule.productTypeId,
+                productId: rule.productId,
+                accessType: rule.accessType,
+                generation: rule.generation,
+                commision: rule.commision,
+                commisionRecieverId: req.params.commisionRecieverId,
+              });
+  
+              await newRule.save();
             }
-
-            if (rule.productId) {
-              oldRule.productId = rule.productId;
-              oldRule.productTypeId = null;
-            }
-
-            if (rule.generation) {
-              oldRule.generation = rule.generation;
-            }
-            if (rule.accessType) {
-              oldRule.accessType = rule.addBooklet;
-            }
-            await oldRule.save();
-          } else {
-            const newRule = new AccrualRule({
-              productTypeId: rule.productTypeId,
-              productId: rule.productId,
-              accessType: rule.accessType,
-              generation: rule.generation,
-              commision: rule.commision,
-              commisionRecieverId: req.params.commisionRecieverId,
-            });
-
-            await newRule.save();
           }
-        }
-      } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: "Ой, что - то пошло не так" });
+          
+      logger.info(
+        `${chalk.yellow("OK!")} - ${chalk.red(
+          req.ip
+        )}  - Правила успешно обновлены!`
+      );
+        res.status(200).json({ message: "Правила успешно обновлены!" });
       }
-      res.status(200).json({ message: "Правила успешно обновлены!" });
+    }
+    catch(err){
+      err.ip = req.ip;
+      logger.error(err);
+      res.status(500).json({ message: "Ой, что - то пошло не так" });
+
     }
   }),
 ];
@@ -215,12 +245,17 @@ exports.accrualRule_delete = asyncHandler(async (req, res, next) => {
     }
 
     await AccrualRule.destroy({ where: { id: req.params.ruleId } });
-    res
-      .status(200)
-      .json({ message: "Правило начисления комиссии успешно удалено!" });
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Правило начисления комиссии успешно удалено!`
+    );
+    res.status(200).json({ message: "Правило начисления комиссии успешно удалено!" });
   } 
   catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });

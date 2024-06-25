@@ -11,7 +11,7 @@ const Product = require("../../models/product");
 const dateFns = require("date-fns");
 const createHttpError = require("http-errors");
 const sequelize = require("../../database/connection");
-const { logger } = require("../../configuration/loggerConf")
+const { logger } = require("../../configuration/loggerConf");
 
 exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
   const accountId = req.params.accountId;
@@ -88,6 +88,9 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
         : null;
     });
 
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все активные заказы`
+    );
     res.json({
       title: "Все активные заказы",
       productsInDraft: productsInDraft,
@@ -95,7 +98,8 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
       organizationList: organizationList,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res
       .status(500)
       .json({ message: "Произошла ошибка при получении активных заказов" });
@@ -150,13 +154,18 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все полученные заказы`
+    );
     res.json({
       title: "Все полученные заказы",
       orders_list: finishedOrders,
       sessionID: req.sessionID,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res
       .status(500)
       .json({ message: "Произошла ошибка при получении завершенных заказов" });
@@ -234,12 +243,17 @@ exports.admin_orders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все активные заказы пользователей`
+    );
     res.json({
       title: "Все активные заказы пользователей",
       orders_list: orders,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res
       .status(500)
       .json({ message: "Произошла ошибка при получении активных заказов" });
@@ -304,12 +318,17 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
+    
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Архивные заказы (Получен, Отменен)`
+    );
     res.json({
       title: "Архивные заказы (Получен, Отменен)",
       orders_list: orders,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res
       .status(500)
       .json({ message: "Произошла ошибка при получении архивных заказов" });
@@ -420,6 +439,9 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
       ),
     ]);
 
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Детали заказа`
+    );
     res.json({
       title: "Детали заказа",
       order: order,
@@ -430,8 +452,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     err.ip = req.ip;
     logger.error(err);
     if (err.status === 404) {
-      // logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip} ------- ${err.stack}`)
-      res.status(404).json({ message: "Такой заказ не найден!" });
+      res.status(404).json({ message: err.message });
     }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
@@ -539,6 +560,9 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       throw err;
     }
 
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Детали заказа от лица админа`
+    );
     res.json({
       title: "Детали заказа",
       order: order,
@@ -548,9 +572,10 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       allOrganizations: allOrganizations,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     if (err.status === 404) {
-      res.status(404).json({ message: "Такой заказ не найден!" });
+      res.status(404).json({ message: err.message });
     }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
@@ -574,8 +599,6 @@ exports.user_order_create_post = [
     .escape(),
 
   asyncHandler(async (req, res, next) => {
-    if (!req.body)
-      return res.status(400).json({ message: "Заполните обязательные поля!" });
 
     try {
       const actualActivationDate = await sequelize.query(
@@ -626,8 +649,6 @@ exports.user_order_create_post = [
           },
           raw: true,
         });
-        console.log(draftOrder);
-        console.log(draftOrder.titlesCount);
         if (draftOrder.id === null) {
           const organizationCustomerId = await OrganizationCustomer.findOne({
             where: { organizationName: organizationName },
@@ -649,6 +670,10 @@ exports.user_order_create_post = [
             quantity: quantity,
             priceDefId: priceDefinition.id,
           });
+          
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+    );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder && draftOrder.titlesCount === 0) {
           await TitleOrders.create({
@@ -660,10 +685,15 @@ exports.user_order_create_post = [
             quantity: quantity,
             priceDefId: priceDefinition.id,
           });
-          console.log(200);
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+          );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder.titlesCount > 0) {
-          console.log(400);
+          const err = new Error("Измените черновик депозита!");
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
           return res
             .status(400)
             .json({ message: "Измените черновик депозита!" });
@@ -696,6 +726,9 @@ exports.user_order_create_post = [
           quantity: quantity,
           priceDefId: priceDefinition.id,
         });
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+        );
         res.status(200).json({ message: "Товар добавлен в заказ!" });
       } else {
         const order = await Order.findOne({
@@ -714,17 +747,22 @@ exports.user_order_create_post = [
           quantity: quantity,
           priceDefId: priceDefinition.id,
         });
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+        );
         res.status(200).json({ message: "Товар успешно добавлен в заказ!" });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так" });
     }
   }),
 ];
 
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
-  const [productsWithMaxPriceDefinitions, allOrganizations, allPayees] =
+  try{
+    const [productsWithMaxPriceDefinitions, allOrganizations, allPayees] =
     await Promise.all([
       await sequelize.query(
         `
@@ -739,13 +777,24 @@ exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
       Payee.findAll(),
     ]);
 
-  // Отправляем ответ клиенту в формате JSON, содержащий заголовок и массив типов продуктов.
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Форма создания заказа для админа`
+    );
   res.json({
     title: "Форма создания заказа",
     allProducts: productsWithMaxPriceDefinitions,
     allOrganizations: allOrganizations,
     allPayees: allPayees,
   });
+  }
+  catch(err){
+    
+    err.ip = req.ip;
+    logger.error(err);
+    res.status(500).json({ message: "Ой, что - то пошло не так" });
+  }
+  
 });
 
 exports.admin_order_create_post = [
@@ -766,14 +815,14 @@ exports.admin_order_create_post = [
     .isLength({ min: 1 })
     .escape(),
   body("titlesToCreate.*.accessType")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("titlesToCreate.*.accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("titlesToCreate.*.generation").exists())
     .trim()
     .isLength({ min: 1 })
@@ -791,8 +840,12 @@ exports.admin_order_create_post = [
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
       if (title.addBooklet === true && title.accessType !== null) {
+        const err = new Error("Буклет представлен только в виде бумажного формата!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
         res.status(400).json({
-          message: "Буклет представлен только в виде бумажного формата!",
+          message: err.message,
         });
       }
     }
@@ -822,6 +875,7 @@ exports.admin_order_create_post = [
           Product.findAll(),
         ]);
 
+        logger.error(errors.array())
         res.json({
           title: "Некорректная форма создания заказа!",
           order: order,
@@ -845,7 +899,12 @@ exports.admin_order_create_post = [
             where: { activationDate: actualDate, productId: title.productId },
           });
           if (priceDefinition === null) {
-            return res.status(400).json({ message: "У товара еще нет цены!" });
+            
+        const err = new Error("У товара еще нет цены!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+            return res.status(400).json({ message: err.message });
           }
 
           await TitleOrders.create({
@@ -858,10 +917,14 @@ exports.admin_order_create_post = [
             priceDefId: priceDefinition.id,
           });
         }
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно создан!`
+        );
         res.status(200).json({ message: "Заказ успешно создан!" });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),
@@ -888,7 +951,7 @@ exports.user_draftOrder_updateStatus_put = [
         const [allOrganizations] = await Promise.all([
           getOrganizationList(req.params.accountId),
         ]);
-
+        logger.error(errors.array())
         res.json({
           title: "Некорректное обновление",
           allOrganizations: allOrganizations,
@@ -904,23 +967,37 @@ exports.user_draftOrder_updateStatus_put = [
           oldOrder.status !== "Черновик" &&
           oldOrder.status !== "Черновик депозита"
         ) {
+          
+        const err = new Error("Редактировать можно только черновик!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
           res
             .status(400)
-            .json({ message: "Редактировать можно только черновик!" });
+            .json({ message: err.message });
         }
         if (titles.length === 0) {
-          res.status(400).json({ message: "Добавьте товары в заказ!" });
+          
+        const err = new Error("Добавьте товары в заказ!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+          res.status(400).json({ message:  err.message});
         }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         oldOrder.status = "Активный";
         oldOrder.dispatchDate = new Date();
         await oldOrder.save();
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно переведён в статус "Активный"!`
+        );
         res
           .status(200)
           .json({ message: 'Заказ успешно переведён в статус "Активный"!' });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),
