@@ -17,16 +17,6 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
       include: [
         {
           model: Order,
-          where: {
-            status: {
-              [Op.notIn]: [
-                "Получен",
-                "Черновик",
-                "Черновик депозита",
-                "Отменен",
-              ],
-            },
-          },
           include: [
             {
               model: TitleOrders,
@@ -53,14 +43,14 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
         include: [
           [
             Sequelize.literal(
-              `SUM(CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)`
+              `SUM(CASE WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)`
             ),
             "SUM",
           ],
 
           [
             Sequelize.literal(
-              `SUM(CASE WHEN productTypeId = 4 THEN (quantity*1) END) `
+              `SUM(CASE WHEN productTypeId = 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') THEN (quantity*1) END) `
             ),
             "allDeposits",
           ],
