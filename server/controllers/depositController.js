@@ -43,7 +43,7 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
         include: [
           [
             Sequelize.literal(
-              `SUM(CASE WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)`
+              `SUM(CASE WHEN productTypeId <> 4 AND (status = 'Оплачен' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)`
             ),
             "SUM",
           ],
@@ -183,9 +183,10 @@ exports.deposit_create_post = [
       const organizationCustomer = await OrganizationCustomer.findByPk(req.params.organizationCustomerId);
       const order = new Order({
         organizationCustomerId: organizationCustomer.id,
-        status: "Активный",
+        status: "Выставлен счёт",
         dispatchDate: new Date(),
-        billNumber: billNumber,
+        billNumber: req.body.billNumber,
+        accountId: req.params.accountId,
         createdBySupAdm: 1,
       });
       const deposit = await Product.findOne({ where: { productTypeId: 4 } });
