@@ -12,6 +12,7 @@ const CommisionReciever = require('../commisionReceiver');
 const CommisionRecieverOperations = require('../commisionRecieverOperations');
 const Image = require('../image');
 const Subscriptions = require('../subscriptions');
+const History = require('../history')
 const { DataTypes } = require('sequelize');
 
 
@@ -235,4 +236,34 @@ Image.hasOne(Product, {
 
 Product.belongsTo(Image, {
    foreignKey: 'imageId'
+});
+
+
+Account.hasMany(History, {
+   foreignKey: {
+      name: 'accountId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'histories'
+});
+
+History.belongsTo(Account, {
+   foreignKey: 'accountId',
+   as: 'account'
+});
+
+
+Order.hasMany(History, {
+   foreignKey: {
+      name: 'orderId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'histories'
+});
+
+History.belongsTo(Order, {
+   foreignKey: 'orderId',
+   as: 'order'
 });

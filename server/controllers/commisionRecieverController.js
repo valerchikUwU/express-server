@@ -377,8 +377,6 @@ exports.commisionReciever_balance_details = asyncHandler(
                                                             )
                                                           : null;
                                                     });
-                                                    const ress = result;
-                                                    console.log(ress);
 
                                                     await transaction.commit();
                                                     res.json({

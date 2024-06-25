@@ -8,6 +8,7 @@ const OrganizationCustomer = require("../../models/organizationCustomer");
 const Payee = require("../../models/payee");
 const PriceDefinition = require("../../models/priceDefinition");
 const Product = require("../../models/product");
+const History = require("../../models/history.js")
 const dateFns = require("date-fns");
 const createHttpError = require("http-errors");
 const sequelize = require("../../database/connection");
@@ -155,7 +156,7 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
-    
+
     logger.info(
       `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все полученные заказы`
     );
@@ -244,9 +245,11 @@ exports.admin_orders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
-    
+
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все активные заказы пользователей`
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Все активные заказы пользователей`
     );
     res.json({
       title: "Все активные заказы пользователей",
@@ -319,9 +322,11 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
         : null;
     });
-    
+
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Архивные заказы (Получен, Отменен)`
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Архивные заказы (Получен, Отменен)`
     );
     res.json({
       title: "Архивные заказы (Получен, Отменен)",
@@ -551,7 +556,6 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       Payee.findAll(),
     ]);
 
-
     if (order.id === null) {
       // No results.
       const err = new Error("Заказ не найден");
@@ -560,14 +564,16 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
     }
 
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Детали заказа от лица админа`
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Детали заказа от лица админа`
     );
     res.json({
       title: "Детали заказа",
       order: order,
       titles: titles,
       products: products,
-      payees: payees
+      payees: payees,
     });
   } catch (err) {
     err.ip = req.ip;
@@ -597,7 +603,6 @@ exports.user_order_create_post = [
     .escape(),
 
   asyncHandler(async (req, res, next) => {
-
     try {
       const actualActivationDate = await sequelize.query(
         `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
@@ -668,10 +673,12 @@ exports.user_order_create_post = [
             quantity: quantity,
             priceDefId: priceDefinition.id,
           });
-          
-    logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
-    );
+
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(
+              req.ip
+            )}  - Товар добавлен в заказ`
+          );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder && draftOrder.titlesCount === 0) {
           await TitleOrders.create({
@@ -684,7 +691,9 @@ exports.user_order_create_post = [
             priceDefId: priceDefinition.id,
           });
           logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+            `${chalk.yellow("OK!")} - ${chalk.red(
+              req.ip
+            )}  - Товар добавлен в заказ`
           );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder.titlesCount > 0) {
@@ -725,7 +734,9 @@ exports.user_order_create_post = [
           priceDefId: priceDefinition.id,
         });
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Товар добавлен в заказ`
         );
         res.status(200).json({ message: "Товар добавлен в заказ!" });
       } else {
@@ -746,7 +757,9 @@ exports.user_order_create_post = [
           priceDefId: priceDefinition.id,
         });
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Товар добавлен в заказ`
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Товар добавлен в заказ`
         );
         res.status(200).json({ message: "Товар успешно добавлен в заказ!" });
       }
@@ -759,40 +772,38 @@ exports.user_order_create_post = [
 ];
 
 exports.admin_order_create_get = asyncHandler(async (req, res, next) => {
-  try{
+  try {
     const [productsWithMaxPriceDefinitions, allOrganizations, allPayees] =
-    await Promise.all([
-      await sequelize.query(
-        `
+      await Promise.all([
+        await sequelize.query(
+          `
         SELECT Products.*, PriceDefinitions.priceAccess, PriceDefinitions.priceBooklet, PriceDefinitions.activationDate
         FROM Products, PriceDefinitions
         WHERE PriceDefinitions.productId = Products.id AND PriceDefinitions.activationDate = 
         (SELECT MAX(activationDate) FROM PriceDefinitions WHERE PriceDefinitions.productId = Products.id AND activationDate < NOW())
         `,
-        { type: sequelize.QueryTypes.SELECT }
-      ),
-      OrganizationCustomer.findAll(),
-      Payee.findAll(),
-    ]);
-
+          { type: sequelize.QueryTypes.SELECT }
+        ),
+        OrganizationCustomer.findAll(),
+        Payee.findAll(),
+      ]);
 
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Форма создания заказа для админа`
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Форма создания заказа для админа`
     );
-  res.json({
-    title: "Форма создания заказа",
-    allProducts: productsWithMaxPriceDefinitions,
-    allOrganizations: allOrganizations,
-    allPayees: allPayees,
-  });
-  }
-  catch(err){
-    
+    res.json({
+      title: "Форма создания заказа",
+      allProducts: productsWithMaxPriceDefinitions,
+      allOrganizations: allOrganizations,
+      allPayees: allPayees,
+    });
+  } catch (err) {
     err.ip = req.ip;
     logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
-  
 });
 
 exports.admin_order_create_post = [
@@ -838,7 +849,9 @@ exports.admin_order_create_post = [
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
       if (title.addBooklet === true && title.accessType !== null) {
-        const err = new Error("Буклет представлен только в виде бумажного формата!")
+        const err = new Error(
+          "Буклет представлен только в виде бумажного формата!"
+        );
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
@@ -873,7 +886,7 @@ exports.admin_order_create_post = [
           Product.findAll(),
         ]);
 
-        logger.error(errors.array())
+        logger.error(errors.array());
         res.json({
           title: "Некорректная форма создания заказа!",
           order: order,
@@ -884,6 +897,15 @@ exports.admin_order_create_post = [
         });
       } else {
         await order.save();
+
+        const history = new History({
+          accountId: req.params.accountId,
+          orderId: order.id,
+          timestamp: new Date(),
+          orderStatus: req.body.status,
+          billNumber: req.body.billNumber,
+        });
+        await history.save();
         for (const title of titlesToCreate) {
           const actualActivationDate = await sequelize.query(
             `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
@@ -897,11 +919,10 @@ exports.admin_order_create_post = [
             where: { activationDate: actualDate, productId: title.productId },
           });
           if (priceDefinition === null) {
-            
-        const err = new Error("У товара еще нет цены!")
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
+            const err = new Error("У товара еще нет цены!");
+            err.status = 400;
+            err.ip = req.ip;
+            logger.error(err);
             return res.status(400).json({ message: err.message });
           }
 
@@ -916,7 +937,9 @@ exports.admin_order_create_post = [
           });
         }
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно создан!`
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Заказ успешно создан!`
         );
         res.status(200).json({ message: "Заказ успешно создан!" });
       }
@@ -949,7 +972,7 @@ exports.user_draftOrder_updateStatus_put = [
         const [allOrganizations] = await Promise.all([
           getOrganizationList(req.params.accountId),
         ]);
-        logger.error(errors.array())
+        logger.error(errors.array());
         res.json({
           title: "Некорректное обновление",
           allOrganizations: allOrganizations,
@@ -958,6 +981,14 @@ exports.user_draftOrder_updateStatus_put = [
         });
       } else {
         const oldOrder = await Order.findByPk(req.params.orderId);
+
+        const history = new History({
+          accountId: req.params.accountId,
+          orderId: req.params.orderId,
+          timestamp: new Date(),
+          orderStatus: "Активный",
+          billNumber: oldOrder.billNumber,
+        });
         const titles = await TitleOrders.findAll({
           where: { orderId: oldOrder.id },
         });
@@ -965,29 +996,28 @@ exports.user_draftOrder_updateStatus_put = [
           oldOrder.status !== "Черновик" &&
           oldOrder.status !== "Черновик депозита"
         ) {
-          
-        const err = new Error("Редактировать можно только черновик!")
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-          res
-            .status(400)
-            .json({ message: err.message });
+          const err = new Error("Редактировать можно только черновик!");
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          res.status(400).json({ message: err.message });
         }
         if (titles.length === 0) {
-          
-        const err = new Error("Добавьте товары в заказ!")
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-          res.status(400).json({ message:  err.message});
+          const err = new Error("Добавьте товары в заказ!");
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          res.status(400).json({ message: err.message });
         }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         oldOrder.status = "Активный";
         oldOrder.dispatchDate = new Date();
+        await history.save();
         await oldOrder.save();
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно переведён в статус "Активный"!`
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Заказ успешно переведён в статус "Активный"!`
         );
         res
           .status(200)
@@ -1005,7 +1035,6 @@ exports.user_receivedOrder_updateStatus_put = [
   asyncHandler(async (req, res, next) => {
     try {
       const errors = validationResult(req);
-
       if (!errors.isEmpty()) {
         res.json({
           title: "Update order",
@@ -1020,19 +1049,28 @@ exports.user_receivedOrder_updateStatus_put = [
           return next(err);
         }
         if (oldOrder.status !== "Отправлен") {
-          
-        const err = new Error("Этот заказ еще не отправлен!")
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-          return res.status(400).json({ message:  err.message});
+          const err = new Error("Этот заказ еще не отправлен!");
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          return res.status(400).json({ message: err.message });
         }
         oldOrder.status = "Получен";
         oldOrder.dispatchDate = new Date();
+        const history = new History({
+          accountId: req.params.accountId,
+          orderId: req.params.orderId,
+          timestamp: new Date(),
+          orderStatus: "Получен",
+          billNumber: oldOrder.billNumber,
+        });
+        await history.save();
         await oldOrder.save();
-        
+
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно переведён в статус "Получен"!`
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Заказ успешно переведён в статус "Получен"!`
         );
         res
           .status(200)
@@ -1041,10 +1079,10 @@ exports.user_receivedOrder_updateStatus_put = [
     } catch (err) {
       err.ip = req.ip;
       logger.error(err);
-      
-    if (err.status === 404) {
-      res.status(404).json({ message: err.message });
-    }
+
+      if (err.status === 404) {
+        res.status(404).json({ message: err.message });
+      }
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),

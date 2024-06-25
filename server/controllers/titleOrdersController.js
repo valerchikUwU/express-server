@@ -376,10 +376,19 @@ exports.admin_titleOrder_update_put = [
             }
           }
         } else {
+          
+        const history = new History({
+          accountId: req.params.accountId,
+          orderId: req.params.orderId,
+          timestamp: new Date(),
+          billNumber: oldOrder.billNumber,
+        });
           if (oldOrder.status !== order.status) {
             oldOrder.dispatchDate = new Date();
+            history.orderStatus = order.status;
           }
           oldOrder.status = order.status;
+          await history.save();
           await oldOrder.save();
           logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Статус успешно изменен!`
@@ -394,6 +403,7 @@ exports.admin_titleOrder_update_put = [
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
+
         await oldOrder.save();
 
         logger.info(
