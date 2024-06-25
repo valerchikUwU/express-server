@@ -186,6 +186,7 @@ exports.deposit_create_post = [
         status: "Выставлен счёт",
         dispatchDate: new Date(),
         billNumber: req.body.billNumber,
+        accountId: req.params.accountId,
         createdBySupAdm: 1,
       });
       const deposit = await Product.findOne({ where: { productTypeId: 4 } });
