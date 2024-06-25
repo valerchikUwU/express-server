@@ -109,7 +109,7 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
           include: [
             [
               Sequelize.literal(
-                `CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END`
+                `CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = true AND quantity < 0 THEN (quantity * 1) END`
               ),
               "Spisanie",
             ],
@@ -187,7 +187,7 @@ exports.deposit_create_post = [
         dispatchDate: new Date(),
         billNumber: req.body.billNumber,
         accountId: req.params.accountId,
-        createdBySupAdm: 1,
+        createdBySupAdm: true,
       });
       const deposit = await Product.findOne({ where: { productTypeId: 4 } });
       const priceDef = await PriceDefinition.findOne({

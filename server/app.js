@@ -64,6 +64,7 @@ const CommisionRecieverOperations = require("../models/commisionRecieverOperatio
 const Subscriptions = require("../models/subscriptions.js");
 const Image = require("../models/image.js")
 const Review = require("../models/review.js");
+const History = require("../models/history.js")
 
 
 
@@ -89,6 +90,7 @@ async function syncModels() {
     await CommisionRecieverOperations.sync();
     await Review.sync();
     await Subscriptions.sync();
+    await History.sync();
     console.log("Syncronized successfully");
   } catch (error) {
     console.error("Error due to failed sycnronization:", error);
