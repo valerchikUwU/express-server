@@ -125,6 +125,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
         const organizationsList = await getOrganizationList(
           req.params.accountId
         );
+        console.log(organizationsList)
         const [productsDeposit, organizations] = await Promise.all([
           await Product.findAll({
             where: { productTypeId: productTypeId },
@@ -139,16 +140,6 @@ exports.products_list = asyncHandler(async (req, res, next) => {
             include: [
               {
                 model: Order,
-                where: {
-                  status: {
-                    [Op.notIn]: [
-                      "Получен",
-                      "Черновик",
-                      "Черновик депозита",
-                      "Отменен",
-                    ],
-                  },
-                },
                 include: [
                   {
                     model: TitleOrders,
@@ -185,7 +176,6 @@ exports.products_list = asyncHandler(async (req, res, next) => {
             raw: true,
           }),
         ]);
-
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
@@ -207,11 +197,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
 
 async function getOrganizationList(accountId) {
   try {
-    const account = await Account.findOne({
-      where: {
-        id: accountId,
-      },
-    });
+    const account = await Account.findByPk(accountId);
     if (account) {
       const organizationsList = account.organizationList;
       return organizationsList;
