@@ -136,6 +136,8 @@ app.use(
 
 if (process.env.NODE_ENV !== "production") {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+  
+  app.use("/pwa", express.static('C:/Users/koval/react-app/react-app/build'));
 } else {
   app.use("/pwa", express.static(path.join(__dirname, "../../PWA")));
   app.use("/desktop", express.static(path.join(__dirname, "../../build")));
