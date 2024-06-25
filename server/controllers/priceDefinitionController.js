@@ -10,6 +10,7 @@ const Order = require("../../models/order");
 const TitleOrders = require("../../models/titleOrders");
 const Image = require("../../models/image.js")
 const multer = require("../../configuration/multerConf");
+const { logger } = require("../../configuration/loggerConf")
 
 exports.prices_list = asyncHandler(async (req, res, next) => {
   try {

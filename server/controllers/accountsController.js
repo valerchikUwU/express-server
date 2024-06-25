@@ -6,6 +6,8 @@ const OrganizationCustomer = require("../../models/organizationCustomer");
 const Role = require("../../models/role");
 const dateFns = require("date-fns");
 const createHttpError = require("http-errors");
+const { logger } = require("../../configuration/loggerConf");
+const chalk = require("chalk");
 
 exports.accounts_list = asyncHandler(async (req, res, next) => {
   try {
@@ -15,12 +17,20 @@ exports.accounts_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
         : null;
     });
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Успешный вывод списка аккаунтов для админа`
+    );
+
     res.json({
       title: "Список аккаунтов",
       accounts: accounts,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -40,52 +50,44 @@ exports.superAdmin_accounts_list = asyncHandler(async (req, res, next) => {
         ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
         : null;
     });
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Успешный вывод списка аккаунтов для суперАдмина`
+    );
     res.json({
       title: "Список аккаунтов",
       accounts: accounts,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так!" });
-  }
-});
-
-exports.account_detail = asyncHandler(async (req, res, next) => {
-  try {
-    const [account] = await Promise.all([
-      Account.findByPk(req.params.accountFocusId),
-    ]);
-
-    if (account === null) {
-      // No results.
-      const err = new Error("Такой аккаунт не найден");
-      err.status = 404;
-      return next(err);
-    }
-
-    res.json({
-      title: `Детали аккаунта с номером телефона: ${account.telephoneNumber}`,
-      account: account,
-    });
-  } catch (err) {
-    if (err.status === 404) {
-      res.status(404).json({ message: err.message });
-    }
-    console.error(err);
-    res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
 
 exports.account_organization_create_get = asyncHandler(
   async (req, res, next) => {
-    const allOrganizations = await OrganizationCustomer.findAll({
-      order: ["organizationName"],
-    });
+    try {
+      const allOrganizations = await OrganizationCustomer.findAll({
+        order: ["organizationName"],
+      });
 
-    res.json({
-      title: "Форма создания аккаунта для админа",
-      organizations: allOrganizations,
-    });
+      logger.info(
+        `${chalk.yellow("OK!")} - ${chalk.red(
+          req.ip
+        )}  - Успешный вывод формы создания аккаунта для админа!`
+      );
+      res.json({
+        title: "Форма создания аккаунта для админа",
+        organizations: allOrganizations,
+      });
+    } catch (err) {
+      err.ip = req.ip;
+      logger.error(err);
+      res.status(500).json({ message: "Ой, что - то пошло не так!" });
+    }
   }
 );
 
@@ -135,37 +137,41 @@ exports.account_organization_create_post = [
           await org.save();
         }
       }
-    } catch (err) {
-      console.log(err);
-      res.status(500).json({ message: "Ой, что - то пошло не так" });
-    }
 
-    const account = new Account({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      telephoneNumber: req.body.telephoneNumber,
-      organizationList: req.body.organizationList,
-      roleId: 3,
-    });
-
-    if (!errors.isEmpty()) {
-      const [allOrganizations] = await Promise.all([
-        OrganizationCustomer.findAll({ order: [["name"]] }),
-      ]);
-
-      res.json({
-        title: "Некорректная форма создания аккаунта!",
-        organizations: allOrganizations,
-        account: account,
-        errors: errors.array(),
+      const account = new Account({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        telephoneNumber: req.body.telephoneNumber,
+        organizationList: req.body.organizationList,
+        roleId: 3,
       });
-    } else {
-      try {
+
+      if (!errors.isEmpty()) {
+        const [allOrganizations] = await Promise.all([
+          OrganizationCustomer.findAll({ order: [["organizationName"]] }),
+        ]);
+
+        logger.error(errors.array());
+        res.json({
+          title: "Некорректная форма создания аккаунта!",
+          organizations: allOrganizations,
+          account: account,
+          errors: errors.array(),
+        });
+      } else {
+        
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Аккаунт успешно создан!`
+    );
         await account.save();
-      } catch (err) {
-        console.log(err);
+        res.status(200).json({ message: "Аккаунт успешно создан!" });
       }
-      res.status(200).json({ message: "Аккаунт успешно создан!" });
+    } catch (err) {
+      err.ip = req.ip;
+      logger.error(err);
+      res.status(500).json({ message: "Ой, что - то пошло не так" });
     }
   }),
 ];

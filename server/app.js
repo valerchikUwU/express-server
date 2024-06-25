@@ -4,9 +4,9 @@ require('winston-daily-rotate-file');
 
 const webpush = require("web-push");
 
-const winston = require('winston');
+// В начале файла app.js
+const { logger, morganMiddleware } = require('../configuration/loggerConf.js');
 
-const morgan = require('morgan');
 
 const path = require("path");
 // Импортируем Express, фреймворк для создания веб-приложений на Node.js
@@ -63,89 +63,8 @@ const AccrualRule = require("../models/accrualRule.js");
 const CommisionRecieverOperations = require("../models/commisionRecieverOperations.js");
 const Subscriptions = require("../models/subscriptions.js");
 const Image = require("../models/image.js")
-
-
-
-// Импортируем модуль для сессий
 const Review = require("../models/review.js");
 
-// Импортируем модуль для создания хранилища сессий
-
-const { combine, timestamp, json, errors } = winston.format;
-
-
-const errorFilter = winston.format((info, opts) => {
-  return info.level === 'error' ? info : false;
-});
-
-const infoFilter = winston.format((info, opts) => {
-  return info.level === 'info' ? info : false;
-});
-
-
-const combinedFileRotateTransport = new winston.transports.DailyRotateFile({
-  filename: 'combined-%DATE%.log',
-  datePattern: 'DD-MM-YYYY',
-  maxFiles: '30d',
-});
-
-const errorFileRotateTransport = new winston.transports.DailyRotateFile({
-  filename: 'app-error-%DATE%.log',
-  level: 'error',
-  datePattern: 'DD-MM-YYYY',
-  maxFiles: '30d',
-  format: combine(errorFilter(), timestamp(), json()),
-});
-
-
-const infoFileRotateTransport = new winston.transports.DailyRotateFile({
-  filename: 'app-info-%DATE%.log',
-  level: 'info',
-  datePattern: 'DD-MM-YYYY',
-  maxFiles: '30d',
-  format: combine(infoFilter(), timestamp(), json()),
-});
-
-const logger = winston.createLogger({
-  exitOnError: false,
-  level: 'http',
-  format: combine(
-    errors({ stack: true }),
-    timestamp({
-      format: 'DD-MM-YYYY hh:mm:ss.SSS A',
-    }),
-    json(),
-  ),
-  transports: [combinedFileRotateTransport, errorFileRotateTransport, infoFileRotateTransport],
-  exceptionHandlers: [
-    new winston.transports.File({ filename: 'exception.log' }),
-  ],
-  rejectionHandlers: [
-    new winston.transports.File({ filename: 'rejections.log' }),
-  ],
-});
-
-
-const morganMiddleware = morgan(
-  function (tokens, req, res) {
-    return JSON.stringify({
-      method: tokens.method(req, res),
-      url: tokens.url(req, res),
-      status: Number.parseFloat(tokens.status(req, res)),
-      content_length: tokens.res(req, res, 'content-length'),
-      response_time: Number.parseFloat(tokens['response-time'](req, res)),
-    });
-  },
-  {
-    stream: {
-      // Configure Morgan to use our custom logger with the http severity
-      write: (message) => {
-        const data = JSON.parse(message);
-        logger.http(`incoming-request`, data);
-      },
-    },
-  }
-);
 
 
 

@@ -11,6 +11,7 @@ const Product = require("../../models/product");
 const dateFns = require("date-fns");
 const createHttpError = require("http-errors");
 const sequelize = require("../../database/connection");
+const { logger } = require("../../configuration/loggerConf")
 
 exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
   const accountId = req.params.accountId;
@@ -426,8 +427,10 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
       products: products,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     if (err.status === 404) {
+      // logger.error(`${err.status || 500} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip} ------- ${err.stack}`)
       res.status(404).json({ message: "Такой заказ не найден!" });
     }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
