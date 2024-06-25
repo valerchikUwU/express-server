@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require("express-validator");
 const { Sequelize, Op, fn, col } = require('sequelize');
 const Payee = require('../../models/payee');
+const { logger } = require("../../configuration/loggerConf")
 
 
 exports.payee_list = asyncHandler(async (req, res, next) => {

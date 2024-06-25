@@ -11,6 +11,7 @@ const ProductType = require('../../models/productType');
 const sequelize = require('../../database/connection');
 const CommisionRecieverOperations = require('../../models/commisionRecieverOperations');
 const dateFns = require('date-fns');
+const { logger } = require("../../configuration/loggerConf")
 
 
 

@@ -4,9 +4,9 @@ require('winston-daily-rotate-file');
 
 const webpush = require("web-push");
 
-const winston = require('winston');
+// В начале файла app.js
+const { logger, morganMiddleware } = require('../configuration/loggerConf.js');
 
-const morgan = require('morgan');
 
 const path = require("path");
 // Импортируем Express, фреймворк для создания веб-приложений на Node.js
@@ -63,53 +63,8 @@ const AccrualRule = require("../models/accrualRule.js");
 const CommisionRecieverOperations = require("../models/commisionRecieverOperations.js");
 const Subscriptions = require("../models/subscriptions.js");
 const Image = require("../models/image.js")
-
-
-
-// Импортируем модуль для сессий
 const Review = require("../models/review.js");
 
-// Импортируем модуль для создания хранилища сессий
-
-const { combine, timestamp, json } = winston.format;
-
-const fileRotateTransport = new winston.transports.DailyRotateFile({
-  filename: 'combined-%DATE%.log',
-  datePattern: 'DD-MM-YYYY',
-  maxFiles: '30d',
-});
-
-const logger = winston.createLogger({
-  level: 'http',
-  format: combine(
-    timestamp({
-      format: 'DD-MM-YYYY hh:mm:ss.SSS A',
-    }),
-    json(),
-  ),
-  transports: [fileRotateTransport],
-});
-
-const morganMiddleware = morgan(
-  function (tokens, req, res) {
-    return JSON.stringify({
-      method: tokens.method(req, res),
-      url: tokens.url(req, res),
-      status: Number.parseFloat(tokens.status(req, res)),
-      content_length: tokens.res(req, res, 'content-length'),
-      response_time: Number.parseFloat(tokens['response-time'](req, res)),
-    });
-  },
-  {
-    stream: {
-      // Configure Morgan to use our custom logger with the http severity
-      write: (message) => {
-        const data = JSON.parse(message);
-        logger.http(`incoming-request`, data);
-      },
-    },
-  }
-);
 
 
 
@@ -158,6 +113,7 @@ webpush.setVapidDetails(
 
 // Включаем CORS для всех маршрутов
 app.use(cors());
+app.use(morganMiddleware);
 app.use(helmet());
 app.use(compression());
 app.use(express.urlencoded({ extended: true }));
@@ -173,7 +129,7 @@ app.use(
     cookie: {
       secure: false, // Используйте true, если ваш сайт работает через HTTPS
       httpOnly: true, // Рекомендуется для повышения безопасности
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 24 часа, время жизни cookies
+      maxAge: 365 * 24 * 60 * 60 * 1000, // 365 дней, время жизни cookies
     },
   })
 );

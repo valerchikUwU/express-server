@@ -7,6 +7,7 @@ const PriceDefinition = require("../../models/priceDefinition");
 const OrganizationCustomer = require("../../models/organizationCustomer");
 const sequelize = require("../../database/connection");
 const { webPush } = require("../../utils/webPush");
+const { logger } = require("../../configuration/loggerConf")
 
 exports.user_titleOrder_update_put = [
   // Validate and sanitize fields.

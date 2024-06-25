@@ -5,6 +5,7 @@ const Order = require('../../models/order');
 const TitleOrders = require('../../models/titleOrders');
 const PriceDefinition = require('../../models/priceDefinition');
 const OrganizationCustomer = require('../../models/organizationCustomer');
+const { logger } = require("../../configuration/loggerConf")
 
 
 exports.sells_list = asyncHandler(async (req, res, next) => {

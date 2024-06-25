@@ -9,6 +9,7 @@ const Order = require('../../models/order');
 const PriceDefinition = require('../../models/priceDefinition');
 const TitleOrders = require('../../models/titleOrders');
 const sequelize = require('../../database/connection');
+const { logger } = require("../../configuration/loggerConf")
 
 
 exports.all_products = asyncHandler(async (req, res, next) => {
