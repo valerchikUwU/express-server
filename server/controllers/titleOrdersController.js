@@ -7,7 +7,7 @@ const PriceDefinition = require("../../models/priceDefinition");
 const OrganizationCustomer = require("../../models/organizationCustomer");
 const sequelize = require("../../database/connection");
 const { webPush } = require("../../utils/webPush");
-const { logger } = require("../../configuration/loggerConf")
+const { logger } = require("../../configuration/loggerConf");
 
 exports.user_titleOrder_update_put = [
   // Validate and sanitize fields.
@@ -39,7 +39,11 @@ exports.user_titleOrder_update_put = [
     for (const title of titlesToUpdate) {
       // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
       if (title.addBooklet === false && title.accessType === undefined) {
-        res.status(400).json({ error: "Выберите тип доступа!" });
+        const err = new Error("Выберите тип доступа!");
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+        return res.status(400).json({ error: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -52,7 +56,11 @@ exports.user_titleOrder_update_put = [
 
       const order = await Order.findByPk(req.params.orderId);
       if (order.status !== "Черновик") {
-        res.status(400).send("Редактировать можно только черновик!");
+        const err = new Error("Редактировать можно только черновик!");
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+        return res.status(400).json({ error: err.message });
       }
       const titlesToUpdate = req.body.titlesToUpdate;
       if (!errors.isEmpty()) {
@@ -60,7 +68,7 @@ exports.user_titleOrder_update_put = [
           Order.findByPk(req.params.orderId),
           TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
         ]);
-
+        logger.error(errors.array());
         res.json({
           title: "Некорректное обновление наименований в заказе",
           titleOrders: titleOrders,
@@ -110,10 +118,17 @@ exports.user_titleOrder_update_put = [
             await oldTitle.save();
           }
         }
+
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Наименования успешно обновлены!`
+        );
         res.status(200).json({ message: "Наименования успешно обновлены!" });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),
@@ -124,14 +139,23 @@ exports.title_delete = asyncHandler(async (req, res, next) => {
     const title = await TitleOrders.findByPk(req.params.titleId);
 
     if (title === null) {
-      // No results.
-     return res.status(404).send("Наименование не найдено!");
+      const err = new Error("Наименование не найдено!");
+      err.status = 400;
+      err.ip = req.ip;
+      logger.error(err);
+      return res.status(400).json({ error: err.message });
     }
 
     await TitleOrders.destroy({ where: { id: req.params.titleId } });
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Наименование успешно удалено!`
+    );
     res.status(200).send("Наименование успешно удалено!");
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так!" });
   }
 });
@@ -154,14 +178,14 @@ exports.admin_titleOrder_update_put = [
     .isLength({ min: 1 })
     .escape(),
   body("titlesToUpdate.*.accessType")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToUpdate.*.generation")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("generation").exists())
     .trim()
     .isLength({ min: 1 })
@@ -172,22 +196,21 @@ exports.admin_titleOrder_update_put = [
     .trim()
     .isInt({ min: 1 })
     .escape(),
-  body("titlesToUpdate.*.addBooklet").if(body("addBooklet").exists())
-    .escape(),
+  body("titlesToUpdate.*.addBooklet").if(body("addBooklet").exists()).escape(),
   body("titlesToCreate.*.productId")
     .if(body("productId").exists())
     .trim()
     .isLength({ min: 1 })
     .escape(),
   body("titlesToCreate.*.accessType")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("accessType").exists())
     .trim()
     .isLength({ min: 1 })
     .escape()
     .matches(/^(Электронный|Бумажный)$/i),
   body("titlesToCreate.*.generation")
-    .optional({nullable: true})
+    .optional({ nullable: true })
     .if(body("generation").exists())
     .trim()
     .isLength({ min: 1 })
@@ -198,19 +221,30 @@ exports.admin_titleOrder_update_put = [
     .trim()
     .isInt({ min: 1 })
     .escape(),
-  body("titlesToCreate.*.addBooklet").if(body("addBooklet").exists())
-    .escape(),
+  body("titlesToCreate.*.addBooklet").if(body("addBooklet").exists()).escape(),
   body().custom((value, { req }) => {
     const titlesToUpdate = req.body.titlesToUpdate;
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
       if (title.addBooklet === 1 && title.accessType !== null) {
-        throw new Error("Буклет представлен только в виде бумажного формата!");
+        const err = new Error(
+          "Буклет представлен только в виде бумажного формата!"
+        );
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+        return res.status(400).json({ message: err.message });
       }
     }
     for (const title of titlesToUpdate) {
       if (title.addBooklet === 1 && title.accessType !== null) {
-        throw new Error("Буклет представлен только в виде бумажного формата!");
+        const err = new Error(
+          "Буклет представлен только в виде бумажного формата!"
+        );
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+        return res.status(400).json({ message: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -241,7 +275,7 @@ exports.admin_titleOrder_update_put = [
           Order.findByPk(req.params.orderId),
           TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
         ]);
-
+        loggers.error(errors.array());
         res.json({
           title: "Некорректная форма обновления!",
           titleOrders: titleOrders,
@@ -250,8 +284,6 @@ exports.admin_titleOrder_update_put = [
         });
         return;
       } else {
-        
-        
         const oldOrder = await Order.findByPk(req.params.orderId);
         if (order.status !== null && oldOrder.status !== order.status) {
           webPush(
@@ -283,7 +315,10 @@ exports.admin_titleOrder_update_put = [
                 const actualDate =
                   actualActivationDate[0]["MAX(activationDate)"];
                 const priceDef = await PriceDefinition.findOne({
-                  where: { activationDate: actualDate,  productId: title.productId},
+                  where: {
+                    activationDate: actualDate,
+                    productId: title.productId,
+                  },
                 });
                 oldTitle.priceDefId = priceDef.id;
               }
@@ -304,7 +339,7 @@ exports.admin_titleOrder_update_put = [
               await oldTitle.save();
             }
           }
-          if(titlesToCreate.length > 0){
+          if (titlesToCreate.length > 0) {
             for (const title of titlesToCreate) {
               const actualActivationDate = await sequelize.query(
                 `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
@@ -315,12 +350,19 @@ exports.admin_titleOrder_update_put = [
               );
               const actualDate = actualActivationDate[0]["MAX(activationDate)"];
               const priceDefinition = await PriceDefinition.findOne({
-                where: { activationDate: actualDate, productId: title.productId },
+                where: {
+                  activationDate: actualDate,
+                  productId: title.productId,
+                },
               });
               if (priceDefinition === null) {
-                return res.status(400).json({ message: "У товара еще нет цены!" });
+                const err = new Error("У товара еще нет цены!");
+                err.status = 400;
+                err.ip = req.ip;
+                logger.error(err);
+                return res.status(400).json({ message: err.message });
               }
-    
+
               await TitleOrders.create({
                 productId: title.productId,
                 orderId: oldOrder.id,
@@ -332,18 +374,20 @@ exports.admin_titleOrder_update_put = [
               });
             }
           }
-          
         } else {
-          if(oldOrder.status !== order.status){
-            oldOrder.dispatchDate = new Date()
+          if (oldOrder.status !== order.status) {
+            oldOrder.dispatchDate = new Date();
           }
           oldOrder.status = order.status;
           await oldOrder.save();
+          logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Статус успешно изменен!`
+          );
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
-        if(oldOrder.status !== order.status){
-          oldOrder.dispatchDate = new Date()
+        if (oldOrder.status !== order.status) {
+          oldOrder.dispatchDate = new Date();
         }
         oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
@@ -351,10 +395,14 @@ exports.admin_titleOrder_update_put = [
         oldOrder.isFromDeposit = order.isFromDeposit;
         await oldOrder.save();
 
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Наименования успешно обновлены!`
+        );
         res.status(200).json({ message: "Наименования успешно обновлены!" });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),

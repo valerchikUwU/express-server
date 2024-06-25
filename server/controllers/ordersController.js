@@ -1016,18 +1016,37 @@ exports.user_receivedOrder_updateStatus_put = [
         return;
       } else {
         const oldOrder = await Order.findByPk(req.params.orderId);
+        if (!oldOrder) {
+          const err = new Error("Заказ не найден!");
+          err.status = 404;
+          return next(err);
+        }
         if (oldOrder.status !== "Отправлен") {
-          res.status(400).json({ message: "Этот заказ еще не отправлен!" });
+          
+        const err = new Error("Этот заказ еще не отправлен!")
+        err.status = 400;
+        err.ip = req.ip;
+        logger.error(err);
+          return res.status(400).json({ message:  err.message});
         }
         oldOrder.status = "Получен";
         oldOrder.dispatchDate = new Date();
         await oldOrder.save();
+        
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Заказ успешно переведён в статус "Получен"!`
+        );
         res
           .status(200)
           .json({ message: 'Заказ успешно переведён в статус "Получен"!' });
       }
     } catch (err) {
-      console.error(err);
+      err.ip = req.ip;
+      logger.error(err);
+      
+    if (err.status === 404) {
+      res.status(404).json({ message: err.message });
+    }
       res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
   }),
@@ -1041,7 +1060,6 @@ async function getOrganizationList(accountId) {
     }
     return account.organizationList;
   } catch (error) {
-    console.error(error);
     throw new Error("Account not found");
   }
 }
