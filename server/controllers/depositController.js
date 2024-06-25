@@ -116,7 +116,7 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 
             [
               Sequelize.literal(
-                `CASE WHEN productTypeId = 4 THEN (quantity*1) END `
+                `CASE WHEN productTypeId = 4 AND quantity > 0 THEN (quantity*1) END `
               ),
               "Deposit",
             ],
