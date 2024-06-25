@@ -114,7 +114,7 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
       where: {
         accountId: accountId,
         status: {
-          [Op.notIn]: ["Получен", "Отменен"],
+          [Op.in]: ["Получен", "Отменен"],
         },
       },
       include: [
@@ -551,8 +551,6 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       Payee.findAll(),
     ]);
 
-    const allOrganizations =
-      order.accountId === null ? await OrganizationCustomer.findAll() : null;
 
     if (order.id === null) {
       // No results.
@@ -569,8 +567,7 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       order: order,
       titles: titles,
       products: products,
-      payees: payees,
-      allOrganizations: allOrganizations,
+      payees: payees
     });
   } catch (err) {
     err.ip = req.ip;
