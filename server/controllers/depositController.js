@@ -68,13 +68,18 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
       group: ["OrganizationCustomer.id"],
       raw: true,
     });
-
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Список депозитов организаций!`
+    );
     res.json({
       title: "Список депозитов организаций",
       organizations: organizations,
     });
   } catch (err) {
-    console.error(err);
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -145,13 +150,23 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
         : null;
     });
 
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - История депозитов организации ${organization.organizationName}`
+    );
     res.json({
       title: `История депозитов организации ${organization.organizationName}`,
       organization: organization,
       orders: orders,
     });
   } catch (err) {
-    console.error(err);
+
+    err.ip = req.ip;
+    logger.error(err);
+    if (err.status === 404) {
+      res.status(404).json({ message: err.message });
+    }
     res.status(500).json({ message: "Ой, что - то пошло не так" });
   }
 });
@@ -161,7 +176,11 @@ exports.deposit_create_post = [
   body("withdraw").optional({ checkFalsy: true }).escape(),
   body().custom((value, { req }) => {
     if (!req.body.withdraw && !req.body.deposit) {
-      throw new Error("At least one of deposit or withdraw must be provided.");
+      const err = new Error("At least one of deposit or withdraw must be provided.");
+      err.status = 400;
+      err.ip = req.ip;
+      logger.error(err);
+      return res.status(400).json({ message: err.message });
     }
     return true;
   }),
@@ -200,10 +219,18 @@ exports.deposit_create_post = [
               : req.body.deposit,
           priceDefId: priceDef.id,
         });
+        
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Депозит успешно создан!`
+    );
         res.status(200).json({message: "Депозит успешно создан!"});
       }
     } catch (err) {
-      console.error(err);
+
+      err.ip = req.ip;
+      logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так" });
     }
   }),
