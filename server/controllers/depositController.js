@@ -173,6 +173,7 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
 });
 
 exports.deposit_create_post = [
+  body("billNumber").escape(),
   body("deposit").optional({ checkFalsy: true }).escape(),
   body("withdraw").optional({ checkFalsy: true }).escape(),
   body().custom((value, { req }) => {
@@ -194,6 +195,7 @@ exports.deposit_create_post = [
         organizationCustomerId: organizationCustomer.id,
         status: "Активный",
         dispatchDate: new Date(),
+        billNumber: billNumber,
         createdBySupAdm: 1,
       });
       const deposit = await Product.findOne({ where: { productTypeId: 4 } });
