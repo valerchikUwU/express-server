@@ -69,6 +69,14 @@ router.put("/:accountId/orders/:orderId/active", checkAbilities('update', 'Order
 router.put("/:accountId/orders/:orderId/recieved", checkAbilities('update', 'Order_User'), orders_controller.user_receivedOrder_updateStatus_put)
 
 
+
+/**
+ * Запрос GET для получения всех завершенных заказов пользователя
+ */
+router.get("/:accountId/orders/finished", checkAbilities('read', 'Order_User'), orders_controller.user_finished_orders_list);
+
+
+
 /**
  * Запрос GET для получения всех активных заказов пользователя
  */
@@ -76,11 +84,6 @@ router.put("/:accountId/orders/:orderId/recieved", checkAbilities('update', 'Ord
 router.get("/:accountId/orders", checkAbilities('read', 'Order_User'), orders_controller.user_active_orders_list)
 
 
-
-/**
- * Запрос GET для получения всех завершенных заказов пользователя
- */
-router.get("/:accountId/orders/finished", checkAbilities('read', 'Order_User'), orders_controller.user_finished_orders_list);
 
 
 /**
