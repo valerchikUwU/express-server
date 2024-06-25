@@ -10,6 +10,7 @@ const PriceDefinition = require("../../models/priceDefinition");
 const TitleOrders = require("../../models/titleOrders");
 const sequelize = require("../../database/connection");
 const { logger } = require("../../configuration/loggerConf");
+const chalk = require("chalk");
 
 exports.all_products = asyncHandler(async (req, res, next) => {
   try {

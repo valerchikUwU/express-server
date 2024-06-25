@@ -6,7 +6,8 @@ const Product = require("../../models/product");
 const ProductType = require("../../models/productType");
 const CommisionReciever = require("../../models/commisionReceiver");
 const sequelize = require("../../database/connection");
-const { logger } = require("../../configuration/loggerConf")
+const { logger } = require("../../configuration/loggerConf");
+const chalk = require("chalk");
 
 exports.accrualRule_create_get = asyncHandler(async (req, res, next) => {
   try {

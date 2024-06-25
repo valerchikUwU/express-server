@@ -8,6 +8,7 @@ const Product = require("../../models/product");
 const PriceDefinition = require("../../models/priceDefinition");
 const dateFns = require("date-fns");
 const { logger } = require("../../configuration/loggerConf")
+const chalk = require("chalk");
 
 
 exports.deposits_list = asyncHandler(async (req, res, next) => {
