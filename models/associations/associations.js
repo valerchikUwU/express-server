@@ -267,3 +267,18 @@ History.belongsTo(Order, {
    foreignKey: 'orderId',
    as: 'order'
 });
+
+
+OrganizationCustomer.hasMany(History, {
+   foreignKey: {
+      name: 'organizationCustomerId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'histories'
+});
+
+History.belongsTo(Order, {
+   foreignKey: 'organizationCustomerId',
+   as: 'organizationCustomer'
+});
