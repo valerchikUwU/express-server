@@ -234,6 +234,18 @@ router.put("/:accountId/accounts/:accountFocusId/update", checkAbilities('update
 
 
 
+/**
+ * Запрос GET для получения формы обновления аккаунта
+ * @param accountFocusId - id выбранного пользователя
+ */
+router.get("/:accountId/superAdmin/accounts/:accountFocusId/update", checkAbilities('read', 'SuperAdmin'), accounts_controller.superAdmin_account_update_get);
+
+/**
+ * Запрос PUT для выбранного аккаунта
+ * @param accountFocusId - id выбранного пользователя
+ */
+router.put("/:accountId/superAdmin/accounts/:accountFocusId/update", checkAbilities('update', 'SuperAdmin'), accounts_controller.superAdmin_account_update_put);
+
 
 /**
  * Запрос GET для всех пользователей от лица суперАдмина
@@ -257,6 +269,19 @@ router.get("/:accountId/newAccount", checkAbilities('read', 'Account'), accounts
  * Запрос POST для создания нового аккаунта
  */
 router.post("/:accountId/newAccount", checkAbilities('create', 'Account'), accounts_controller.account_organization_create_post);
+
+
+/**
+ * Запрос GET для получения формы обновления аккаунта для суперАдмина
+ * @param accountFocusId - id выбранного пользователя
+ */
+router.get("/:accountId/superAdmin/newAccount", checkAbilities('read', 'SuperAdmin'), accounts_controller.superAdmin_account_organization_create_get);
+
+/**
+ * Запрос PUT для выбранного аккаунта для суперАдмина
+ * @param accountFocusId - id выбранного пользователя
+ */
+router.post("/:accountId/superAdmin/newAccount", checkAbilities('create', 'SuperAdmin'), accounts_controller.superAdmin_account_organization_create_post);
 
 
 /**
