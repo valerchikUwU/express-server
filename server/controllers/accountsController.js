@@ -159,12 +159,11 @@ exports.account_organization_create_post = [
           errors: errors.array(),
         });
       } else {
-        
-    logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(
-        req.ip
-      )}  - Аккаунт успешно создан!`
-    );
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Аккаунт успешно создан!`
+        );
         await account.save();
         res.status(200).json({ message: "Аккаунт успешно создан!" });
       }
@@ -180,7 +179,7 @@ exports.superAdmin_account_organization_create_get = asyncHandler(
   async (req, res, next) => {
     try {
       const [allOrganizations, allRoles] = await Promise.all([
-        OrganizationCustomer.findAll({ order: [["name"]] }),
+        OrganizationCustomer.findAll({ order: [["organizationName"]] }),
         Role.findAll({
           where: {
             id: {
@@ -245,7 +244,7 @@ exports.superAdmin_account_organization_create_post = [
 
   asyncHandler(async (req, res, next) => {
     const errors = validationResult(req);
-    try{
+    try {
       for (const organization of req.body.organizationList) {
         if (
           (await OrganizationCustomer.findOne({
@@ -259,49 +258,169 @@ exports.superAdmin_account_organization_create_post = [
         }
       }
 
-    const account = new Account({
-      firstName: req.body.firstName,
-      lastName: req.body.lastName,
-      telephoneNumber: req.body.telephoneNumber,
-      organizationList: req.body.organizationList,
-      roleId: req.body.roleId,
-    });
-
-    if (!errors.isEmpty()) {
-      const [allOrganizations, allRoles] = await Promise.all([
-        OrganizationCustomer.findAll({ order: [["name"]] }),
-        Role.findAll({
-          where: {
-            id: {
-              [Op.ne]: 1,
-            },
-          },
-        }),
-      ]);
-      logger.error(errors.array());
-      res.json({
-        organizations: allOrganizations,
-        allRoles: allRoles,
-        account: account,
-        errors: errors.array(),
+      const account = new Account({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        telephoneNumber: req.body.telephoneNumber,
+        organizationList: req.body.organizationList,
+        roleId: req.body.roleId,
       });
-    } else {
-      logger.info(
-        `${chalk.yellow("OK!")} - ${chalk.red(
-          req.ip
-        )}  - Аккаунт успешно создан!`
-      );
+
+      if (!errors.isEmpty()) {
+        const [allOrganizations, allRoles] = await Promise.all([
+          OrganizationCustomer.findAll({ order: [["name"]] }),
+          Role.findAll({
+            where: {
+              id: {
+                [Op.ne]: 1,
+              },
+            },
+          }),
+        ]);
+        logger.error(errors.array());
+        res.json({
+          organizations: allOrganizations,
+          allRoles: allRoles,
+          account: account,
+          errors: errors.array(),
+        });
+      } else {
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Аккаунт успешно создан!`
+        );
         await account.save();
         res.status(200).json({ message: "Аккаунт успешно создан!" });
-    }
-    }
-    catch(err){
-      
+      }
+    } catch (err) {
       err.ip = req.ip;
       logger.error(err);
-      res.status(500).json({message: 'Ой, что - то пошло не так!'})
+      res.status(500).json({ message: "Ой, что - то пошло не так!" });
     }
-      
+  }),
+];
+
+exports.superAdmin_account_update_get = asyncHandler(async (req, res, next) => {
+  try {
+    const [account, allOrganizations, allRoles] = await Promise.all([
+      Account.findByPk(req.params.accountFocusId, { raw: true }),
+      OrganizationCustomer.findAll(),
+      Role.findAll({
+        where: {
+          id: {
+            [Op.ne]: 1,
+          },
+        },
+      }),
+    ]);
+
+    account.formattedLastSeen =
+      account.lastSeen !== null
+        ? dateFns.format(account.lastSeen, "HH:mm dd.MM")
+        : null;
+
+    if (!account) {
+      const err = new Error("Аккаунт не найден!");
+      err.status = 404;
+      return next(err);
+    }
+
+    logger.info(
+      `${chalk.yellow("OK!")} - ${chalk.red(
+        req.ip
+      )}  - Форма обновления аккаунта для суперАдмина`
+    );
+    res.json({
+      title: "Форма обновления аккаунта для суперАдмина",
+      account: account,
+      allRoles: allRoles,
+      organizations: allOrganizations,
+    });
+  } catch (err) {
+    err.ip = req.ip;
+    logger.error(err);
+    if (err.status === 404) {
+      res.status(404).json({ message: err.message });
+    }
+    res.status(500).json({ message: "Ой, что - то пошло не так" });
+  }
+});
+
+exports.superAdmin_account_update_put = [
+  body("firstName")
+    .if(body("firstName").exists())
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .matches(/^[а-яА-ЯёЁ\s]+$/)
+    .withMessage("Имя может содержать только русские буквы и пробелы"),
+  body("lastName")
+    .if(body("lastName").exists())
+    .trim()
+    .isLength({ min: 1 })
+    .escape()
+    .matches(/^[а-яА-ЯёЁ\s]+$/)
+    .withMessage("Фамилия может содержать только русские буквы и пробелы"),
+  body("telephoneNumber")
+    .if(body("telephoneNumber").exists())
+    .trim()
+    .isLength({ min: 10 })
+    .escape()
+    .matches(/^\+7\d{10}$/)
+    .withMessage("Номер телефона должен начинаться с +7 и содержать 10 цифр"),
+  body("roleId", "Роль должна быть выбрана!")
+    .isIn([2, 3])
+    .isLength({ min: 1 })
+    .escape(),
+  body("organizationList.*").escape(),
+
+  asyncHandler(async (req, res, next) => {
+    try {
+      const errors = validationResult(req);
+      const account = new Account({
+        firstName: req.body.firstName,
+        lastName: req.body.lastName,
+        telephoneNumber: req.body.telephoneNumber,
+        organizationList: req.body.organizationList,
+        roleId: req.body.roleId,
+        _id: req.params.accountFocusId,
+      });
+
+      if (!errors.isEmpty()) {
+        const [allOrganizations] = await Promise.all([
+          OrganizationCustomer.findAll(),
+        ]);
+        logger.error(errors.array());
+        res.json({
+          title: "Форма ввода некорректна, повторите попытку!",
+          organizations: allOrganizations,
+          account: account,
+          errors: errors.array(),
+        });
+        return;
+      } else {
+        const oldAccount = await Account.findByPk(req.params.accountFocusId);
+        oldAccount.firstName = account.firstName;
+        oldAccount.lastName = account.lastName;
+        oldAccount.telephoneNumber = account.telephoneNumber;
+        oldAccount.organizationList = account.organizationList;
+        oldAccount.roleId = account.roleId
+
+        await oldAccount.save();
+
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Аккаунт успешно обновлен!`
+        );
+        res.status(200).json({ message: "Аккаунт успешно обновлен!" });
+      }
+    } catch (err) {
+      err.ip = req.ip;
+      logger.error(err);
+      res.status(500).json({ message: "Ой, что - то пошло не так" });
+    }
   }),
 ];
 
@@ -323,7 +442,6 @@ exports.account_update_get = asyncHandler(async (req, res, next) => {
       return next(err);
     }
 
-    
     logger.info(
       `${chalk.yellow("OK!")} - ${chalk.red(
         req.ip
@@ -331,11 +449,10 @@ exports.account_update_get = asyncHandler(async (req, res, next) => {
     );
     res.json({
       title: "Форма обновления аккаунта для админа",
-      organizations: allOrganizations,
       account: account,
+      organizations: allOrganizations,
     });
   } catch (err) {
-    
     err.ip = req.ip;
     logger.error(err);
     if (err.status === 404) {
@@ -370,8 +487,7 @@ exports.account_update_put = [
   body("organizationList.*").escape(),
 
   asyncHandler(async (req, res, next) => {
-    try{
-
+    try {
       const errors = validationResult(req);
       const account = new Account({
         firstName: req.body.firstName,
@@ -380,7 +496,7 @@ exports.account_update_put = [
         organizationList: req.body.organizationList,
         _id: req.params.accountFocusId,
       });
-  
+
       if (!errors.isEmpty()) {
         const [allOrganizations] = await Promise.all([
           OrganizationCustomer.findAll(),
@@ -394,26 +510,25 @@ exports.account_update_put = [
         });
         return;
       } else {
-          const oldAccount = await Account.findByPk(req.params.accountFocusId);
-          oldAccount.firstName = account.firstName;
-          oldAccount.lastName = account.lastName;
-          oldAccount.telephoneNumber = account.telephoneNumber;
-          oldAccount.organizationList = account.organizationList;
-  
-          await oldAccount.save();
-        
-          logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Аккаунт успешно обновлен!`
-          );
+        const oldAccount = await Account.findByPk(req.params.accountFocusId);
+        oldAccount.firstName = account.firstName;
+        oldAccount.lastName = account.lastName;
+        oldAccount.telephoneNumber = account.telephoneNumber;
+        oldAccount.organizationList = account.organizationList;
+
+        await oldAccount.save();
+
+        logger.info(
+          `${chalk.yellow("OK!")} - ${chalk.red(
+            req.ip
+          )}  - Аккаунт успешно обновлен!`
+        );
         res.status(200).json({ message: "Аккаунт успешно обновлен!" });
       }
-    }
-    catch(err){
-
+    } catch (err) {
       err.ip = req.ip;
       logger.error(err);
       res.status(500).json({ message: "Ой, что - то пошло не так" });
     }
   }),
 ];
-
