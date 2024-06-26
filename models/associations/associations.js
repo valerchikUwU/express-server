@@ -13,6 +13,7 @@ const CommisionRecieverOperations = require('../commisionRecieverOperations');
 const Image = require('../image');
 const Subscriptions = require('../subscriptions');
 const History = require('../history')
+const Review = require('../review')
 const { DataTypes } = require('sequelize');
 
 
@@ -278,7 +279,40 @@ OrganizationCustomer.hasMany(History, {
    as: 'histories'
 });
 
-History.belongsTo(Order, {
+History.belongsTo(OrganizationCustomer, {
    foreignKey: 'organizationCustomerId',
    as: 'organizationCustomer'
 });
+
+
+OrganizationCustomer.hasMany(Review, {
+   foreignKey: {
+      name: 'organizationCustomerId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'reviews'
+});
+
+Review.belongsTo(OrganizationCustomer, {
+   foreignKey: 'organizationCustomerId',
+   as: 'organizationCustomer'
+});
+
+
+
+
+CommisionReciever.hasMany(Review, {
+   foreignKey: {
+      name: 'commisionRecieverId',
+      type: DataTypes.UUID,
+      allowNull: false,
+   },
+   as: 'reviews'
+});
+
+Review.belongsTo(CommisionReciever, {
+   foreignKey: 'commisionRecieverId',
+   as: 'commisionReciever'
+});
+// -118125 ₽

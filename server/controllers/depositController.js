@@ -8,6 +8,7 @@ const Product = require("../../models/product");
 const PriceDefinition = require("../../models/priceDefinition");
 const dateFns = require("date-fns");
 const { logger } = require("../../configuration/loggerConf")
+const History = require("../../models/history.js");
 const chalk = require("chalk");
 
 
@@ -16,48 +17,62 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
     const organizations = await OrganizationCustomer.findAll({
       include: [
         {
-          model: Order,
+          model: History,
+          where: {
+            orderStatus: 'Оплачен'
+          },
           include: [
             {
-              model: TitleOrders,
+              model: Order,
               include: [
                 {
-                  model: PriceDefinition,
+                  model: TitleOrders,
+                  include: [
+                    {
+                      model: PriceDefinition,
+                      attributes: [],
+                      as: "price",
+                    },
+                    {
+                      model: Product,
+                      attributes: [],
+                      as: "product",
+                    },
+                  ],
                   attributes: [],
-                  as: "price",
-                },
-                {
-                  model: Product,
-                  attributes: [],
-                  as: "product",
                 },
               ],
               attributes: [],
+              as: "order",
             },
           ],
           attributes: [],
-          as: "orders",
+          as: "histories",   
+          required:false
         },
       ],
       attributes: {
         include: [
           [
             Sequelize.literal(
-              `SUM(CASE WHEN productTypeId <> 4 AND (status = 'Оплачен' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)`
+              `(SUM(CASE WHEN  addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = TRUE AND quantity < 0 THEN (quantity * -1) END))`
             ),
             "SUM",
           ],
-
           [
             Sequelize.literal(
-              `SUM(CASE WHEN productTypeId = 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') THEN (quantity*1) END) `
+              `SUM(CASE WHEN productTypeId = 4 AND quantity > 0 THEN (quantity*1) END)`
             ),
             "allDeposits",
-          ],
+          ]
         ],
       },
       group: ["OrganizationCustomer.id"],
       raw: true,
+    });
+    organizations.forEach((org) => {
+      org.SUM = org.SUM ? Number(org.SUM)*1 : 0;
+      org.allDeposits = org.allDeposits ? Number(org.allDeposits)*1 : 0
     });
     logger.info(
       `${chalk.yellow("OK!")} - ${chalk.red(
@@ -79,51 +94,60 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
   try {
     const [organization, orders] = await Promise.all([
       await OrganizationCustomer.findByPk(req.params.organizationCustomerId),
-      Order.findAll({
+      History.findAll({
         where: {
           organizationCustomerId: req.params.organizationCustomerId,
-          status: {
-            [Op.notIn]: ["Получен", "Черновик", "Черновик депозита", "Отменен"],
-          },
+          orderStatus: 
+            'Оплачен'
+          
         },
 
         include: [
           {
-            model: TitleOrders,
-            include: [
+            model: Order,
+            include:
+            [
               {
-                model: PriceDefinition,
+                model: TitleOrders,
+                include: [
+                  {
+                    model: PriceDefinition,
+                    attributes: [],
+                    as: "price",
+                  },
+                  {
+                    model: Product,
+                    attributes: [],
+                    as: "product",
+                  },
+                ],
                 attributes: [],
-                as: "price",
-              },
-              {
-                model: Product,
-                attributes: [],
-                as: "product",
               },
             ],
-            attributes: [],
-          },
+            as: 'order',
+            attributes: []
+          }
+         
         ],
         attributes: {
           include: [
             [
               Sequelize.literal(
-                `CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = true AND quantity < 0 THEN (quantity * 1) END`
+                `(CASE WHEN  addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = TRUE AND quantity < 0 THEN (quantity * -1) END)*-1`
               ),
               "Spisanie",
             ],
 
             [
               Sequelize.literal(
-                `CASE WHEN productTypeId = 4 AND quantity > 0 THEN (quantity*1) END `
+                `CASE WHEN productTypeId = 4 AND quantity > 0 THEN (quantity*1) END`
               ),
               "Deposit",
             ],
           ],
         },
 
-        group: ["Order.id"],
+        group: ["History.id"],
         raw: true,
       }),
     ]);
@@ -136,8 +160,8 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
     }
 
     orders.forEach((order) => {
-      order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
+      order.formattedDispatchDate = order.timestamp
+        ? dateFns.format(order.timestamp, "dd.MM.yyyy")
         : null;
     });
 

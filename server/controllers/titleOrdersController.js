@@ -8,6 +8,7 @@ const OrganizationCustomer = require("../../models/organizationCustomer");
 const sequelize = require("../../database/connection");
 const { webPush } = require("../../utils/webPush");
 const { logger } = require("../../configuration/loggerConf");
+const History = require("../../models/history.js")
 const chalk = require("chalk");
 
 exports.user_titleOrder_update_put = [
@@ -56,7 +57,7 @@ exports.user_titleOrder_update_put = [
       const errors = validationResult(req);
 
       const order = await Order.findByPk(req.params.orderId);
-      if (order.status !== "Черновик") {
+      if (order.status !== "Черновик" && order.status !== "Черновик депозита") {
         const err = new Error("Редактировать можно только черновик!");
         err.status = 400;
         err.ip = req.ip;
@@ -276,7 +277,7 @@ exports.admin_titleOrder_update_put = [
           Order.findByPk(req.params.orderId),
           TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
         ]);
-        loggers.error(errors.array());
+        logger.error(errors.array());
         res.json({
           title: "Некорректная форма обновления!",
           titleOrders: titleOrders,
@@ -377,18 +378,20 @@ exports.admin_titleOrder_update_put = [
           }
         } else {
           
-        const history = new History({
-          accountId: req.params.accountId,
-          orderId: req.params.orderId,
-          timestamp: new Date(),
-          billNumber: oldOrder.billNumber,
-        });
           if (oldOrder.status !== order.status) {
             oldOrder.dispatchDate = new Date();
-            history.orderStatus = order.status;
+            const history = new History({
+              accountId: req.params.accountId,
+              orderId: req.params.orderId,
+              timestamp: new Date(),
+              billNumber: oldOrder.billNumber,
+              organizationCustomerId: oldOrder.organizationCustomerId,
+              orderStatus: order.status
+            });
+            await history.save();
+            console.log(`${chalk.cyan('added to history Статус успешно изменен!')}`)
           }
           oldOrder.status = order.status;
-          await history.save();
           await oldOrder.save();
           logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Статус успешно изменен!`
@@ -398,12 +401,21 @@ exports.admin_titleOrder_update_put = [
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         if (oldOrder.status !== order.status) {
           oldOrder.dispatchDate = new Date();
+          const history = new History({
+            accountId: req.params.accountId,
+            orderId: req.params.orderId,
+            timestamp: new Date(),
+            billNumber: oldOrder.billNumber,
+            organizationCustomerId: oldOrder.organizationCustomerId,
+            orderStatus: order.status
+          });
+          console.log(`${chalk.cyan('added to history Наименования успешно обновлены!')}`)
+          await history.save();
         }
         oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
-
         await oldOrder.save();
 
         logger.info(

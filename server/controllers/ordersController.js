@@ -904,6 +904,7 @@ exports.admin_order_create_post = [
           timestamp: new Date(),
           orderStatus: req.body.status,
           billNumber: req.body.billNumber,
+          organizationCustomerId: req.body.organizationCustomerId,
         });
         await history.save();
         for (const title of titlesToCreate) {
@@ -988,6 +989,7 @@ exports.user_draftOrder_updateStatus_put = [
           timestamp: new Date(),
           orderStatus: "Активный",
           billNumber: oldOrder.billNumber,
+          organizationCustomerId: organizationCustomerId.id
         });
         const titles = await TitleOrders.findAll({
           where: { orderId: oldOrder.id },
@@ -1063,6 +1065,7 @@ exports.user_receivedOrder_updateStatus_put = [
           timestamp: new Date(),
           orderStatus: "Получен",
           billNumber: oldOrder.billNumber,
+          organizationCustomerId: oldOrder.organizationCustomerId,
         });
         await history.save();
         await oldOrder.save();
