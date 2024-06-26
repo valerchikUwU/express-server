@@ -145,8 +145,8 @@ exports.commisionReciever_balance_details = asyncHandler(
       const query2 = `INSERT INTO first_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
-                    orders.dispatchDate,
-                    orders.billNumber,
+                    history.timestamp,
+                    history.billNumber,
                     titles.id,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
@@ -154,9 +154,9 @@ exports.commisionReciever_balance_details = asyncHandler(
             JOIN 
                 TitleOrders titles ON A.productId = titles.productId
             JOIN 
-                Orders orders ON titles.orderId = orders.id
+                Histories history ON titles.orderId = history.orderId
             WHERE 
-                orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                history.orderStatus = 'Оплачен'
                 AND A.commisionRecieverId = :commisionRecieverId 
                 AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                 AND A.accessType IS NOT NULL
@@ -177,8 +177,8 @@ exports.commisionReciever_balance_details = asyncHandler(
       const query4 = `INSERT INTO second_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
-                    orders.dispatchDate,
-                    orders.billNumber,
+                    history.timestamp,
+                    history.billNumber,
                     titles.id,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
@@ -186,9 +186,9 @@ exports.commisionReciever_balance_details = asyncHandler(
                 JOIN 
                     TitleOrders titles ON A.productId = titles.productId
                 JOIN 
-                    Orders orders ON titles.orderId = orders.id
+                    Histories history ON titles.orderId = history.orderId
                 WHERE 
-                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    history.orderStatus = 'Оплачен'
                     AND A.commisionRecieverId = :commisionRecieverId 
                     AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                     AND (A.accessType IS NULL OR A.generation IS NULL)
@@ -211,8 +211,8 @@ exports.commisionReciever_balance_details = asyncHandler(
       const query6 = `INSERT INTO third_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
-                    orders.dispatchDate,
-                    orders.billNumber,
+                    history.timestamp,
+                    history.billNumber,
                     titles.id,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
@@ -220,9 +220,9 @@ exports.commisionReciever_balance_details = asyncHandler(
                 JOIN 
                     TitleOrders titles ON A.productId = titles.productId
                 JOIN 
-                    Orders orders ON titles.orderId = orders.id
+                    Histories history ON titles.orderId = history.orderId
                 WHERE 
-                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    history.orderStatus = 'Оплачен'
                     AND A.commisionRecieverId = :commisionRecieverId 
                     AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
                     AND (A.accessType IS NULL AND A.generation IS NULL)
@@ -247,8 +247,8 @@ exports.commisionReciever_balance_details = asyncHandler(
                 INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
-                    orders.dispatchDate,
-                    orders.billNumber,
+                    history.timestamp,
+                    history.billNumber,
                     titles.id,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
@@ -258,9 +258,9 @@ exports.commisionReciever_balance_details = asyncHandler(
                 JOIN 
                     TitleOrders titles ON titles.productId = products.id
                 JOIN 
-                    Orders orders ON titles.orderId = orders.id
+                    Histories history ON titles.orderId = history.orderId
                 WHERE 
-                    orders.status IN ('Оплачен', 'Отправлен', 'Получен')
+                    history.orderStatus = 'Оплачен'
                     AND A.commisionRecieverId = :commisionRecieverId 
                     AND NOT EXISTS (
                         SELECT * FROM first_commission_summaries fcs

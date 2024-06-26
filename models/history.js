@@ -13,7 +13,7 @@ const History = sequelize.define('History', {
    },
    billNumber: {
       type: DataTypes.STRING,
-      allowNull: false
+      allowNull: true
    },
    orderStatus: {
     type: DataTypes.ENUM('Черновик', 'Черновик депозита', 'Активный', 'Выставлен счёт', 'Оплачен', 'Отправлен', 'Получен', 'Отменен'),

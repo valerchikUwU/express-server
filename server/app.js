@@ -65,6 +65,7 @@ const Subscriptions = require("../models/subscriptions.js");
 const Image = require("../models/image.js")
 const Review = require("../models/review.js");
 const History = require("../models/history.js")
+const Commisions = require("../models/commisions.js")
 
 
 
@@ -91,6 +92,7 @@ async function syncModels() {
     await Review.sync();
     await Subscriptions.sync();
     await History.sync();
+    await Commisions.sync();
     console.log("Syncronized successfully");
   } catch (error) {
     console.error("Error due to failed sycnronization:", error);
@@ -139,7 +141,7 @@ app.use(
 if (process.env.NODE_ENV !== "production") {
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
   
-  app.use("/pwa", express.static('C:/Users/koval/react-app/react-app/build'));
+  app.use("/dev", express.static('C:/Users/koval/react-app/react-app/build'));
 } else {
   app.use("/pwa", express.static(path.join(__dirname, "../../PWA")));
   app.use("/desktop", express.static(path.join(__dirname, "../../build")));
