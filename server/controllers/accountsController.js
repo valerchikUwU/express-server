@@ -237,7 +237,7 @@ exports.superAdmin_account_organization_create_post = [
   // .matches(/^\+7\d{10}$/, 'ru-RU') // Исправлено: 'ru-RU' не используется как флаг
   // .withMessage('Номер телефона должен начинаться с +7 и содержать 10 цифр'),
   body("roleId", "Роль должна быть выбрана!")
-    .isIn([2, 3])
+    .isIn(["2", "3"])
     .isLength({ min: 1 })
     .escape(),
   body("organizationList.*").escape(),
@@ -370,7 +370,7 @@ exports.superAdmin_account_update_put = [
     .matches(/^\+7\d{10}$/)
     .withMessage("Номер телефона должен начинаться с +7 и содержать 10 цифр"),
   body("roleId", "Роль должна быть выбрана!")
-    .isIn([2, 3])
+    .isIn(["2", "3"])
     .isLength({ min: 1 })
     .escape(),
   body("organizationList.*").escape(),
