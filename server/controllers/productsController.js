@@ -45,10 +45,10 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       case 1:
         const productsInit = await sequelize.query(
           `
-      SELECT DISTINCT Products.*, images.path
+      SELECT DISTINCT Products.*, COALESCE(images.path, '') AS imagePath
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
-        JOIN Images images ON images.id = Products.imageId 
+        LEFT JOIN Images images ON images.id = Products.imageId 
         WHERE PriceDefinitions.activationDate = (
             SELECT MAX(activationDate) 
             FROM PriceDefinitions 
@@ -56,6 +56,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
             AND activationDate < NOW()
         )
         AND Products.productTypeId = 1;
+
 
       `,
           { type: sequelize.QueryTypes.SELECT }
@@ -75,7 +76,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       SELECT DISTINCT Products.*, images.path
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
-        JOIN Images images ON images.id = Products.imageId 
+        LEFT JOIN Images images ON images.id = Products.imageId 
         WHERE PriceDefinitions.activationDate = (
             SELECT MAX(activationDate) 
             FROM PriceDefinitions 
@@ -101,7 +102,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       SELECT DISTINCT Products.*, images.path
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
-        JOIN Images images ON images.id = Products.imageId 
+        LEFT JOIN Images images ON images.id = Products.imageId 
         WHERE PriceDefinitions.activationDate = (
             SELECT MAX(activationDate) 
             FROM PriceDefinitions 
