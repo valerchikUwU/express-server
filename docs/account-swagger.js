@@ -543,7 +543,7 @@
  * 
  * 
  * 
- * /{accountId}/accounts/superAdmin/accounts/:accountFocusId/update:
+ * /{accountId}/superAdmin/accounts/:accountFocusId/update:
  *  get:
  *      tags:
  *          - Account

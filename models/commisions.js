@@ -19,9 +19,9 @@ const Commision = sequelize.define('Commision', {
         type: DataTypes.STRING,
         allowNull: true
     },
-    generation: {
-        type: DataTypes.ENUM('Первое поколение', 'Второе поколение'),
-        allowNull: true
+    dispatchDate: {
+        type: DataTypes.DATE,
+        allowNull: false
     },
 
 

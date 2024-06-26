@@ -10,6 +10,7 @@ const PriceDefinition = require("../../models/priceDefinition");
 const TitleOrders = require("../../models/titleOrders");
 const sequelize = require("../../database/connection");
 const { logger } = require("../../configuration/loggerConf");
+const History = require("../../models/history.js");
 const chalk = require("chalk");
 
 exports.all_products = asyncHandler(async (req, res, next) => {
@@ -126,7 +127,6 @@ exports.products_list = asyncHandler(async (req, res, next) => {
         const organizationsList = await getOrganizationList(
           req.params.accountId
         );
-        console.log(organizationsList)
         const [productsDeposit, organizations] = await Promise.all([
           await Product.findAll({
             where: { productTypeId: productTypeId },
@@ -140,43 +140,66 @@ exports.products_list = asyncHandler(async (req, res, next) => {
             },
             include: [
               {
-                model: Order,
+                model: History,
+                where: {
+                  orderStatus: 'Оплачен'
+                },
                 include: [
                   {
-                    model: TitleOrders,
+                    model: Order,
                     include: [
                       {
-                        model: PriceDefinition,
+                        model: TitleOrders,
+                        include: [
+                          {
+                            model: PriceDefinition,
+                            attributes: [],
+                            as: "price",
+                          },
+                          {
+                            model: Product,
+                            attributes: [],
+                            as: "product",
+                          },
+                        ],
                         attributes: [],
-                        as: "price",
-                      },
-                      {
-                        model: Product,
-                        attributes: [],
-                        as: "product",
                       },
                     ],
                     attributes: [],
+                    as: "order",
                   },
                 ],
                 attributes: [],
-                as: "orders",
+                as: "histories",   
+                required:false
               },
             ],
             attributes: {
               include: [
                 [
                   Sequelize.literal(
-                    `(SUM(CASE WHEN productTypeId = 4 AND (status = 'Выставлен счёт' OR status = 'Отправлен' OR status = 'Получен') THEN (quantity*1) END)) - (CASE WHEN status = 'Активный' OR status = 'Отправлен' OR status = 'Получен' THEN (SUM(CASE WHEN productTypeId <> 4 AND addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN productTypeId <> 4 AND addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess END)) END)`
+                    `SUM(CASE WHEN productTypeId = 4 AND quantity > 0 THEN (quantity*1) END)`
                   ),
-                  "allDeposits",
+                  "deposits",
                 ],
+                [
+                  Sequelize.literal(
+                    `SUM(CASE WHEN  addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = TRUE AND quantity < 0 THEN (quantity * -1) END)`
+                  ),
+                  "allSpisanie",
+                ]
               ],
             },
             group: ["OrganizationCustomer.id"],
             raw: true,
           }),
         ]);
+        console.log(organizations);
+        organizations.forEach((org) => {
+          org.deposits = org.deposits ? Number(org.deposits)*1 : 0;
+          org.allSpisanie = org.allSpisanie ? Number(org.allSpisanie)*1 : 0
+          org.allDeposits = org.deposits - org.allSpisanie;
+        });
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip

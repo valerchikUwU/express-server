@@ -20,11 +20,11 @@ const Review = sequelize.define('Review', {
         allowNull: false
     },
 
-    calculatedNumber: {
-        type: DataTypes.DECIMAL,
-        allowNull: false
-    },
-
+    
+   orderReviewStatus: {
+    type: DataTypes.ENUM('Черновик', 'Черновик депозита', 'Активный', 'Выставлен счёт', 'Оплачен', 'Отправлен', 'Получен', 'Отменен', 'Начислено', 'Выплачено'),
+    allowNull: false
+   },
 }, {
     // Можно добавить дополнительные настройки модели здесь
 });
