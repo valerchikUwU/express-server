@@ -373,6 +373,8 @@ exports.superAdmin_account_update_put = [
     .isIn(["2", "3"])
     .isLength({ min: 1 })
     .escape(),
+  body("isBlocked")
+  .escape(),
   body("organizationList.*").escape(),
 
   asyncHandler(async (req, res, next) => {
@@ -384,6 +386,7 @@ exports.superAdmin_account_update_put = [
         telephoneNumber: req.body.telephoneNumber,
         organizationList: req.body.organizationList,
         roleId: req.body.roleId,
+        isBlocked: req.body.isBlocked,
         _id: req.params.accountFocusId,
       });
 
@@ -405,7 +408,8 @@ exports.superAdmin_account_update_put = [
         oldAccount.lastName = account.lastName;
         oldAccount.telephoneNumber = account.telephoneNumber;
         oldAccount.organizationList = account.organizationList;
-        oldAccount.roleId = account.roleId
+        oldAccount.roleId = account.roleId;
+        oldAccount.isBlocked = account.isBlocked
 
         await oldAccount.save();
 
@@ -484,6 +488,8 @@ exports.account_update_put = [
     .escape()
     .matches(/^\+7\d{10}$/)
     .withMessage("Номер телефона должен начинаться с +7 и содержать 10 цифр"),
+    body("isBlocked")
+    .escape(),
   body("organizationList.*").escape(),
 
   asyncHandler(async (req, res, next) => {
@@ -494,6 +500,7 @@ exports.account_update_put = [
         lastName: req.body.lastName,
         telephoneNumber: req.body.telephoneNumber,
         organizationList: req.body.organizationList,
+        isBlocked: req.body.isBlocked,
         _id: req.params.accountFocusId,
       });
 
@@ -515,7 +522,7 @@ exports.account_update_put = [
         oldAccount.lastName = account.lastName;
         oldAccount.telephoneNumber = account.telephoneNumber;
         oldAccount.organizationList = account.organizationList;
-
+        oldAccount.isBlocked = account.isBlocked;
         await oldAccount.save();
 
         logger.info(
