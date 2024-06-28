@@ -74,7 +74,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       case 2:
         const productsMain = await sequelize.query(
           `
-      SELECT DISTINCT Products.*, images.path
+      SELECT DISTINCT Products.*, COALESCE(images.path, '') AS imagePath
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
         LEFT JOIN Images images ON images.id = Products.imageId 
@@ -100,7 +100,7 @@ exports.products_list = asyncHandler(async (req, res, next) => {
       case 3:
         const productsForEmployers = await sequelize.query(
           `
-      SELECT DISTINCT Products.*, images.path
+      SELECT DISTINCT Products.*, COALESCE(images.path, '') AS imagePath
         FROM Products
         JOIN PriceDefinitions ON PriceDefinitions.productId = Products.id
         LEFT JOIN Images images ON images.id = Products.imageId 
