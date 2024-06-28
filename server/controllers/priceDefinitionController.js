@@ -211,7 +211,7 @@ exports.price_create_post = [
             .status(200)
             .json({ message: "Прайс лист и товар успешно созданы!" });
         } else {
-          findProd.imageId = file !== null ? file.id : null;
+          findProd.imageId = file !== null ? file.id : findProd.imageId;
 
           await findProd.save();
           const price = new PriceDefinition({
