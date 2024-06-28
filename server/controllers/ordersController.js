@@ -855,9 +855,6 @@ exports.admin_order_create_post = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
-        res.status(400).json({
-          message: err.message,
-        });
       }
     }
     // Возвращаем true, если условие выполнено

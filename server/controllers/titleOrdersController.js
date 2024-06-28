@@ -45,7 +45,6 @@ exports.user_titleOrder_update_put = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
-        return res.status(400).json({ error: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -235,7 +234,6 @@ exports.admin_titleOrder_update_put = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
-        return res.status(400).json({ message: err.message });
       }
     }
     for (const title of titlesToUpdate) {
