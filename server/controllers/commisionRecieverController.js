@@ -378,6 +378,11 @@ exports.commisionReciever_balance_details = asyncHandler(
                                                           : null;
                                                     });
 
+                                                    await sequelize.query(`DROP TABLE IF EXISTS first_commission_summaries`);
+                                                    await sequelize.query(`DROP TABLE IF EXISTS second_commission_summaries`);
+                                                    await sequelize.query(`DROP TABLE IF EXISTS third_commission_summaries`);
+                                                    await sequelize.query(`DROP TABLE IF EXISTS fourth_commission_summaries`);
+                                                    await sequelize.query(`DROP TABLE IF EXISTS combined_data`);
                                                     await transaction.commit();
                                                     res.json({
                                                       title: `Баланс получателя комиссии ${commisionReceiver.name}`,

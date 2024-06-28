@@ -133,7 +133,7 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
           include: [
             [
               Sequelize.literal(
-                `(CASE WHEN  addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = TRUE AND quantity < 0 THEN (quantity * -1) END)*-1`
+                `(SUM(CASE WHEN  addBooklet = TRUE AND isFromDeposit = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE AND isFromDeposit = TRUE THEN quantity * priceAccess WHEN productTypeId = 4 AND createdBySupAdm = TRUE AND quantity < 0 THEN (quantity * -1) END))*-1`
               ),
               "Spisanie",
             ],

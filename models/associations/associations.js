@@ -306,7 +306,7 @@ CommisionReciever.hasMany(Review, {
    foreignKey: {
       name: 'commisionRecieverId',
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true,
    },
    as: 'reviews'
 });
@@ -315,4 +315,49 @@ Review.belongsTo(CommisionReciever, {
    foreignKey: 'commisionRecieverId',
    as: 'commisionReciever'
 });
+
+Product.hasMany(Review, {
+   foreignKey: {
+      name: 'productId',
+      type: DataTypes.UUID,
+      allowNull: true,
+   },
+   as: 'reviews'
+});
+
+Review.belongsTo(Product, {
+   foreignKey: 'productId',
+   as: 'product'
+});
+
+
+ProductType.hasMany(Review, {
+   foreignKey: {
+      name: 'productTypeId',
+      type: DataTypes.INTEGER,
+      allowNull: true,
+   },
+   as: 'reviews'
+});
+
+Review.belongsTo(ProductType, {
+   foreignKey: 'productTypeId',
+   as: 'productType'
+});
+
+Payee.hasMany(Review, {
+   foreignKey: {
+      name: 'payeeId',
+      type: DataTypes.UUID,
+      allowNull: true,
+   },
+   as: 'reviews'
+});
+
+Review.belongsTo(Payee, {
+   foreignKey: 'payeeId',
+   as: 'payee'
+});
+
+
 // -118125 ₽
