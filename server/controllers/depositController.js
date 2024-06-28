@@ -196,7 +196,6 @@ exports.deposit_create_post = [
       err.status = 400;
       err.ip = req.ip;
       logger.error(err);
-      return res.status(400).json({ message: err.message });
     }
     return true;
   }),

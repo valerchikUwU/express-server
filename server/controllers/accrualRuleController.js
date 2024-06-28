@@ -70,7 +70,6 @@ exports.accrualRule_create_post = [
         err.status = 400;
         err.ip = req.ip
         logger.error(err)
-        return res.status(400).json({ message: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
@@ -158,7 +157,6 @@ exports.accrualRule_update_put = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
-        return res.status(400).json({ message: err.message });
       }
     }
     // Возвращаем true, если условие выполнено
