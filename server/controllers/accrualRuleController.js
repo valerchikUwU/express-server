@@ -123,6 +123,7 @@ exports.accrualRule_create_post = [
 exports.accrualRule_update_put = [
   // Validate and sanitize fields.
   body("rulesToUpdate.*.productTypeId")
+    .optional({nullable: true})
     .if(body("rulesToUpdate.*.productTypeId").exists())
     .isNumeric()
     .withMessage("Тип продукта должен быть числом")
