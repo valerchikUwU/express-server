@@ -131,6 +131,7 @@ exports.accrualRule_update_put = [
     .withMessage("Тип продукта может быть только 1, 2 или 3")
     .escape(),
   body("rulesToUpdate.*.productId")
+    .optional({nullable: true})
     .if(body("rulesToUpdate.*.productId").exists())
     .trim()
     .isLength({ min: 1 })
@@ -191,12 +192,11 @@ exports.accrualRule_update_put = [
             if (oldRule) {
               // Проверяем, были ли предоставлены новые значения для полей
   
-              if (rule.productTypeId) {
+              if (rule.productTypeId !== null) {
                 oldRule.productTypeId = rule.productTypeId;
                 oldRule.productId = null;
               }
-  
-              if (rule.productId) {
+              else if(rule.productId !== null) {
                 oldRule.productId = rule.productId;
                 oldRule.productTypeId = null;
               }
@@ -205,7 +205,7 @@ exports.accrualRule_update_put = [
                 oldRule.generation = rule.generation;
               }
               if (rule.accessType) {
-                oldRule.accessType = rule.addBooklet;
+                oldRule.accessType = rule.accessType;
               }
               await oldRule.save();
             } else {
