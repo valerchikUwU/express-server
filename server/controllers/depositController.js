@@ -160,8 +160,9 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
     }
 
     const orders = unfilteredOrders.filter(order => 
-      order.Deposit !== null && order.Spisanie !== null
+      (order.Deposit !== null || order.Spisanie !== null)
     );
+    console.log(orders)
     orders.forEach((order) => {
       order.formattedDispatchDate = order.timestamp
         ? dateFns.format(order.timestamp, "dd.MM.yyyy")
