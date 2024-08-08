@@ -92,7 +92,7 @@ exports.deposits_list = asyncHandler(async (req, res, next) => {
 
 exports.deposits_details = asyncHandler(async (req, res, next) => {
   try {
-    const [organization, orders] = await Promise.all([
+    const [organization, unfilteredOrders] = await Promise.all([
       await OrganizationCustomer.findByPk(req.params.organizationCustomerId),
       History.findAll({
         where: {
@@ -159,6 +159,9 @@ exports.deposits_details = asyncHandler(async (req, res, next) => {
       return next(err);
     }
 
+    const orders = unfilteredOrders.filter(order => 
+      order.Deposit !== null && order.Spisanie !== null
+    );
     orders.forEach((order) => {
       order.formattedDispatchDate = order.timestamp
         ? dateFns.format(order.timestamp, "dd.MM.yyyy")
