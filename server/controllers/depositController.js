@@ -230,6 +230,14 @@ exports.deposit_create_post = [
         });
       } else {
         await order.save();
+        await History.create({
+          accountId: req.params.accountId,
+          orderId: order.id,
+          timestamp: new Date(),
+          orderStatus: order.status,
+          billNumber: order.billNumber,
+          organizationCustomerId: organizationCustomer.id,
+        });
         await TitleOrders.create({
           productId: deposit.id,
           orderId: order.id,
