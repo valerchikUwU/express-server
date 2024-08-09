@@ -162,7 +162,7 @@ exports.account_organization_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Аккаунт успешно создан!`
+          )} - Account PROPS: ${JSON.stringify(account)} - Organization PROPS: ${JSON.stringify(req.body.organizationList)} - Аккаунт успешно создан!`
         );
         await account.save();
         res.status(200).json({ message: "Аккаунт успешно создан!" });
@@ -288,7 +288,7 @@ exports.superAdmin_account_organization_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Аккаунт успешно создан!`
+          )} - Account PROPS: ${JSON.stringify(account)} - Organization PROPS: ${JSON.stringify(req.body.organizationList)}  - Аккаунт успешно создан!`
         );
         await account.save();
         res.status(200).json({ message: "Аккаунт успешно создан!" });
@@ -416,7 +416,7 @@ exports.superAdmin_account_update_put = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Аккаунт успешно обновлен!`
+          )} - Account PROPS: ${JSON.stringify(account)} - Organization PROPS: ${JSON.stringify(req.body.organizationList)}  - Аккаунт успешно обновлен!`
         );
         res.status(200).json({ message: "Аккаунт успешно обновлен!" });
       }
@@ -528,7 +528,7 @@ exports.account_update_put = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Аккаунт успешно обновлен!`
+          )} - Account PROPS: ${JSON.stringify(account)} - Organization PROPS: ${JSON.stringify(req.body.organizationList)}  - Аккаунт успешно обновлен!`
         );
         res.status(200).json({ message: "Аккаунт успешно обновлен!" });
       }

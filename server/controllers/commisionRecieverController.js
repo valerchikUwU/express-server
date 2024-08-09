@@ -446,7 +446,7 @@ exports.commisionReciever_create_post = [
         logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(
               req.ip
-            )}  - Получатель комиссии успешно создан!`
+            )} - CommisionReciever PROPS: ${JSON.stringify(commisionReciever)}  - Получатель комиссии успешно создан!`
           );
         res.status(200).send("Получатель комиссии успешно создан!");
       }

@@ -205,7 +205,7 @@ exports.price_create_post = [
           await product.save();
           await price.save();
           logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Прайс лист и товар успешно созданы!`
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - File PROPS: ${JSON.stringify(file)} - Product PROPS: ${JSON.stringify(product)}- Price PROPS: ${JSON.stringify(price)} - Прайс лист и товар успешно созданы!`
           );
           return res
             .status(200)

@@ -59,7 +59,7 @@ exports.payee_create_post = [
         } else {
 
           logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Получатель успешно создан!`
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - Payee PROPS: ${JSON.stringify(payee)} - Получатель успешно создан!`
           );
           await payee.save();
           res.status(200).json({message: 'Получатель успешно создан!'});

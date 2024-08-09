@@ -230,7 +230,7 @@ exports.deposit_create_post = [
         });
       } else {
         await order.save();
-        await History.create({
+        const history = await History.create({
           accountId: req.params.accountId,
           orderId: order.id,
           timestamp: new Date(),
@@ -238,7 +238,7 @@ exports.deposit_create_post = [
           billNumber: order.billNumber,
           organizationCustomerId: organizationCustomer.id,
         });
-        await TitleOrders.create({
+        const titleOrder = await TitleOrders.create({
           productId: deposit.id,
           orderId: order.id,
           quantity:
@@ -251,7 +251,7 @@ exports.deposit_create_post = [
     logger.info(
       `${chalk.yellow("OK!")} - ${chalk.red(
         req.ip
-      )}  - Депозит успешно создан!`
+      )} - Deposit PROPS: ${JSON.stringify(order)} - History PROPS: ${JSON.stringify(history)} - Title PROPS: ${JSON.stringify(titleOrder)}  - Депозит успешно создан!`
     );
         res.status(200).json({message: "Депозит успешно создан!"});
       }
