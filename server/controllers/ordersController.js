@@ -446,7 +446,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     ]);
 
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Детали заказа`
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - TITLES: ${JSON.stringify(draftTitles)}  - Детали заказа`
     );
     res.json({
       title: "Детали заказа",
@@ -566,7 +566,7 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
     logger.info(
       `${chalk.yellow("OK!")} - ${chalk.red(
         req.ip
-      )}  - Детали заказа от лица админа`
+      )} TITLES: ${JSON.stringify(titles)}  - Детали заказа от лица админа`
     );
     res.json({
       title: "Детали заказа",
@@ -664,7 +664,7 @@ exports.user_order_create_post = [
             organizationCustomerId: organizationCustomerId.id,
           });
 
-          await TitleOrders.create({
+          const title = await TitleOrders.create({
             productId: productId,
             orderId: order.id,
             accessType: accessType,
@@ -677,11 +677,11 @@ exports.user_order_create_post = [
           logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(
               req.ip
-            )}  - Товар добавлен в заказ`
+            )} - Order PROPS: ${JSON.stringify(order)} - Title PROPS: ${JSON.stringify(title)}  - Товар добавлен в заказ`
           );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder && draftOrder.titlesCount === 0) {
-          await TitleOrders.create({
+          const title = await TitleOrders.create({
             productId: productId,
             orderId: draftOrder.id,
             accessType: accessType,
@@ -693,7 +693,7 @@ exports.user_order_create_post = [
           logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(
               req.ip
-            )}  - Товар добавлен в заказ`
+            )} - Title PROPS: ${JSON.stringify(title)}  - Товар добавлен в заказ`
           );
           return res.status(200).json({ message: "Товар добавлен в заказ" });
         } else if (draftOrder.titlesCount > 0) {
@@ -724,7 +724,7 @@ exports.user_order_create_post = [
           organizationCustomerId: organizationCustomerId.id,
         });
 
-        await TitleOrders.create({
+        const title = await TitleOrders.create({
           productId: productId,
           orderId: order.id,
           accessType: accessType,
@@ -736,7 +736,7 @@ exports.user_order_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Товар добавлен в заказ`
+          )} - Order PROPS: ${JSON.stringify(order)} - Title PROPS: ${JSON.stringify(title)}   - Товар добавлен в заказ`
         );
         res.status(200).json({ message: "Товар добавлен в заказ!" });
       } else {
@@ -759,7 +759,7 @@ exports.user_order_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Товар добавлен в заказ`
+          )}  - Order PROPS: ${JSON.stringify(order)} - Title PROPS: ${JSON.stringify(title)}   - Товар добавлен в заказ`
         );
         res.status(200).json({ message: "Товар успешно добавлен в заказ!" });
       }
@@ -937,7 +937,7 @@ exports.admin_order_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Заказ успешно создан!`
+          )} - Order PROPS: ${JSON.stringify(order)} - History PROPS: ${JSON.stringify(history)} - Title PROPS: ${JSON.stringify(titlesToCreate)}   - Заказ успешно создан!`
         );
         res.status(200).json({ message: "Заказ успешно создан!" });
       }
@@ -1016,7 +1016,7 @@ exports.user_draftOrder_updateStatus_put = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Заказ успешно переведён в статус "Активный"!`
+          )}  - Order PROPS: ${JSON.stringify(order)} - History PROPS: ${JSON.stringify(history)} - Title PROPS: ${JSON.stringify(titles)}   - Заказ успешно переведён в статус "Активный"!`
         );
         res
           .status(200)
@@ -1070,7 +1070,7 @@ exports.user_receivedOrder_updateStatus_put = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Заказ успешно переведён в статус "Получен"!`
+          )} - Order PROPS: ${JSON.stringify(oldOrder)} - History PROPS: ${JSON.stringify(history)} - Заказ успешно переведён в статус "Получен"!`
         );
         res
           .status(200)

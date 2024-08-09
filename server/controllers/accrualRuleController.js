@@ -103,7 +103,7 @@ exports.accrualRule_create_post = [
       logger.info(
         `${chalk.yellow("OK!")} - ${chalk.red(
           req.ip
-        )}  - Правила начисления комиссии успешно создано!`
+        )} - AccrualRules PROPS: ${JSON.stringify(rulesToCreate)} - Правила начисления комиссии успешно создано!`
       );
         res.status(200).json({ message: "Правила начисления комиссии успешно создано!" });
       }
@@ -223,7 +223,7 @@ exports.accrualRule_update_put = [
       logger.info(
         `${chalk.yellow("OK!")} - ${chalk.red(
           req.ip
-        )}  - Правила успешно обновлены!`
+        )} - AccrualRules PROPS: ${JSON.stringify(rulesToUpdate)}  - Правила успешно обновлены!`
       );
         res.status(200).json({ message: "Правила успешно обновлены!" });
       }

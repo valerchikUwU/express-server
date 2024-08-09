@@ -123,7 +123,7 @@ exports.user_titleOrder_update_put = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )}  - Наименования успешно обновлены!`
+          )} Titles PROPS: ${JSON.stringify(titlesToUpdate)}   - Наименования успешно обновлены!`
         );
         res.status(200).json({ message: "Наименования успешно обновлены!" });
       }
@@ -392,7 +392,7 @@ exports.admin_titleOrder_update_put = [
           oldOrder.status = order.status;
           await oldOrder.save();
           logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Статус успешно изменен!`
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - Order PROPS: ${JSON.stringify(order)}  - TitlesToCreate PROPS: ${JSON.stringify(titlesToCreate)}  - TitlesToUpdate PROPS: ${JSON.stringify(titlesToUpdate)}   - Статус успешно изменен!`
           );
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
@@ -417,7 +417,7 @@ exports.admin_titleOrder_update_put = [
         await oldOrder.save();
 
         logger.info(
-          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Наименования успешно обновлены!`
+          `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - Order PROPS: ${JSON.stringify(order)}  - TitlesToCreate PROPS: ${JSON.stringify(titlesToCreate)}  - TitlesToUpdate PROPS: ${JSON.stringify(titlesToUpdate)}  - Наименования успешно обновлены!`
         );
         res.status(200).json({ message: "Наименования успешно обновлены!" });
       }
