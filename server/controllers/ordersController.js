@@ -848,13 +848,15 @@ exports.admin_order_create_post = [
   body().custom((value, { req }) => {
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
-      if (title.addBooklet === true && title.accessType !== null) {
+      console.log(`TITLE ${JSON.stringify(title)}`)
+      if (title.addBooklet === "true" && title.accessType !== null) {
         const err = new Error(
           "Буклет представлен только в виде бумажного формата!"
         );
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
+        throw err;
       }
     }
     // Возвращаем true, если условие выполнено
@@ -864,7 +866,6 @@ exports.admin_order_create_post = [
   asyncHandler(async (req, res, next) => {
     try {
       const errors = validationResult(req);
-
       const titlesToCreate = req.body.titlesToCreate;
       const order = new Order({
         organizationCustomerId: req.body.organizationCustomerId,
@@ -937,7 +938,7 @@ exports.admin_order_create_post = [
         logger.info(
           `${chalk.yellow("OK!")} - ${chalk.red(
             req.ip
-          )} - Order PROPS: ${JSON.stringify(order)} - History PROPS: ${JSON.stringify(history)} - Title PROPS: ${JSON.stringify(titlesToCreate)}   - Заказ успешно создан!`
+          )} - Order PROPS: ${JSON.stringify(order)} - History PROPS: ${JSON.stringify(history)} - Title PROPS: ${JSON.stringify(titlesToCreate)} - BODY: ${JSON.stringify(req.body.titlesToCreate)}   - Заказ успешно создан!`
         );
         res.status(200).json({ message: "Заказ успешно создан!" });
       }
