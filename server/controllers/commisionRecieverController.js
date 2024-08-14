@@ -279,7 +279,7 @@ exports.commisionReciever_balance_details = asyncHandler(
       const query9 = `
                 CREATE TEMPORARY TABLE IF NOT EXISTS combined_data (
                     orderId CHAR(36),
-                    dispatchDate DATETIME,
+                    dateOfOperation DATETIME,
                     billNumber VARCHAR(255),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );`;
