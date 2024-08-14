@@ -121,7 +121,7 @@ exports.commisionReciever_balance_details = asyncHandler(
         });
 
       commisionReceiverOperations.forEach((row) => {
-        row.formattedDateOfOperation = row.dateOfOperation
+        row.formattedDate = row.dateOfOperation
           ? dateFns.format(row.dateOfOperation, "dd.MM.yyyy")
           : null;
       });
