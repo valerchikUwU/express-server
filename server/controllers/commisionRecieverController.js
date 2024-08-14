@@ -642,9 +642,9 @@ exports.commisionReciever_balance_details = asyncHandler(
                                                   .then(async (result) => {
                                                     result.forEach((row) => {
                                                       row.formattedDate =
-                                                        row.dispatchDate
+                                                        row.dateOfOperation
                                                           ? dateFns.format(
-                                                              row.dispatchDate,
+                                                              row.dateOfOperation,
                                                               "dd.MM.yyyy"
                                                             )
                                                           : null;
