@@ -33,20 +33,292 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
       group: ["CommisionReciever.id"],
     });
 
-    logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(
-        req.ip
-      )}  - Список получателей комиссии!`
-    );
-    res.json({
-      title: "Список получателей комиссии",
-      allCommisionRecievers: allCommisionRecievers,
-    });
-  } catch (err) {
-    err.ip = req.ip;
-    logger.error(err);
-    res.status(500).json({ message: "Ой, что - то пошло не так" });
-  }
+    const transaction = await sequelize.transaction();
+      const query1 = `
+
+                CREATE TEMPORARY TABLE IF NOT EXISTS first_commission_summaries (
+                    orderId CHAR(36),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(36),
+                    organizationCustomerId CHAR(36),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                )`;
+      const query2 = `INSERT INTO first_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+                SELECT 
+                    titles.orderId,
+                    history.timestamp,
+                    history.billNumber,
+                    titles.id,
+                    history.organizationCustomerId,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+            JOIN 
+                TitleOrders titles ON A.productId = titles.productId
+            JOIN 
+                Histories history ON titles.orderId = history.orderId
+            WHERE 
+                history.orderStatus = 'Оплачен'
+                AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
+                AND A.accessType IS NOT NULL
+                AND A.generation IS NOT NULL
+                AND A.accessType = titles.accessType
+                AND A.generation = titles.generation
+            GROUP BY 
+                titles.orderId;`;
+
+      const query3 = `CREATE TEMPORARY TABLE IF NOT EXISTS second_commission_summaries (
+                    orderId CHAR(36),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(36),
+                    organizationCustomerId CHAR(36),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );`;
+
+      const query4 = `INSERT INTO second_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+                SELECT 
+                    titles.orderId,
+                    history.timestamp,
+                    history.billNumber,
+                    titles.id,
+                    history.organizationCustomerId,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    TitleOrders titles ON A.productId = titles.productId
+                JOIN 
+                    Histories history ON titles.orderId = history.orderId
+                WHERE 
+                    history.orderStatus = 'Оплачен'
+                    AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
+                    AND (A.accessType IS NULL OR A.generation IS NULL)
+                    AND (A.accessType = titles.accessType OR A.generation = titles.generation)
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                GROUP BY 
+                    titles.orderId;`;
+      const query5 = `
+                CREATE TEMPORARY TABLE IF NOT EXISTS third_commission_summaries (
+                    orderId CHAR(36),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(36),
+                    organizationCustomerId CHAR(36),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );
+                `;
+      const query6 = `INSERT INTO third_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+                SELECT 
+                    titles.orderId,
+                    history.timestamp,
+                    history.billNumber,
+                    titles.id,
+                    history.organizationCustomerId,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    TitleOrders titles ON A.productId = titles.productId
+                JOIN 
+                    Histories history ON titles.orderId = history.orderId
+                WHERE 
+                    history.orderStatus = 'Оплачен'
+                    AND A.productId IN (SELECT DISTINCT productId FROM TitleOrders)
+                    AND (A.accessType IS NULL AND A.generation IS NULL)
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM second_commission_summaries scs
+                        WHERE CAST(scs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                GROUP BY 
+                    titles.orderId;`;
+      const query7 = `CREATE TEMPORARY TABLE IF NOT EXISTS fourth_commission_summaries (
+                    orderId CHAR(36),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    titlesId CHAR(36),
+                    organizationCustomerId CHAR(36),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                )`;
+      const query8 = `
+                INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+                SELECT 
+                    titles.orderId,
+                    history.timestamp,
+                    history.billNumber,
+                    titles.id,
+                    history.organizationCustomerId,
+                    SUM(A.commision * titles.quantity) AS totalCommissionPerRule
+                FROM 
+                    AccrualRules A
+                JOIN 
+                    Products products ON A.productTypeId = products.productTypeId
+                JOIN 
+                    TitleOrders titles ON titles.productId = products.id
+                JOIN 
+                    Histories history ON titles.orderId = history.orderId
+                WHERE 
+                    history.orderStatus = 'Оплачен' 
+                    AND NOT EXISTS (
+                        SELECT * FROM first_commission_summaries fcs
+                        WHERE CAST(fcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM second_commission_summaries scs
+                        WHERE CAST(scs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                    AND NOT EXISTS (
+                        SELECT * FROM third_commission_summaries tcs
+                        WHERE CAST(tcs.titlesId AS CHAR(36)) = CAST(titles.id AS CHAR(36))
+                    )
+                GROUP BY 
+                    titles.orderId;`;
+      const query9 = `
+                CREATE TEMPORARY TABLE IF NOT EXISTS combined_data (
+                    orderId CHAR(36),
+                    dispatchDate DATETIME,
+                    billNumber VARCHAR(255),
+                    organizationCustomerId CHAR(36),
+                    totalCommissionPerRule DECIMAL(10, 2)
+                );`;
+      const query10 = `
+                INSERT INTO combined_data (orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule)
+                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM first_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM second_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM third_commission_summaries
+                UNION ALL
+                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM fourth_commission_summaries;
+                `;
+      const query11 = `
+                        SELECT 
+                        organizationCustomerId,
+                        SUM (totalCommissionPerRule) AS 'Postyplenie'
+                    FROM 
+                        combined_data
+                        GROUP BY organizationCustomerId
+                        `;
+                        try {
+                          await sequelize
+                            .query(query1, { type: Sequelize.QueryTypes.RAW })
+                            .then(async () => {
+                              await sequelize
+                                .query(query2, {
+                                  replacements: {
+                                    commisionRecieverId: req.params.commisionRecieverId,
+                                  },
+                                  type: Sequelize.QueryTypes.RAW,
+                                })
+                                .then(async () => {
+                                  await sequelize
+                                    .query(query3, { type: Sequelize.QueryTypes.RAW })
+                                    .then(async () => {
+                                      await sequelize
+                                        .query(query4, {
+                                          replacements: {
+                                            commisionRecieverId: req.params.commisionRecieverId,
+                                          },
+                                          type: Sequelize.QueryTypes.RAW,
+                                        })
+                                        .then(async () => {
+                                          await sequelize
+                                            .query(query5, { type: Sequelize.QueryTypes.RAW })
+                                            .then(async () => {
+                                              await sequelize
+                                                .query(query6, {
+                                                  replacements: {
+                                                    commisionRecieverId:
+                                                      req.params.commisionRecieverId,
+                                                  },
+                                                  type: Sequelize.QueryTypes.RAW,
+                                                })
+                                                .then(async () => {
+                                                  await sequelize
+                                                    .query(query7, {
+                                                      type: Sequelize.QueryTypes.RAW,
+                                                    })
+                                                    .then(async () => {
+                                                      await sequelize
+                                                        .query(query8, {
+                                                          replacements: {
+                                                            commisionRecieverId:
+                                                              req.params.commisionRecieverId,
+                                                          },
+                                                          type: Sequelize.QueryTypes.RAW,
+                                                        })
+                                                        .then(async () => {
+                                                          await sequelize
+                                                            .query(query9, {
+                                                              type: Sequelize.QueryTypes.RAW,
+                                                            })
+                                                            .then(async () => {
+                                                              await sequelize
+                                                                .query(query10, {
+                                                                  type: Sequelize.QueryTypes.RAW,
+                                                                })
+                                                                .then(async () => {
+                                                                  await sequelize
+                                                                    .query(query11, {
+                                                                      type: Sequelize.QueryTypes
+                                                                        .SELECT,
+                                                                    })
+                                                                    .then(async (result) => {
+                                                                      
+                  
+                                                                      await sequelize.query(`DROP TABLE IF EXISTS first_commission_summaries`);
+                                                                      await sequelize.query(`DROP TABLE IF EXISTS second_commission_summaries`);
+                                                                      await sequelize.query(`DROP TABLE IF EXISTS third_commission_summaries`);
+                                                                      await sequelize.query(`DROP TABLE IF EXISTS fourth_commission_summaries`);
+                                                                      await sequelize.query(`DROP TABLE IF EXISTS combined_data`);
+                                                                      await transaction.commit();
+                                                                      logger.info(
+                                                                        `${chalk.yellow("OK!")} - ${chalk.red(
+                                                                          req.ip
+                                                                        )}  - Список получателей комиссии!`
+                                                                      );
+                                                                      res.json({
+                                                                        title: "Список получателей комиссии",
+                                                                        allCommisionRecievers: allCommisionRecievers,
+                                                                        commisionSum: result
+                                                                      });
+                                                                    });
+                                                                });
+                                                            });
+                                                        });
+                                                    });
+                                                });
+                                            });
+                                        });
+                                    });
+                                });
+                            });
+                        } catch (err) {
+                          err.ip = req.ip;
+                          logger.error(err);
+                          res.status(500).json({ message: "Ой, что - то пошло не так" });
+                          await transaction.rollback();
+                        }
+                      } catch (err) {
+                        err.ip = req.ip;
+                        logger.error(err);
+                  
+                        if (err.status === 404) {
+                          res.status(404).json({ message: err.message });
+                        }
+                        res.status(500).json({ message: "Ой, что - то пошло не так" });
+                      }
+                        
+    
+  
 });
 
 exports.commisionReciever_rules_details = asyncHandler(
