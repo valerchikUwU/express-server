@@ -114,11 +114,11 @@ exports.account_organization_create_post = [
     .escape(),
   // .matches(/^[а-яА-ЯёЁ\s]+$/, 'ru-RU')
   // .withMessage('Фамилия может содержать только русские буквы и пробелы'),
-  body("telephoneNumber", "Номер телефона должен быть указан!")
+  body("telephoneNumber", "Некорректный номер телефона!")
     .trim()
     .isLength({ min: 10 })
-    .escape(),
-  // .matches(/^\+7\d{10}$/, 'ru-RU')
+    .escape()
+    .matches(/^\+7\d{10}$/),
   // .withMessage('Номер телефона должен начинаться с +7 и содержать 10 цифр'),
   body("organizationList.*").escape(),
 

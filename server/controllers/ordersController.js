@@ -848,7 +848,6 @@ exports.admin_order_create_post = [
   body().custom((value, { req }) => {
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
-      console.log(`TITLE ${JSON.stringify(title)}`)
       if (title.addBooklet === "true" && title.accessType !== null) {
         const err = new Error(
           "Буклет представлен только в виде бумажного формата!"
