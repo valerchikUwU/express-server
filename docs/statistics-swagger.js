@@ -24,7 +24,7 @@
  *                    title:
  *                      type: string
  *                      example: Статистика продаж
- *                    order:
+ *                    orders:
  *                      type: array
  *                      items:
  *                        type: object
