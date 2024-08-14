@@ -16,30 +16,108 @@
  *          description: ID пользователя
  *      responses:
  *        200:
+ *          description: Все получатели комиссии
  *          content:
  *            application/json:
  *              schema:
- *                title: "Список получателей комиссии"
- *                type: array
- *                items:
- *                  type: object
- *                  properties:
- *                      id:
- *                        type: string
- *                        format: uuid
- *                        description: Уникальный идентификатор получателя комиссии
- *                        example: 8800e557-6247-4f12-a9d8-534d59c09318
- *                      name:
- *                        type: string
- *                        nullable: false
- *                        description: Название получателя комиссии
- *                        example: OOO Gavnoedka
- *                      rulesQuantity:
+ *                type: object
+ *                properties:
+ *                  title:
+ *                    type: string
+ *                    description: Заголовок запроса
+ *                    example: "Список получателей комиссии"
+ *                  allCommisionRecievers:
+ *                    type: array
+ *                    description: Список всех получателей комиссии
+ *                    items:
+ *                      type: object
+ *                      properties:
+ *                        id:
+ *                          type: string
+ *                          description: Уникальный идентификатор получателя
+ *                          example: "14b5c41e-0f61-4526-a5e9-4cb718260b2d"
+ *                        name:
+ *                          type: string
+ *                          description: Название получателя
+ *                          example: "Максик"
+ *                        createdAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата создания правила
+ *                          example: "2024-06-04T15:48:19.000Z"
+ *                        updatedAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата последнего обновления правила
+ *                          example: "2024-06-04T15:48:19.000Z"
+ *                        rulesQuantity:
  *                          type: integer
- *                          nullable: false
- *                          description: Кол-во правил для получателя
- *                          example: 5
- *                          
+ *                          nullable: true
+ *                          description: количество правил для получателя
+ *                          example: 4
+ *                  commisionReceiverOperations:
+ *                    type: array
+ *                    description: Все списания по получателям комиссии
+ *                    items:
+ *                      type: object
+ *                      properties:
+ *                        id:
+ *                          type: string
+ *                          description: Уникальный идентификатор списания
+ *                          example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
+ *                        dateOfOperation:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата списания
+ *                          example: "2024-08-14T10:38:10.000Z"
+ *                        Postyplenie:
+ *                          type: string
+ *                          description: Всегда null (не реализована для поступления)
+ *                          example: null
+ *                        Spisanie:
+ *                          type: string
+ *                          description: Сумма списания по операции
+ *                          example: "12345678"
+ *                        billNumber:
+ *                          type: string
+ *                          nullable: true
+ *                          description: Номер счета операции
+ *                          example: "34567"
+ *                        createdAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата создания правила
+ *                          example: "2024-06-04T15:48:19.000Z"
+ *                        updatedAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата последнего обновления правила
+ *                          example: "2024-06-04T15:48:19.000Z"
+ *                        commisionRecieverId:
+ *                          type: string
+ *                          format: date-time
+ *                          description: ID получателя комиссии
+ *                          example: "14b5c41e-0f61-4526-a5e9-4cb718260b2d"
+ *                        allSpisanie:
+ *                          type: string
+ *                          description: Сумма всех списаний по данному получателю
+ *                          example: "12345683"
+ *                  commisionSum:
+ *                    type: array
+ *                    description: Все поступления по получателям комиссии
+ *                    items:
+ *                      type: object
+ *                      properties:
+ *                        commisionRecieverId:
+ *                          type: string
+ *                          format: date-time
+ *                          description: ID получателя комиссии
+ *                          example: "14b5c41e-0f61-4526-a5e9-4cb718260b2d"
+ *                        Postyplenie:
+ *                          type: string
+ *                          description: Сумма всех поступлений по данному получателю
+ *                          example: "176.00"
+ *                            
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
  *
@@ -338,7 +416,7 @@
  *                        type: string
  *                        description: Уникальный идентификатор заказа по которому идет начисление комиссии
  *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
- *                      dispatchDate:
+ *                      dateOfOperation:
  *                        type: string
  *                        format: date-time
  *                        description: Дата отправки заказа
