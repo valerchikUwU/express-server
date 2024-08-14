@@ -33,6 +33,22 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
       group: ["CommisionReciever.id"],
     });
 
+
+const commisionReceiverOperations = await CommisionRecieverOperations.findAll({
+  attributes: {
+    include: [
+      [
+        Sequelize.literal(
+          `SUM(Spisanie)`
+        ),
+        "allSpisanie",
+      ]
+    ],
+  },
+  group: ['commisionRecieverId'],
+});
+
+
     const transaction = await sequelize.transaction();
       const query1 = `
 
@@ -41,16 +57,16 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
                     titlesId CHAR(36),
-                    organizationCustomerId CHAR(36),
+                    commisionRecieverId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 )`;
-      const query2 = `INSERT INTO first_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+      const query2 = `INSERT INTO first_commission_summaries (orderId, dispatchDate, billNumber, titlesId, commisionRecieverId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
                     history.timestamp,
                     history.billNumber,
                     titles.id,
-                    history.organizationCustomerId,
+                    A.commisionRecieverId,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -73,17 +89,17 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
                     titlesId CHAR(36),
-                    organizationCustomerId CHAR(36),
+                    commisionRecieverId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );`;
 
-      const query4 = `INSERT INTO second_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+      const query4 = `INSERT INTO second_commission_summaries (orderId, dispatchDate, billNumber, titlesId, commisionRecieverId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
                     history.timestamp,
                     history.billNumber,
                     titles.id,
-                    history.organizationCustomerId,
+                    A.commisionRecieverId,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -108,17 +124,17 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
                     titlesId CHAR(36),
-                    organizationCustomerId CHAR(36),
+                    commisionRecieverId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );
                 `;
-      const query6 = `INSERT INTO third_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+      const query6 = `INSERT INTO third_commission_summaries (orderId, dispatchDate, billNumber, titlesId, commisionRecieverId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
                     history.timestamp,
                     history.billNumber,
                     titles.id,
-                    history.organizationCustomerId,
+                    A.commisionRecieverId,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -145,17 +161,17 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
                     titlesId CHAR(36),
-                    organizationCustomerId CHAR(36),
+                    commisionRecieverId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 )`;
       const query8 = `
-                INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, organizationCustomerId, totalCommissionPerRule)
+                INSERT INTO fourth_commission_summaries (orderId, dispatchDate, billNumber, titlesId, commisionRecieverId, totalCommissionPerRule)
                 SELECT 
                     titles.orderId,
                     history.timestamp,
                     history.billNumber,
                     titles.id,
-                    history.organizationCustomerId,
+                    A.commisionRecieverId,
                     SUM(A.commision * titles.quantity) AS totalCommissionPerRule
                 FROM 
                     AccrualRules A
@@ -186,26 +202,26 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                     orderId CHAR(36),
                     dispatchDate DATETIME,
                     billNumber VARCHAR(255),
-                    organizationCustomerId CHAR(36),
+                    commisionRecieverId CHAR(36),
                     totalCommissionPerRule DECIMAL(10, 2)
                 );`;
       const query10 = `
-                INSERT INTO combined_data (orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule)
-                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM first_commission_summaries
+                INSERT INTO combined_data (orderId, dispatchDate, billNumber, commisionRecieverId, totalCommissionPerRule)
+                SELECT orderId, dispatchDate, billNumber, commisionRecieverId, totalCommissionPerRule FROM first_commission_summaries
                 UNION ALL
-                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM second_commission_summaries
+                SELECT orderId, dispatchDate, billNumber, commisionRecieverId, totalCommissionPerRule FROM second_commission_summaries
                 UNION ALL
-                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM third_commission_summaries
+                SELECT orderId, dispatchDate, billNumber, commisionRecieverId, totalCommissionPerRule FROM third_commission_summaries
                 UNION ALL
-                SELECT orderId, dispatchDate, billNumber, organizationCustomerId, totalCommissionPerRule FROM fourth_commission_summaries;
+                SELECT orderId, dispatchDate, billNumber, commisionRecieverId, totalCommissionPerRule FROM fourth_commission_summaries;
                 `;
       const query11 = `
                         SELECT 
-                        organizationCustomerId,
+                        commisionRecieverId,
                         SUM (totalCommissionPerRule) AS 'Postyplenie'
                     FROM 
                         combined_data
-                        GROUP BY organizationCustomerId
+                        GROUP BY commisionRecieverId
                         `;
                         try {
                           await sequelize
@@ -288,6 +304,7 @@ exports.commisionReciever_list = asyncHandler(async (req, res, next) => {
                                                                       res.json({
                                                                         title: "Список получателей комиссии",
                                                                         allCommisionRecievers: allCommisionRecievers,
+                                                                        commisionReceiverOperations: commisionReceiverOperations,
                                                                         commisionSum: result
                                                                       });
                                                                     });
