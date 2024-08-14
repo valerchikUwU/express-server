@@ -284,7 +284,7 @@ exports.commisionReciever_balance_details = asyncHandler(
                     totalCommissionPerRule DECIMAL(10, 2)
                 );`;
       const query10 = `
-                INSERT INTO combined_data (orderId, dispatchDate, billNumber, totalCommissionPerRule)
+                INSERT INTO combined_data (orderId, dateOfOperation, billNumber, totalCommissionPerRule)
                 SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM first_commission_summaries
                 UNION ALL
                 SELECT orderId, dispatchDate, billNumber, totalCommissionPerRule FROM second_commission_summaries
@@ -296,7 +296,7 @@ exports.commisionReciever_balance_details = asyncHandler(
       const query11 = `
                         SELECT 
                         DISTINCT (orderId),
-                        dispatchDate,
+                        dateOfOperation,
                         billNumber,
                         totalCommissionPerRule AS 'Postyplenie'
                     FROM 
