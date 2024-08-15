@@ -15,10 +15,11 @@ const dateFns = require("date-fns");
 const { logger } = require("../../configuration/loggerConf");
 const History = require("../../models/history.js");
 const chalk = require("chalk");
+const CommisionRecieverOperations = require("../../models/commisionRecieverOperations.js");
 
 exports.review_list = asyncHandler(async (req, res, next) => {
     try {
-        const [allPostyplenie, allOrders, allProducts, allCommisionRecievers] = await Promise.all([
+        const [allPostyplenie, allOrganizations, allCommisionRecievers] = await Promise.all([
             History.findAll({
                 where: {
                     orderStatus: "Оплачен",
@@ -73,8 +74,7 @@ exports.review_list = asyncHandler(async (req, res, next) => {
                 },
                 raw: true,
             }),
-            Order.findAll(),
-            Product.findAll(),
+            OrganizationCustomer.findAll(),
             CommisionReciever.findAll()
         ]
         )
@@ -94,8 +94,7 @@ exports.review_list = asyncHandler(async (req, res, next) => {
         res.json({
             title: "Все отчеты",
             allPostyplenie: allPostyplenie,
-            allOrders: allOrders,
-            allProducts: allProducts,
+            allOrganizations: allOrganizations,
             allCommisionRecievers: allCommisionRecievers
         });
     } catch (err) {
@@ -104,6 +103,139 @@ exports.review_list = asyncHandler(async (req, res, next) => {
     }
 });
 
+
+exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
+    try {
+        const [allOrders, allProducts] = await Promise.all([
+            History.findAll({
+            where: { organizationCustomerId: req.params.organizationCustomerId },
+            group: ["timestamp"],
+            include: [
+                {
+                    model: Order,
+                    include: [
+                        {
+                            model: TitleOrders, // Добавляем модель TitleOrders
+                            include: [
+                                {
+                                    model: PriceDefinition,
+                                    as: "price",
+                                    attributes: ["priceAccess", "priceBooklet"],
+                                },
+                                {
+                                    model: Product,
+                                    attributes: ["id", "name", "abbreviation", "productTypeId"],
+                                    as: "product",
+                                },
+                            ],
+                            attributes: ["addBooklet", "quantity"],
+                        },
+                    ],
+                    as: "order",
+                },
+            ],
+            attributes: {
+                include: [
+                    [
+                        Sequelize.literal(
+                            `SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`
+                        ),
+                        "SUM",
+                    ],
+                    [
+                        Sequelize.literal(
+                            `SUM(CASE WHEN productTypeId <> 4 THEN (quantity*1) END)`
+                        ),
+                        "totalQuantity",
+                    ],
+                ],
+            },
+        }),
+        Product.findAll({
+            include: [
+                {
+                    model: TitleOrders,
+                    include: [
+                        {
+                            model: Order,
+                            attributes: [],
+                        },
+                        {
+                            model: PriceDefinition,
+                            as: "price",
+                            attributes: [],
+                        },
+                    ],
+                    as: 'titles'
+                },
+            ],
+        })
+        ])
+
+
+
+
+        logger.info(
+            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все отчеты по организации!`
+        );
+        res.json({
+            title: "Все отчеты по конкретной организации",
+            allOrders: allOrders,
+            allProducts: allProducts
+        });
+    }
+    catch (err) {
+        logger.error(err);
+        res.status(500).json({ message: 'Ой, что - то пошло не так!' })
+    }
+})
+
+
+
+
+
+
+exports.review_commisionRecieverInfo_get = asyncHandler(async (req, res, next) => {
+    try {
+        const commisionReceiver = await CommisionReciever.findByPk(
+          req.params.commisionRecieverId
+        );
+        const commisionReceiverOperations =
+          await CommisionRecieverOperations.findAll({
+            where: { commisionRecieverId: req.params.commisionRecieverId },
+            raw: true,
+          });
+  
+        commisionReceiverOperations.forEach((row) => {
+          row.formattedDate = row.dateOfOperation
+            ? dateFns.format(row.dateOfOperation, "dd.MM.yyyy")
+            : null;
+        });
+  
+        if (commisionReceiver === null) {
+          // No results.
+          const err = new Error("Получатель комиссии не найден!");
+          err.status = 404;
+          return next(err);
+        }
+        res.json({
+          title: `Баланс получателя комиссии ${commisionReceiver.name}`,
+          commisionReceiver:
+            commisionReceiver,
+          operations:
+            commisionReceiverOperations
+        });
+  
+      } catch (err) {
+        err.ip = req.ip;
+        logger.error(err);
+  
+        if (err.status === 404) {
+          res.status(404).json({ message: err.message });
+        }
+        res.status(500).json({ message: "Ой, что - то пошло не так" });
+      }
+});
 
 
 // exports.review_create_get = asyncHandler(async (req, res, next) => {

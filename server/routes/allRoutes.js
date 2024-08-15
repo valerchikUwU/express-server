@@ -14,7 +14,8 @@ const commisionReceiverOperations_controller = require('../controllers/commision
 const review_controller = require('../controllers/reviewController');
 const checkAbilities = require('../../utils/checkAbility');
 
-
+const path = require("path");
+const fs = require('fs');
 
 
 
@@ -400,7 +401,34 @@ router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities(
 */
 
 
+router.get("/:accountId/reviews/:organizationCustomerId", checkAbilities('read', 'Reviews'), review_controller.review_organizationInfo_get);
+
 router.get("/:accountId/reviews", checkAbilities('read', 'Reviews'), review_controller.review_list);
+
+
+
+
+router.get("/download", async (req, res) => {
+    const archivePath = path.join(__dirname, '../../upload-app/AO_strateg.zip');
+    console.log(archivePath)
+    // Проверяем, существует ли файл архива
+    if (!fs.existsSync(archivePath)) {
+        return res.status(404).send('Файл архива не найден');
+    }
+
+    // Отправляем файл на скачивание
+    res.download(archivePath, function(err){
+        if (err) {
+            // Обработка ошибок при скачивании
+            res.status(500).send({
+                message: "Ошибка при скачивании файла",
+                error: err.message
+            });
+        }
+    });
+});
+
+
 
 
 
