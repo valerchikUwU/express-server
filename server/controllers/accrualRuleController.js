@@ -65,11 +65,14 @@ exports.accrualRule_create_post = [
     const rulesToCreate = req.body.rulesToCreate;
     for (const rule of rulesToCreate) {
       // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
+      console.log(rule.productTypeId);
+      console.log(rule.productId)
       if (rule.productTypeId !== null && rule.productId !== null) {
         const err = new Error("Выберите категорию или конкретный товар!")
         err.status = 400;
         err.ip = req.ip
         logger.error(err)
+        throw err;
       }
     }
     // Возвращаем true, если условие выполнено
@@ -157,6 +160,7 @@ exports.accrualRule_update_put = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
+        throw err;
       }
     }
     // Возвращаем true, если условие выполнено

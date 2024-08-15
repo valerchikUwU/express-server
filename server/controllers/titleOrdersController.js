@@ -10,6 +10,10 @@ const { webPush } = require("../../utils/webPush");
 const { logger } = require("../../configuration/loggerConf");
 const History = require("../../models/history.js")
 const chalk = require("chalk");
+const AccrualRule = require("../../models/accrualRule.js");
+const CommisionRecieverOperations = require("../../models/commisionRecieverOperations.js");
+const { access } = require("fs");
+const Product = require("../../models/product.js");
 
 exports.user_titleOrder_update_put = [
   // Validate and sanitize fields.
@@ -40,8 +44,8 @@ exports.user_titleOrder_update_put = [
     const titlesToUpdate = req.body.titlesToUpdate;
     for (const title of titlesToUpdate) {
       // Проверяем, что если addBooklet равен 1, то accessType не может быть ни 'Бумажный', ни 'Электронный'
-      if (title.addBooklet === false && title.accessType === undefined) {
-        const err = new Error("Выберите тип доступа!");
+      if (title.addBooklet === "true" && title.accessType !== null) {
+        const err = new Error("Буклет представлен только в виде бумажного формата!");
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
@@ -227,7 +231,7 @@ exports.admin_titleOrder_update_put = [
     const titlesToUpdate = req.body.titlesToUpdate;
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
-      if (title.addBooklet === 1 && title.accessType !== null) {
+      if (title.addBooklet === "true" && title.accessType !== null) {
         const err = new Error(
           "Буклет представлен только в виде бумажного формата!"
         );
@@ -254,6 +258,7 @@ exports.admin_titleOrder_update_put = [
   asyncHandler(async (req, res, next) => {
     try {
       const errors = validationResult(req);
+
 
       const titlesToUpdate = req.body.titlesToUpdate;
       const titlesToCreate = req.body.titlesToCreate;
@@ -284,6 +289,7 @@ exports.admin_titleOrder_update_put = [
         });
         return;
       } else {
+
         const oldOrder = await Order.findByPk(req.params.orderId);
         if (order.status !== null && oldOrder.status !== order.status) {
           webPush(
@@ -374,8 +380,136 @@ exports.admin_titleOrder_update_put = [
               });
             }
           }
+          if (order.status === "Оплачен") {
+            const titleOrders = await TitleOrders.findAll({ where: { orderId: oldOrder.id } });
+
+            const productIds = titleOrders.map(titleOrder => titleOrder.productId);
+
+            console.log(`PRODUCT IDS: ${productIds}`);
+
+            const accrualRulesFirst = await AccrualRule.findAll({
+              where: {
+                productId: {
+                  [Op.in]: productIds
+                },
+                [Op.and]: [
+                  { accessType: { [Op.ne]: null } }, // Не равно null
+                  { generation: { [Op.ne]: null } }   // Не равно null
+                ]
+              }
+            });
+
+            console.log(`AC1 ${JSON.stringify(accrualRulesFirst)}`);
+
+            const accrualRulesSecond = await AccrualRule.findAll({
+              where: {
+                productId: {
+                  [Op.in]: productIds
+                },
+                [Op.or]: [
+                  { accessType: { [Op.eq]: null } }, // Равно null
+                  { generation: { [Op.eq]: null } }   // Равно null
+                ]
+              }
+            });
+            console.log(`AC2 ${JSON.stringify(accrualRulesSecond)}`);
+            const accrualRulesThird = await AccrualRule.findAll({
+              where: {
+                productId: {
+                  [Op.in]: productIds
+                },
+                [Op.and]: [
+                  { accessType: { [Op.eq]: null } },
+                  { generation: { [Op.eq]: null } }
+                ]
+              }
+            });
+            console.log(`AC3 ${JSON.stringify(accrualRulesThird)}`);
+            const accrualRulesFourth = await AccrualRule.findAll({
+              where: {
+                productId: {
+                  [Op.eq]: null
+                }
+              }
+            })
+            console.log(`AC4 ${JSON.stringify(accrualRulesFourth)}`);
+
+            let operationBillNumber = oldOrder.billNumber;
+            if (order.billNumber !== null) {
+              operationBillNumber = order.billNumber
+            }
+            console.log(`BILL ${operationBillNumber}`);
+
+            for (const title of titleOrders) {
+              let flag = false;
+              for (const rule of accrualRulesFirst) {
+                console.log(`AC1 ${JSON.stringify(rule)}`);
+                if (title.productId === rule.productId && title.accessType === rule.accessType && title.generation === rule.generation) {
+                  const decimalCommision = Number(rule.commision) * title.quantity;
+                  const operation = await CommisionRecieverOperations.create({
+                    billNumber: operationBillNumber,
+                    Postyplenie: decimalCommision,
+                    dateOfOperation: new Date(),
+                    commisionRecieverId: rule.commisionRecieverId,
+                    Spisanie: null
+                  });
+                  console.log(`OPERATION ${JSON.stringify(operation)}`)
+                  flag = true;
+                }
+              }
+
+              if (flag === true) continue;
+
+              for (const rule of accrualRulesSecond) {
+                console.log(`AC2 ${JSON.stringify(rule)}`);
+                if (title.productId === rule.productId && (title.accessType === rule.accessType || title.generation === rule.generation)) {
+                  const decimalCommision = Number(rule.commision) * title.quantity;
+                  await CommisionRecieverOperations.create({
+                    billNumber: operationBillNumber,
+                    Postyplenie: decimalCommision,
+                    dateOfOperation: new Date(),
+                    commisionRecieverId: rule.commisionRecieverId,
+                    Spisanie: null
+                  });
+                  flag = true;
+                }
+              }
+              if (flag === true) continue;
+
+
+              for (const rule of accrualRulesThird) {
+                console.log(`AC3 ${JSON.stringify(rule)}`);
+                if (title.productId === rule.productId) {
+                  const decimalCommision = Number(rule.commision) * title.quantity;
+                  await CommisionRecieverOperations.create({
+                    billNumber: operationBillNumber,
+                    Postyplenie: decimalCommision,
+                    dateOfOperation: new Date(),
+                    commisionRecieverId: rule.commisionRecieverId,
+                    Spisanie: null
+                  });
+                  flag = true;
+                }
+              }
+              if (flag === true) continue;
+
+              for (const rule of accrualRulesFourth) {
+                console.log(`AC4 ${JSON.stringify(rule)}`);
+                const product = await Product.findByPk(title.productId)
+                if (product.productTypeId === rule.productTypeId) {
+                  const decimalCommision = Number(rule.commision) * title.quantity;
+                  await CommisionRecieverOperations.create({
+                    billNumber: operationBillNumber,
+                    Postyplenie: decimalCommision,
+                    dateOfOperation: new Date(),
+                    commisionRecieverId: rule.commisionRecieverId,
+                    Spisanie: null
+                  });
+                }
+              }
+            }
+          }
         } else {
-          
           if (oldOrder.status !== order.status) {
             oldOrder.dispatchDate = new Date();
             const history = new History({

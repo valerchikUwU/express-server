@@ -18,7 +18,7 @@ const chalk = require("chalk");
 
 exports.review_list = asyncHandler(async (req, res, next) => {
     try {
-        const [allPostyplenie, allReviews] = await Promise.all([
+        const [allPostyplenie, allOrders, allProducts, allCommisionRecievers] = await Promise.all([
             History.findAll({
                 where: {
                     orderStatus: "Оплачен",
@@ -73,187 +73,11 @@ exports.review_list = asyncHandler(async (req, res, next) => {
                 },
                 raw: true,
             }),
-            await Review.findAll({
-                include:
-                [
-                    {
-                        model: OrganizationCustomer,
-                        as: 'organizationCustomer',
-                        attributes: [],   
-                        required:false
-                    },
-                    {
-                        model: CommisionReciever,
-                        as: 'commisionReciever',
-                        attributes: [],   
-                        required:false
-                    },
-                    {
-                        model: Product,
-                        as: 'product',
-                        attributes: [],   
-                        required:false
-                    },
-                    {
-                        model: ProductType,
-                        as: 'productType',
-                        attributes: [],   
-                        required:false
-                    },
-                    {
-                        model: Payee,
-                        as: 'payee',
-                        attributes: [],   
-                        required:false
-                    }
-                ]
-            }),
-        ]);
-        allReviews.forEach(async (review) => {
-            if(review.dataType === 'Заказы'){
-                const historyOrders = await History.findAll({
-                    where: {
-                        orderStatus: review.orderReviewStatus,
-
-                    },
-                    include: [
-                        {
-                            model: OrganizationCustomer,
-                            where: {
-                                id: review.organizationCustomerId
-                            },
-                            include: [
-                                {
-                                    model: Order,
-                                    include: [
-                                        {
-                                            model: Payee,
-                                            as: 'payee',
-                                            attributes: [],
-                                        },
-                                        {
-                                            model: TitleOrders,
-                                            include: [
-                                              {
-                                                model: PriceDefinition,
-                                                as: "price",
-                                                attributes: []
-                                              },
-                                              {
-                                                model: Product,
-                                                where: {
-                                                    productTypeId: {
-                                                        [Op.ne]: 4
-                                                    }
-                                                },
-                                                as: "product",
-                                                attributes: []
-                                              },
-                                            ],
-                                            attributes: []
-                                          }
-                                    ],
-                                    attributes: [],
-                                    as: 'orders'
-                                }
-                            ],
-                            as: 'organizationCustomer',
-                            attributes: [],
-                        }
-                    ],
-                    attributes:{
-                        include:
-                        [
-                            [
-                                Sequelize.literal(
-                                    `(SUM(CASE WHEN  addBooklet = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE  THEN quantity * priceAccess  END))`
-                                  ),
-                                  "sumOfOrders", 
-                            ],
-                            [
-                                Sequelize.literal(
-                                    `COUNT (*)`
-                                  ),
-                                  "quantityOfOrders", 
-                            ]
-                        ]
-                    },
-                    raw: true,
-                    group: ["History.id"]
-                }) 
-                console.log(historyOrders)
-            }
-            else if(review.dataType === 'Товары'){
-                const historyProducts = await History.findAll({
-                    where: {
-                        orderStatus: review.orderReviewStatus,
-
-                    },
-                    include: [
-                        {
-                            model: OrganizationCustomer,
-                            include: [
-                                {
-                                    model: Order,
-                                    include: [
-                                        {
-                                            model: Payee,
-                                            as: 'payee',
-                                            attributes: [],
-                                        },
-                                        {
-                                            model: TitleOrders,
-                                            include: [
-                                              {
-                                                model: PriceDefinition,
-                                                attributes: [],
-                                                as: "price",
-                                              },
-                                              {
-                                                model: Product,
-                                                where: {
-                                                    [Op.or]: [
-                                                        {id: review.productId},
-                                                        {productTypeId: review.productTypeId}
-                                                    ]
-                                                },
-                                                attributes: [],
-                                                as: "product",
-                                              },
-                                            ],
-                                            attributes: [],
-                                          }
-                                    ],
-                                    attributes: []
-                                }
-                            ],
-                            as: 'organizationCustomer',
-                            attributes: [],
-                        }
-                    ],
-                    attributes:{
-                        include:
-                        [
-                            [
-                                Sequelize.literal(
-                                    `(SUM(CASE WHEN  addBooklet = TRUE THEN quantity * priceBooklet WHEN addBooklet = FALSE  THEN quantity * priceAccess  END))`
-                                  ),
-                                  "sumOfProds", 
-                            ],
-                            [
-                                Sequelize.literal(
-                                    `SUM (quantity)`
-                                  ),
-                                  "quantityOfProds", 
-                            ]
-                        ]
-                    }
-                }) 
-            }
-            else {
-
-            }
-        })
+            Order.findAll(),
+            Product.findAll(),
+            CommisionReciever.findAll()
+        ]
+        )
 
 
 
@@ -263,115 +87,119 @@ exports.review_list = asyncHandler(async (req, res, next) => {
                 : null;
         });
 
-        
+
         logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Все отчеты!`
-          );
+        );
         res.json({
             title: "Все отчеты",
             allPostyplenie: allPostyplenie,
-            allReviews: allReviews,
+            allOrders: allOrders,
+            allProducts: allProducts,
+            allCommisionRecievers: allCommisionRecievers
         });
     } catch (err) {
         logger.error(err);
-        res.status(500).json({message: 'Ой, что - то пошло не так!'})
+        res.status(500).json({ message: 'Ой, что - то пошло не так!' })
     }
 });
 
-exports.review_create_get = asyncHandler(async (req, res, next) => {
-    try{
-        const [
-            allOrganizations,
-            allProducts,
-            allProductTypes,
-            allPayees,
-            allCommisionRecievers,
-        ] = await Promise.all([
-            OrganizationCustomer.findAll(),
-            Product.findAll(),
-            ProductType.findAll(),
-            Payee.findAll(),
-            CommisionReciever.findAll(),
-        ]);
-        logger.info(
-            `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Форма создания отчета!`
-          );
-        res.json({
-            title: "Форма создания отчета",
-            allOrganizations: allOrganizations,
-            allProducts: allProducts,
-            allProductTypes: allProductTypes,
-            allPayees: allPayees,
-            allCommisionRecievers: allCommisionRecievers,
-        });
-    }
-    catch(err){
-        logger.error(err);
-        res.status(500).json({message: 'Ой, что - то пошло не так!'})
-    }
-    
-});
 
-exports.review_create_post = [
-    body("name", "Название должно быть указано")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("dataType", "dataType должен быть указан")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("organizationCustomerId", "organizationCustomerId должен быть указан")
-        .escape(),
-    body("orderReviewStatus", "Статус должен быть указан")
-        .trim()
-        .isLength({ min: 1 })
-        .escape(),
-    body("payeeId")
-        .optional({ nullable: true })
-        .escape(),
-    body("productTypeId")
-        .optional({ nullable: true })
-        .escape(),
-    body("productId")
-        .optional({ nullable: true })
-        .escape(),
-    body("commisionRecieverId")
-        .optional({ nullable: true })
-        .escape(),
 
-    asyncHandler(async (req, res, next) => {
-        try{
-            const errors = validationResult(req);
-            const review = new Review({
-                name: req.body.name,
-                dataType: req.body.dataType,
-                organizationCustomerId: req.body.organizationCustomerId,
-                orderReviewStatus: req.body.orderReviewStatus,
-                payeeId: req.body.payeeId,
-                productTypeId: req.body.productTypeId,
-                productId: req.body.productId,
-                commisionRecieverId: req.body.commisionRecieverId
-            })
-            if (!errors.isEmpty()) {
-                logger.error(errors.array());
-                res.json({
-                    title: "Некорректная форма создания отчета!",
-                    review: review,
-                    errors: errors.array(),
-                });
-            } else {
-                await review.save();
-                logger.info(
-                    `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Отчет успешно создан!`
-                  );
-                res.status(200).send("Отчет успешно создан!");
-            }
-        }
-        catch(err){
-            logger.error(err);
-            res.status(500).json({message: 'Ой, что - то пошло не так!'})
-        }
-        
-    }),
-];
+// exports.review_create_get = asyncHandler(async (req, res, next) => {
+//     try {
+//         const [
+//             allOrganizations,
+//             allProducts,
+//             allProductTypes,
+//             allPayees,
+//             allCommisionRecievers,
+//         ] = await Promise.all([
+//             OrganizationCustomer.findAll(),
+//             Product.findAll(),
+//             ProductType.findAll(),
+//             Payee.findAll(),
+//             CommisionReciever.findAll(),
+//         ]);
+//         logger.info(
+//             `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Форма создания отчета!`
+//         );
+//         res.json({
+//             title: "Форма создания отчета",
+//             allOrganizations: allOrganizations,
+//             allProducts: allProducts,
+//             allProductTypes: allProductTypes,
+//             allPayees: allPayees,
+//             allCommisionRecievers: allCommisionRecievers,
+//         });
+//     }
+//     catch (err) {
+//         logger.error(err);
+//         res.status(500).json({ message: 'Ой, что - то пошло не так!' })
+//     }
+
+// });
+
+// exports.review_create_post = [
+//     body("name", "Название должно быть указано")
+//         .trim()
+//         .isLength({ min: 1 })
+//         .escape(),
+//     body("dataType", "dataType должен быть указан")
+//         .trim()
+//         .isLength({ min: 1 })
+//         .escape(),
+//     body("organizationCustomerId", "organizationCustomerId должен быть указан")
+//         .escape(),
+//     body("orderReviewStatus", "Статус должен быть указан")
+//         .trim()
+//         .isLength({ min: 1 })
+//         .escape(),
+//     body("payeeId")
+//         .optional({ nullable: true })
+//         .escape(),
+//     body("productTypeId")
+//         .optional({ nullable: true })
+//         .escape(),
+//     body("productId")
+//         .optional({ nullable: true })
+//         .escape(),
+//     body("commisionRecieverId")
+//         .optional({ nullable: true })
+//         .escape(),
+
+//     asyncHandler(async (req, res, next) => {
+//         try {
+//             const errors = validationResult(req);
+//             const review = new Review({
+//                 name: req.body.name,
+//                 dataType: req.body.dataType,
+//                 organizationCustomerId: req.body.organizationCustomerId,
+//                 orderReviewStatus: req.body.orderReviewStatus,
+//                 payeeId: req.body.payeeId,
+//                 productTypeId: req.body.productTypeId,
+//                 productId: req.body.productId,
+//                 commisionRecieverId: req.body.commisionRecieverId
+//             })
+//             if (!errors.isEmpty()) {
+//                 logger.error(errors.array());
+//                 res.json({
+//                     title: "Некорректная форма создания отчета!",
+//                     review: review,
+//                     errors: errors.array(),
+//                 });
+//             } else {
+//                 await review.save();
+//                 logger.info(
+//                     `${chalk.yellow("OK!")} - ${chalk.red(req.ip)}  - Отчет успешно создан!`
+//                 );
+//                 res.status(200).send("Отчет успешно создан!");
+//             }
+//         }
+//         catch (err) {
+//             logger.error(err);
+//             res.status(500).json({ message: 'Ой, что - то пошло не так!' })
+//         }
+
+//     }),
+// ];

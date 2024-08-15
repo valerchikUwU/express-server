@@ -102,21 +102,10 @@
  *                          type: string
  *                          description: Сумма всех списаний по данному получателю
  *                          example: "12345683"
- *                  commisionSum:
- *                    type: array
- *                    description: Все поступления по получателям комиссии
- *                    items:
- *                      type: object
- *                      properties:
- *                        commisionRecieverId:
- *                          type: string
- *                          format: date-time
- *                          description: ID получателя комиссии
- *                          example: "14b5c41e-0f61-4526-a5e9-4cb718260b2d"
- *                        Postyplenie:
+ *                        allPostyplenie:
  *                          type: string
  *                          description: Сумма всех поступлений по данному получателю
- *                          example: "176.00"
+ *                          example: "200000000"
  *                            
  *        403:
  *          description: У вас нет прав доступа или вы были заблокированы!
@@ -381,7 +370,7 @@
  *                        example: "2024-06-04T15:48:19.000Z"
  *                      Postyplenie:
  *                        type: decimal
- *                        description: Пока что всегда null
+ *                        description: Сумма поступления
  *                        example: null
  *                      Spisanie:
  *                        type: decimal
@@ -406,30 +395,12 @@
  *                        type: string
  *                        description: ID получателя комиссии
  *                        example: "94fc2947-a382-4d1b-9b0d-96bcd95bb444"
- *                allPostyplenie:
- *                  type: array
- *                  description: Все пополнения
- *                  items:
- *                    type: object
- *                    properties:
- *                      orderId:
+ *                      formattedDate:
  *                        type: string
- *                        description: Уникальный идентификатор заказа по которому идет начисление комиссии
- *                        example: "1ae3281e-5940-47c8-aa18-0c15e036f55d"
- *                      dateOfOperation:
- *                        type: string
- *                        format: date-time
- *                        description: Дата отправки заказа
- *                        example: "2024-06-04T15:48:19.000Z"
- *                      billNumber:
- *                        type: string
- *                        description: Номер заказа
- *                        nullable: false
- *                        example: 230030.af3
- *                      Postyplenie:
- *                        type: decimal
- *                        description: Сумма поступления
- *                        example: 30000
+ *                        format: date
+ *                        description: Отформатированная дата
+ *                        example: "15.08.2024"
+ *                
  * 
  * 
  * 

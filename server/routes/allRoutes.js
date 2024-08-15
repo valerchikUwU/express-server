@@ -402,9 +402,6 @@ router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities(
 
 router.get("/:accountId/reviews", checkAbilities('read', 'Reviews'), review_controller.review_list);
 
-router.get("/:accountId/newReview", checkAbilities('read', 'Reviews'), review_controller.review_create_get);
-
-router.post("/:accountId/newReview", checkAbilities('create', 'Reviews'), review_controller.review_create_post);
 
 
 module.exports = router;
