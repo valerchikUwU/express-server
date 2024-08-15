@@ -99,7 +99,18 @@ exports.account_organization_create_post = [
           ? []
           : [req.body.organizationList];
     }
-    next();
+
+    const err = new Error(
+      "Выберите города!"
+    );
+    err.status = 400;
+    err.ip = req.ip;
+    logger.error(err);
+    // Проверка на пустой массив
+    if (req.body.organizationList.length === 0) {
+      return res.status(400).json({ message: "Список организаций не может быть пустым" });
+    }
+  next()
   },
 
   body("firstName", "Имя должно быть указано!")
@@ -214,6 +225,16 @@ exports.superAdmin_account_organization_create_post = [
         typeof req.body.organizationList === "undefined"
           ? []
           : [req.body.organizationList];
+    }
+    const err = new Error(
+      "Выберите города!"
+    );
+    err.status = 400;
+    err.ip = req.ip;
+    logger.error(err);
+    // Проверка на пустой массив
+    if (req.body.organizationList.length === 0) {
+      return res.status(400).json({ message: "Список организаций не может быть пустым" });
     }
     next();
   },
