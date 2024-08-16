@@ -319,7 +319,7 @@ router.post("/:accountId/deposits/:organizationCustomerId/newDeposit", checkAbil
  * Запрос GET для получения деталей депозитов для конкретной организации
  * @param organizationCustomerId - id организации
  */
-router.get("/:accountId/deposits/:organizationCustomerId", checkAbilities('read', 'SuperAdmin'), deposit_controller.deposits_details);
+router.get("/:accountId/deposits/:organizationCustomerId", checkAbilities('read', 'Deposit'), deposit_controller.deposits_details);
 
 
 /**
