@@ -6,7 +6,7 @@
  *    post:
  *      tags:
  *          - CommisionRecieverOperations
- *      summary: Запрос POST для создания нового получателя комиссии
+ *      summary: Запрос POST для создания нового списания для получателя комиссии
  *      parameters:
  *        - in: path
  *          name: accountId
