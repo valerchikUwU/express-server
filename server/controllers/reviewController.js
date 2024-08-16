@@ -106,7 +106,8 @@ exports.review_list = asyncHandler(async (req, res, next) => {
 
 exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
     try {
-        const [allOrders, allProducts] = await Promise.all([
+        const [organizationCustomer, allOrders, allProducts] = await Promise.all([
+            OrganizationCustomer.findByPk(req.params.organizationCustomerId),
             History.findAll({
             where: { organizationCustomerId: req.params.organizationCustomerId },
             group: ["timestamp"],
@@ -180,6 +181,7 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
         );
         res.json({
             title: "Все отчеты по конкретной организации",
+            organizationCustomer: organizationCustomer,
             allOrders: allOrders,
             allProducts: allProducts
         });
