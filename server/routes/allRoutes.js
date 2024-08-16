@@ -401,7 +401,10 @@ router.delete("/:accountId/:commisionRecieverId/:ruleId/delete", checkAbilities(
 */
 
 
-router.get("/:accountId/reviews/:organizationCustomerId", checkAbilities('read', 'Reviews'), review_controller.review_organizationInfo_get);
+router.get("/:accountId/reviews/org/:organizationCustomerId", checkAbilities('read', 'Reviews'), review_controller.review_organizationInfo_get);
+
+
+router.get("/:accountId/reviews/com/:commisionRecieverId", checkAbilities('read', 'Reviews'), review_controller.review_commisionRecieverInfo_get);
 
 router.get("/:accountId/reviews", checkAbilities('read', 'Reviews'), review_controller.review_list);
 
