@@ -32,6 +32,27 @@
  *                    type: string
  *                    description: Заголовок запроса
  *                    example: "Все отчеты по конкретной организации"
+ *                  organizationCustomer:
+ *                      type: object
+ *                      properties:
+ *                        id:
+ *                          type: string
+ *                          description: ID организации
+ *                          example: "00a701c6-b23f-427b-baed-96c4a2e9b532"
+ *                        organizationName:
+ *                          type: string
+ *                          description: Название организации
+ *                          example: "Ташкент"
+ *                        createdAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: Дата перевода статуса
+ *                          example: "2024-06-04T15:48:19.000Z"
+ *                        updatedAt:
+ *                          type: string
+ *                          format: date-time
+ *                          description: хуйня
+ *                          example: "2024-06-04T15:48:19.000Z"
  *                  allOrders:
  *                    type: array
  *                    description: Список всех заказов по организации
