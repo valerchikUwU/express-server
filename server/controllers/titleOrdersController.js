@@ -385,7 +385,6 @@ exports.admin_titleOrder_update_put = [
 
             const productIds = titleOrders.map(titleOrder => titleOrder.productId);
 
-            console.log(`PRODUCT IDS: ${productIds}`);
 
             const accrualRulesFirst = await AccrualRule.findAll({
               where: {
@@ -399,7 +398,9 @@ exports.admin_titleOrder_update_put = [
               }
             });
 
-            console.log(`AC1 ${JSON.stringify(accrualRulesFirst)}`);
+            logger.info(
+              `${chalk.yellow("AC1!")} - ${chalk.red(req.ip)} - AC2 PROPS: ${JSON.stringify(accrualRulesFirst)}`
+            );
 
             const accrualRulesSecond = await AccrualRule.findAll({
               where: {
@@ -407,12 +408,26 @@ exports.admin_titleOrder_update_put = [
                   [Op.in]: productIds
                 },
                 [Op.or]: [
-                  { accessType: { [Op.eq]: null } }, // Равно null
-                  { generation: { [Op.eq]: null } }   // Равно null
+                  {
+                    [Op.and]: [
+                      { accessType: { [Op.eq]: null } }, // Равно null
+                      { generation: { [Op.ne]: null } }   // Не равно null
+                    ]
+                  },
+                  {
+                    [Op.and]: [
+                      { accessType: { [Op.ne]: null } }, // Не равно null
+                      { generation: { [Op.eq]: null } }   // Равно null
+                    ]
+                  }
                 ]
               }
             });
-            console.log(`AC2 ${JSON.stringify(accrualRulesSecond)}`);
+
+
+            logger.info(
+              `${chalk.yellow("AC2!")} - ${chalk.red(req.ip)} - AC2 PROPS: ${JSON.stringify(accrualRulesSecond)}`
+            );
             const accrualRulesThird = await AccrualRule.findAll({
               where: {
                 productId: {
@@ -424,7 +439,9 @@ exports.admin_titleOrder_update_put = [
                 ]
               }
             });
-            console.log(`AC3 ${JSON.stringify(accrualRulesThird)}`);
+            logger.info(
+              `${chalk.yellow("AC3!")} - ${chalk.red(req.ip)} - AC3 PROPS: ${JSON.stringify(accrualRulesThird)}`
+            );
             const accrualRulesFourth = await AccrualRule.findAll({
               where: {
                 productId: {
@@ -432,18 +449,18 @@ exports.admin_titleOrder_update_put = [
                 }
               }
             })
-            console.log(`AC4 ${JSON.stringify(accrualRulesFourth)}`);
+            logger.info(
+              `${chalk.yellow("AC4!")} - ${chalk.red(req.ip)} - AC4 PROPS: ${JSON.stringify(accrualRulesFourth)}`
+            );
 
             let operationBillNumber = oldOrder.billNumber;
             if (order.billNumber !== null) {
               operationBillNumber = order.billNumber
             }
-            console.log(`BILL ${operationBillNumber}`);
 
             for (const title of titleOrders) {
               let flag = false;
               for (const rule of accrualRulesFirst) {
-                console.log(`AC1 ${JSON.stringify(rule)}`);
                 if (title.productId === rule.productId && title.accessType === rule.accessType && title.generation === rule.generation) {
                   const decimalCommision = Number(rule.commision) * title.quantity;
                   const operation = await CommisionRecieverOperations.create({
@@ -453,7 +470,6 @@ exports.admin_titleOrder_update_put = [
                     commisionRecieverId: rule.commisionRecieverId,
                     Spisanie: null
                   });
-                  console.log(`OPERATION ${JSON.stringify(operation)}`)
                   flag = true;
                 }
               }
@@ -464,7 +480,7 @@ exports.admin_titleOrder_update_put = [
                 console.log(`AC2 ${JSON.stringify(rule)}`);
                 if (title.productId === rule.productId && (title.accessType === rule.accessType || title.generation === rule.generation)) {
                   const decimalCommision = Number(rule.commision) * title.quantity;
-                  await CommisionRecieverOperations.create({
+                  const operation = await CommisionRecieverOperations.create({
                     billNumber: operationBillNumber,
                     Postyplenie: decimalCommision,
                     dateOfOperation: new Date(),
@@ -478,10 +494,9 @@ exports.admin_titleOrder_update_put = [
 
 
               for (const rule of accrualRulesThird) {
-                console.log(`AC3 ${JSON.stringify(rule)}`);
                 if (title.productId === rule.productId) {
                   const decimalCommision = Number(rule.commision) * title.quantity;
-                  await CommisionRecieverOperations.create({
+                  const operation = await CommisionRecieverOperations.create({
                     billNumber: operationBillNumber,
                     Postyplenie: decimalCommision,
                     dateOfOperation: new Date(),
@@ -498,7 +513,7 @@ exports.admin_titleOrder_update_put = [
                 const product = await Product.findByPk(title.productId)
                 if (product.productTypeId === rule.productTypeId) {
                   const decimalCommision = Number(rule.commision) * title.quantity;
-                  await CommisionRecieverOperations.create({
+                  const operation = await CommisionRecieverOperations.create({
                     billNumber: operationBillNumber,
                     Postyplenie: decimalCommision,
                     dateOfOperation: new Date(),
