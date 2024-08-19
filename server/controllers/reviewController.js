@@ -106,7 +106,7 @@ exports.review_list = asyncHandler(async (req, res, next) => {
 
 exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
     try {
-        const [organizationCustomer, allOrders, allProducts] = await Promise.all([
+        const [organizationCustomer, allOrders, allProducts, allPayees] = await Promise.all([
             OrganizationCustomer.findByPk(req.params.organizationCustomerId),
             History.findAll({
             where: { organizationCustomerId: req.params.organizationCustomerId },
@@ -170,7 +170,8 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
                     as: 'titles'
                 },
             ],
-        })
+        }),
+        Payee.findAll()
         ])
 
 
@@ -183,7 +184,8 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
             title: "Все отчеты по конкретной организации",
             organizationCustomer: organizationCustomer,
             allOrders: allOrders,
-            allProducts: allProducts
+            allProducts: allProducts,
+            allPayees: allPayees
         });
     }
     catch (err) {
