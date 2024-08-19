@@ -154,23 +154,43 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
             },
         }),
         Product.findAll({
+            
+            group: ["id"],
             include: [
                 {
                     model: TitleOrders,
                     include: [
                         {
                             model: Order,
+                            where: {organizationCustomerId: req.params.organizationCustomerId},
                             attributes: [],
                         },
                         {
                             model: PriceDefinition,
                             as: "price",
-                            attributes: [],
+                            attributes: ["priceAccess", "priceBooklet"],
                         },
                     ],
                     as: 'titles'
                 },
             ],
+            
+            attributes: {
+                include: [
+                    [
+                        Sequelize.literal(
+                            `SUM(CASE WHEN addBooklet = TRUE THEN quantity * priceBooklet ELSE quantity * priceAccess END)`
+                        ),
+                        "SUM",
+                    ],
+                    [
+                        Sequelize.literal(
+                            `SUM(CASE WHEN productTypeId <> 4 THEN (quantity*1) END)`
+                        ),
+                        "totalQuantity",
+                    ],
+                ],
+            },
         }),
         Payee.findAll()
         ])
