@@ -154,7 +154,7 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
             },
         }),
         Product.findAll({
-            
+            where:{productTypeId: {[Op.ne]: 4}},
             group: ["id"],
             include: [
                 {
