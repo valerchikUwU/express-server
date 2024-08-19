@@ -125,6 +125,7 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
                                 },
                                 {
                                     model: Product,
+                                    where: {productTypeId: {[Op.ne]: 4}},
                                     attributes: ["id", "name", "abbreviation", "productTypeId"],
                                     as: "product",
                                 },
