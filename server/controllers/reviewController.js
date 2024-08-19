@@ -163,7 +163,7 @@ exports.review_organizationInfo_get = asyncHandler(async (req, res, next) => {
                         {
                             model: Order,
                             where: {organizationCustomerId: req.params.organizationCustomerId},
-                            attributes: [],
+                            attributes: ["payeeId"],
                         },
                         {
                             model: PriceDefinition,
