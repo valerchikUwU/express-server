@@ -53,7 +53,7 @@ async function startBot() {
         const sessionId = parts[1]; // Вторая часть - sessionId
         console.log(`start: ${token}`);
         console.log(`start: ${sessionId}`);
-        // Здесь вы можете использовать token и sessionId для дальнейших действий
+        // Здесь можно использовать token и sessionId для дальнейших действий
         if (token) {
           ctx.session.token = token; // Сохраняем токен в сессию
           ctx.session.sessionId = sessionId;
