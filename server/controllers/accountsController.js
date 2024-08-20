@@ -254,8 +254,8 @@ exports.superAdmin_account_organization_create_post = [
   body("telephoneNumber", "Номер телефона должен быть указан!")
     .trim()
     .isLength({ min: 10 })
-    .escape(),
-  // .matches(/^\+7\d{10}$/, 'ru-RU') // Исправлено: 'ru-RU' не используется как флаг
+    .escape()
+    .matches(/^\+7\d{10}$/), 
   // .withMessage('Номер телефона должен начинаться с +7 и содержать 10 цифр'),
   body("roleId", "Роль должна быть выбрана!")
     .isIn(["2", "3"])
