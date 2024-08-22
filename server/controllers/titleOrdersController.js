@@ -231,19 +231,20 @@ exports.admin_titleOrder_update_put = [
     const titlesToUpdate = req.body.titlesToUpdate;
     const titlesToCreate = req.body.titlesToCreate;
     for (const title of titlesToCreate) {
-      if (title.addBooklet === "true" && title.accessType !== null) {
+      if ((title.addBooklet === "true" && title.accessType !== null) || (title.addBooklet === "false" && title.accessType === null)) {
         const err = new Error(
-          "Буклет представлен только в виде бумажного формата!"
+          "Выберите тип доступа! 1"
         );
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
+        return res.status(400).json({ message: err.message });
       }
     }
     for (const title of titlesToUpdate) {
-      if (title.addBooklet === 1 && title.accessType !== null) {
+      if ((title.addBooklet === true && title.accessType !== null) || (title.addBooklet === false && title.accessType === null)) {
         const err = new Error(
-          "Буклет представлен только в виде бумажного формата!"
+          "Выберите тип доступа! 2"
         );
         err.status = 400;
         err.ip = req.ip;
