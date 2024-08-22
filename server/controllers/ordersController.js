@@ -747,7 +747,7 @@ exports.user_order_create_post = [
           },
           raw: true,
         });
-        await TitleOrders.create({
+        const title = await TitleOrders.create({
           productId: productId,
           orderId: order.id,
           accessType: accessType,
