@@ -227,24 +227,33 @@ exports.admin_titleOrder_update_put = [
     .isInt({ min: 1 })
     .escape(),
   body("titlesToCreate.*.addBooklet").if(body("addBooklet").exists()).escape(),
-  body().custom((value, { req }) => {
+  body().custom(async (value, { req }) => {
     const titlesToUpdate = req.body.titlesToUpdate;
     const titlesToCreate = req.body.titlesToCreate;
+    const deposit = await Product.findOne({ where: { productTypeId: 4 } })
     for (const title of titlesToCreate) {
-      if ((title.addBooklet === "true" && title.accessType !== null) || (title.addBooklet === "false" && title.accessType === null)) {
-        const err = new Error(
-          "Выберите тип доступа! 1"
-        );
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-        return res.status(400).json({ message: err.message });
+      console.log(title.productId)
+      if (title.productId !== deposit.id) {
+        if ((title.addBooklet === "true" && title.accessType !== null) || (title.addBooklet === "false" && title.accessType === null)) {
+          const err = new Error(
+            "Выберите тип доступа или уберите доп. буклет"
+          );
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          return res.status(400).json({ message: err.message });
+        }
       }
     }
+    
     for (const title of titlesToUpdate) {
+      
+      console.log(title.productId)
+    if (title.productId !== deposit.id) {
+
       if ((title.addBooklet === true && title.accessType !== null) || (title.addBooklet === false && title.accessType === null)) {
         const err = new Error(
-          "Выберите тип доступа! 2"
+          "Выберите тип доступа или уберите доп.буклет"
         );
         err.status = 400;
         err.ip = req.ip;
@@ -252,6 +261,7 @@ exports.admin_titleOrder_update_put = [
         return res.status(400).json({ message: err.message });
       }
     }
+  }
     // Возвращаем true, если условие выполнено
     return true;
   }),
