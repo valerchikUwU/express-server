@@ -232,7 +232,6 @@ exports.admin_titleOrder_update_put = [
     const titlesToCreate = req.body.titlesToCreate;
     const deposit = await Product.findOne({ where: { productTypeId: 4 } })
     for (const title of titlesToCreate) {
-      console.log(title.productId)
       if (title.productId !== deposit.id) {
         if ((title.addBooklet === "true" && title.accessType !== null) || (title.addBooklet === "false" && title.accessType === null)) {
           const err = new Error(
@@ -241,14 +240,13 @@ exports.admin_titleOrder_update_put = [
           err.status = 400;
           err.ip = req.ip;
           logger.error(err);
-          return res.status(400).json({ message: err.message });
+          throw err;
         }
       }
     }
     
     for (const title of titlesToUpdate) {
       
-      console.log(title.productId)
     if (title.productId !== deposit.id) {
 
       if ((title.addBooklet === true && title.accessType !== null) || (title.addBooklet === false && title.accessType === null)) {
@@ -258,7 +256,7 @@ exports.admin_titleOrder_update_put = [
         err.status = 400;
         err.ip = req.ip;
         logger.error(err);
-        return res.status(400).json({ message: err.message });
+        throw err;
       }
     }
   }

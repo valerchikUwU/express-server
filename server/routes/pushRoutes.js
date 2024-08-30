@@ -3,6 +3,8 @@ const Account = require("../../models/account");
 const Subscriptions = require("../../models/subscriptions");
 const checkAbilities = require('../../utils/checkAbility');
 const router = express.Router();
+const { logger } = require("../../configuration/loggerConf");
+const chalk = require("chalk");
 
 router.post("/:accountId/save-subscription", async (req, res) => {
     const accountId = req.params.accountId;
@@ -17,6 +19,9 @@ router.post("/:accountId/save-subscription", async (req, res) => {
         res.status(200).json({message: "Подписка успешно сохранена"})
     }
     catch(err){
+        
+    err.ip = req.ip;
+    logger.error(err);
         console.log(err)
         res.status(500).json({message: "Ошибка при сохранении подписки"})
     }
@@ -31,6 +36,9 @@ router.post("/:accountId/delete-subscription",  async (req, res) => {
         res.status(200).json({message: "Подписка успешно удалена"})
     }
     catch(err){
+        
+    err.ip = req.ip;
+    logger.error(err);
         console.log(err)
         res.status(500).json({message: "Ошибка при удалении подписки"})
     }
@@ -48,6 +56,9 @@ router.get("/:accountId/check-subscription",  async (req, res) => {
         })
     }
     catch(err){
+        
+    err.ip = req.ip;
+    logger.error(err);
         console.log(err)
         res.status(500).json({message: "Ошибка при поиске подписки"})
     }

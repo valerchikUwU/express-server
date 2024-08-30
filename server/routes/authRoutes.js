@@ -7,7 +7,8 @@ const url = require('url');
 const Account = require('../../models/account');
 const crypto = require('crypto');
 const { message } = require('telegraf/filters');
-
+const { logger } = require("../../configuration/loggerConf");
+const chalk = require("chalk");
 
 const wss = new WebSocket.Server({ port: 3002 });
 const connections = {};
@@ -44,6 +45,9 @@ router.post('/auth', async (req, res) => {
         // Передаем accountId через URL
         await sendMessageToClient(sessionId, accountId, accountRoleId);
         await setSessionAccountId(sessionId, accountId, accountRoleId);
+        logger.info(
+          `${chalk.yellow("Вы успешно аутентифицированы!")} - ${chalk.red(req.ip)} - ACCOUNT PROPS: ${JSON.stringify(account)}`
+        );
         res.status(200).json({ message: 'Вы успешно аутентифицированы' });
       } else {
         res.status(404).json({ message: 'Номер телефона не найден' });
@@ -53,9 +57,12 @@ router.post('/auth', async (req, res) => {
       console.log('Ошибка аутентификации!');
       res.status(401).json({ message: 'Ошибка аутентификации!' });
     }
-  } catch (error) {
+  } catch (err) {
     // Обработка ошибок, возникающих при обращении к базе данных
-    console.error('Ошибка при запросе к БД:', error);
+    console.error('Ошибка при запросе к БД:', err);
+
+    err.ip = req.ip;
+    logger.error(err);
     res.status(500).json({ message: 'Что - то пошло не так!' });
   }
 });
@@ -82,9 +89,18 @@ router.get('/homepage', async (req, res) => {
 
 
 router.post('/:accountId/logout', async (req, res) => {
-  await Account.update({ lastSeen: new Date()}, { where: { id: req.params.accountId } }); 
-  req.session.destroy();
-  res.status(200).json({message: 'Вы успешно вышли из аккаунта!'})
+  try {
+
+    await Account.update({ lastSeen: new Date() }, { where: { id: req.params.accountId } });
+    req.session.destroy();
+    res.status(200).json({ message: 'Вы успешно вышли из аккаунта!' })
+  }
+  catch (err) {
+
+    err.ip = req.ip;
+    logger.error(err);
+    res.status(500).json({ message: 'Что - то пошло не так!' });
+  }
 })
 
 
@@ -111,8 +127,11 @@ async function getTelephoneNumber(telephoneNumber) {
     } else {
       return null;
     }
-  } catch (error) {
-    console.error('Error fetching telephone number:', error);
+  } catch (err) {
+    
+    err.ip = req.ip;
+    logger.error(err);
+    console.error('Error fetching telephone number:', err);
     return null;
   }
 }
@@ -128,7 +147,7 @@ async function setSessionAccountId(sessionID, accountId, accountRoleId) {
         type: sequelize.QueryTypes.UPDATE
       }
     );
-    
+
     console.log(updatedRows);
     console.log(`setSessionAccountId ${updatedRows[1]}`)
     if (updatedRows[1] > 0) {
@@ -137,9 +156,12 @@ async function setSessionAccountId(sessionID, accountId, accountRoleId) {
     } else {
       throw new Error('No rows updated');
     }
-  } catch (error) {
-    console.error('Error updating generatedToken:', error);
-    throw error; // Перебрасываем ошибку, чтобы она могла быть обработана вызывающей функцией
+  } catch (err) {
+    
+    err.ip = req.ip;
+    logger.error(err);
+    console.error('Error updating generatedToken:', err);
+    throw err; // Перебрасываем ошибку, чтобы она могла быть обработана вызывающей функцией
   }
 }
 
@@ -162,9 +184,12 @@ async function getGeneratedToken(sessionID) {
     } else {
       throw new Error('Session not found');
     }
-  } catch (error) {
-    console.error('Error:', error);
-    throw error; // Перебрасываем ошибку, чтобы она могла быть обработана вызывающей функцией
+  } catch (err) {
+    console.error('Error:', err);
+    
+    err.ip = req.ip;
+    logger.error(err);
+    throw err; // Перебрасываем ошибку, чтобы она могла быть обработана вызывающей функцией
   }
 }
 
@@ -173,9 +198,10 @@ async function sendMessageToClient(sessionId, accountId, accountRoleId) {
   const ws = connections[sessionId];
   if (ws) {
     console.log(`ot servera klienty: ${accountId}, ${accountRoleId}`)
-    const jsonMessage = JSON.stringify({ accountId, accountRoleId});
+    const jsonMessage = JSON.stringify({ accountId, accountRoleId });
     ws.send(jsonMessage);
   } else {
+    
     console.error('WebSocket connection not found for sessionId:', sessionId);
     throw new Error('WebSocket connection not found for sessionId:', sessionId)
   }
