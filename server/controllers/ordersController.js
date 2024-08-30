@@ -367,8 +367,11 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
           const priceDef = await PriceDefinition.findOne({
             where: { activationDate: actualDate, productId: title.productId },
           });
-          title.priceDefId = priceDef.id;
-          await title.save();
+          if(priceDef.id !== title.priceDefId){
+            title.priceDefId = priceDef.id;
+            await title.save();
+
+          }
         }
       }
     }
