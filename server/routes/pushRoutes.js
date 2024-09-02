@@ -50,6 +50,11 @@ router.get("/:accountId/check-subscription",  async (req, res) => {
 
     try {
         const subscription = await Subscriptions.findOne({where: {accountId: accountId}})
+        if(subscription === null){
+            res.status(404).json({
+                message: "Подписка не найдена!",
+            })
+        }
         res.status(200).json({
             message: "Подписка успешно найдена",
             subscription: subscription
