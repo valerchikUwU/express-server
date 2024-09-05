@@ -343,38 +343,6 @@ exports.admin_archivedOrders_list = asyncHandler(async (req, res, next) => {
 
 exports.user_order_detail = asyncHandler(async (req, res, next) => {
   try {
-    const [draftOrder, draftTitles] = await Promise.all([
-      await Order.findByPk(req.params.orderId),
-      await TitleOrders.findAll({ where: { orderId: req.params.orderId } }),
-    ]);
-    if (draftOrder === null) {
-      // No results.
-      const err = new Error("Заказ не найден!");
-      err.status = 404;
-      throw err;
-    }
-    if (draftOrder.status === "Черновик") {
-      if (draftTitles.length > 0) {
-        for (const title of draftTitles) {
-          const actualActivationDate = await sequelize.query(
-            `SELECT MAX(activationDate) FROM PriceDefinitions WHERE productId = :productId AND activationDate < NOW()`,
-            {
-              replacements: { productId: title.productId },
-              type: sequelize.QueryTypes.SELECT,
-            }
-          );
-          const actualDate = actualActivationDate[0]["MAX(activationDate)"];
-          const priceDef = await PriceDefinition.findOne({
-            where: { activationDate: actualDate, productId: title.productId },
-          });
-          if(priceDef.id !== title.priceDefId){
-            title.priceDefId = priceDef.id;
-            await title.save();
-
-          }
-        }
-      }
-    }
 
     const [order, titles, products] = await Promise.all([
       Order.findByPk(req.params.orderId, {
@@ -449,7 +417,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
     ]);
 
     logger.info(
-      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - TITLES: ${JSON.stringify(draftTitles)}  - Детали заказа`
+      `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - TITLES: ${JSON.stringify(titles)}  - Детали заказа`
     );
     res.json({
       title: "Детали заказа",
