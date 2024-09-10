@@ -937,7 +937,7 @@ exports.user_draftOrder_updateStatus_put = [
     try {
       const errors = validationResult(req);
       const organizationName = req.body.organizationName;
-      const admins = Account.findAll({where: {roleId: 2}})
+      const admins = await Account.findAll({where: {roleId: 2}});
       const adminsIds = admins.map(admin => admin.id);
       const organizationCustomerId = await OrganizationCustomer.findOne({
         where: { organizationName: organizationName },
