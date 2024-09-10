@@ -29,7 +29,7 @@ async function webPushForAdmins(adminsIds, organizationName) {
 
     const payload = JSON.stringify({
       title: `Создан новый заказ!`,
-      content: `Создан новый заказ академией ${orderNumber}!`,
+      content: `Создан новый заказ академией ${organizationName}!`,
     })
     for (const adminId of adminsIds) {
       const subscriptions = await Subscriptions.findAll({
