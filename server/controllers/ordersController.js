@@ -14,6 +14,14 @@ const createHttpError = require("http-errors");
 const sequelize = require("../../database/connection");
 const { logger } = require("../../configuration/loggerConf");
 const chalk = require("chalk");
+const {  webPushForAdmins } = require("../../utils/webPush");
+
+
+
+
+
+
+
 
 exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
   const accountId = req.params.accountId;
@@ -929,6 +937,8 @@ exports.user_draftOrder_updateStatus_put = [
     try {
       const errors = validationResult(req);
       const organizationName = req.body.organizationName;
+      const admins = Account.findAll({where: {roleId: 2}})
+      const adminsIds = admins.map(admin => admin.id);
       const organizationCustomerId = await OrganizationCustomer.findOne({
         where: { organizationName: organizationName },
       });
@@ -982,6 +992,10 @@ exports.user_draftOrder_updateStatus_put = [
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         oldOrder.status = "Активный";
         oldOrder.dispatchDate = new Date();
+        webPushForAdmins(
+          adminsIds,
+          organizationName
+        );
         await history.save();
         await oldOrder.save();
         logger.info(
