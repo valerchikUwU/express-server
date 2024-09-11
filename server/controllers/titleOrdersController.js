@@ -102,7 +102,7 @@ exports.user_titleOrder_update_put = [
               );
               const actualDate = actualActivationDate[0]["MAX(activationDate)"];
               const priceDef = await PriceDefinition.findOne({
-                where: { activationDate: actualDate },
+                where: { activationDate: actualDate, productId: title.productId },
               });
               oldTitle.priceDefId = priceDef.id;
             }
