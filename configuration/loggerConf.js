@@ -17,14 +17,14 @@ const infoFilter = winston.format((info, opts) => {
 const combinedFileRotateTransport = new winston.transports.DailyRotateFile({
   filename: "../logs/combined-%DATE%.log",
   datePattern: "DD-MM-YYYY",
-  maxFiles: "30d",
+  maxFiles: "10d",
 });
 
 const errorFileRotateTransport = new winston.transports.DailyRotateFile({
   filename: "../logs/app-error-%DATE%.log",
   level: "error",
   datePattern: "DD-MM-YYYY",
-  maxFiles: "30d",
+  maxFiles: "10d",
   format: combine(errors({ stack: true }), errorFilter(), timestamp(), json()),
 });
 
@@ -32,7 +32,7 @@ const infoFileRotateTransport = new winston.transports.DailyRotateFile({
   filename: "../logs/app-info-%DATE%.log",
   level: "info",
   datePattern: "DD-MM-YYYY",
-  maxFiles: "30d",
+  maxFiles: "10d",
   format: combine(infoFilter(), timestamp(), json()),
 });
 
