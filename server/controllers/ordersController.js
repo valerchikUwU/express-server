@@ -94,7 +94,7 @@ exports.user_active_orders_list = asyncHandler(async (req, res, next) => {
 
     activeOrders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy h:mm a")
         : null;
     });
 
@@ -161,7 +161,7 @@ exports.user_finished_orders_list = asyncHandler(async (req, res, next) => {
 
     finishedOrders.forEach((order) => {
       order.formattedDispatchDate = order.dispatchDate
-        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy")
+        ? dateFns.format(order.dispatchDate, "dd.MM.yyyy h:mm a")
         : null;
     });
 
