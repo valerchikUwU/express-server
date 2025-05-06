@@ -800,7 +800,6 @@ exports.admin_order_create_post = [
     .escape(),
   body("dispatchDate")
     .optional({ checkFalsy: true })
-    .isDate()
     .escape(),
   body("payeeId")
     .optional({ checkFalsy: true })

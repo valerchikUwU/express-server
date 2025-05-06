@@ -47,6 +47,11 @@
  *                                  nullable: false
  *                                  description: Кол-во товара
  *                                  example: 20
+ *                              dispatchDate:
+ *                                  type: string
+ *                                  description: дата отправки
+ *                                  format: date-time
+ *                                  example: "2024-05-23T09:57:47.000Z"
  *                            
  *      responses:
  *        200:

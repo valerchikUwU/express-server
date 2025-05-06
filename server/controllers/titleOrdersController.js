@@ -175,6 +175,9 @@ exports.admin_titleOrder_update_put = [
     .trim()
     .isLength({ min: 1 })
     .escape(),
+  body("dispatchDate")
+    .optional({ checkFalsy: true })
+    .escape(),
   body("billNumber").optional({ checkFalsy: true }).escape(),
   body("payeeId").optional({ checkFalsy: true }).escape(),
   body("titlesToUpdate.*.productId")
@@ -244,22 +247,22 @@ exports.admin_titleOrder_update_put = [
         }
       }
     }
-    
-    for (const title of titlesToUpdate) {
-      
-    if (title.productId !== deposit.id) {
 
-      if ((title.addBooklet === true && title.accessType !== null) || (title.addBooklet === false && title.accessType === null)) {
-        const err = new Error(
-          "Выберите тип доступа или уберите доп.буклет"
-        );
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-        throw err;
+    for (const title of titlesToUpdate) {
+
+      if (title.productId !== deposit.id) {
+
+        if ((title.addBooklet === true && title.accessType !== null) || (title.addBooklet === false && title.accessType === null)) {
+          const err = new Error(
+            "Выберите тип доступа или уберите доп.буклет"
+          );
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          throw err;
+        }
       }
     }
-  }
     // Возвращаем true, если условие выполнено
     return true;
   }),
@@ -535,7 +538,7 @@ exports.admin_titleOrder_update_put = [
           }
         } else {
           if (oldOrder.status !== order.status) {
-            oldOrder.dispatchDate = new Date();
+            oldOrder.dispatchDate = req.body.dispatchDate ?? new Date();
             const history = new History({
               accountId: req.params.accountId,
               orderId: req.params.orderId,
@@ -556,7 +559,7 @@ exports.admin_titleOrder_update_put = [
         }
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         if (oldOrder.status !== order.status) {
-          oldOrder.dispatchDate = new Date();
+          oldOrder.dispatchDate = req.body.dispatchDate ?? new Date();
           const history = new History({
             accountId: req.params.accountId,
             orderId: req.params.orderId,
