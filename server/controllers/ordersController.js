@@ -14,7 +14,7 @@ const createHttpError = require("http-errors");
 const sequelize = require("../../database/connection");
 const { logger } = require("../../configuration/loggerConf");
 const chalk = require("chalk");
-const {  webPushForAdmins } = require("../../utils/webPush");
+const { webPushForAdmins } = require("../../utils/webPush");
 
 
 
@@ -794,9 +794,20 @@ exports.admin_order_create_post = [
     .trim()
     .isLength({ min: 1 })
     .escape(),
-  body("billNumber").optional({ checkFalsy: true }).trim().escape(),
-  body("payeeId").optional({ checkFalsy: true }).trim().escape(),
-  body("isFromDeposit").escape(),
+  body("billNumber")
+    .optional({ checkFalsy: true })
+    .trim()
+    .escape(),
+  body("dispatchDate")
+    .optional({ checkFalsy: true })
+    .isDate()
+    .escape(),
+  body("payeeId")
+    .optional({ checkFalsy: true })
+    .trim()
+    .escape(),
+  body("isFromDeposit")
+    .escape(),
   body("titlesToCreate.*.productId")
     .if(body("titlesToCreate.*.productId").exists())
     .trim()
@@ -824,22 +835,23 @@ exports.admin_order_create_post = [
   body("titlesToCreate.*.addBooklet")
     .if(body("titlesToCreate.*.addBooklet").exists())
     .escape(),
-  body().custom((value, { req }) => {
-    const titlesToCreate = req.body.titlesToCreate;
-    for (const title of titlesToCreate) {
-      if (title.addBooklet === "true" && title.accessType !== null) {
-        const err = new Error(
-          "Буклет представлен только в виде бумажного формата!"
-        );
-        err.status = 400;
-        err.ip = req.ip;
-        logger.error(err);
-        throw err;
+  body()
+    .custom((value, { req }) => {
+      const titlesToCreate = req.body.titlesToCreate;
+      for (const title of titlesToCreate) {
+        if (title.addBooklet === "true" && title.accessType !== null) {
+          const err = new Error(
+            "Буклет представлен только в виде бумажного формата!"
+          );
+          err.status = 400;
+          err.ip = req.ip;
+          logger.error(err);
+          throw err;
+        }
       }
-    }
-    // Возвращаем true, если условие выполнено
-    return true;
-  }),
+      // Возвращаем true, если условие выполнено
+      return true;
+    }),
 
   asyncHandler(async (req, res, next) => {
     try {
@@ -848,7 +860,7 @@ exports.admin_order_create_post = [
       const order = new Order({
         organizationCustomerId: req.body.organizationCustomerId,
         accountId: req.params.accountId,
-        dispatchDate: new Date(),
+        dispatchDate: req.body.dispatchDate ?? new Date(),
         status: req.body.status,
         billNumber: req.body.billNumber,
         payeeId: req.body.payeeId,
@@ -937,7 +949,7 @@ exports.user_draftOrder_updateStatus_put = [
     try {
       const errors = validationResult(req);
       const organizationName = req.body.organizationName;
-      const admins = await Account.findAll({where: {roleId: 2}});
+      const admins = await Account.findAll({ where: { roleId: 2 } });
       const adminsIds = admins.map(admin => admin.id);
       const organizationCustomerId = await OrganizationCustomer.findOne({
         where: { organizationName: organizationName },
