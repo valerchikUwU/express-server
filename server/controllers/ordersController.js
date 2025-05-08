@@ -888,7 +888,7 @@ exports.admin_order_create_post = [
         const history = new History({
           accountId: req.params.accountId,
           orderId: order.id,
-          timestamp: new Date(),
+          timestamp: req.body.dispatchDate ?? new Date(),
           orderStatus: req.body.status,
           billNumber: req.body.billNumber,
           organizationCustomerId: req.body.organizationCustomerId,

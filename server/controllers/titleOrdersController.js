@@ -542,7 +542,7 @@ exports.admin_titleOrder_update_put = [
             const history = new History({
               accountId: req.params.accountId,
               orderId: req.params.orderId,
-              timestamp: new Date(),
+              timestamp: req.body.dispatchDate ?? new Date(),
               billNumber: oldOrder.billNumber,
               organizationCustomerId: oldOrder.organizationCustomerId,
               orderStatus: order.status
@@ -563,7 +563,7 @@ exports.admin_titleOrder_update_put = [
           const history = new History({
             accountId: req.params.accountId,
             orderId: req.params.orderId,
-            timestamp: new Date(),
+            timestamp: req.body.dispatchDate ?? new Date(),
             billNumber: oldOrder.billNumber,
             organizationCustomerId: oldOrder.organizationCustomerId,
             orderStatus: order.status
