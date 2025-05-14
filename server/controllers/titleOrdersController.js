@@ -539,7 +539,6 @@ exports.admin_titleOrder_update_put = [
           }
         } else {
           oldOrder.dispatchDate = order.dispatchDate;
-          oldOrder.status = order.status;
           if (oldOrder.status !== order.status) {
             const history = new History({
               accountId: req.params.accountId,
@@ -547,8 +546,9 @@ exports.admin_titleOrder_update_put = [
               timestamp: oldOrder.dispatchDate,
               billNumber: oldOrder.billNumber,
               organizationCustomerId: oldOrder.organizationCustomerId,
-              orderStatus: oldOrder.status
+              orderStatus: order.status
             });
+            oldOrder.status = order.status;
             await history.save();
             console.log(`${chalk.cyan('added to history Статус успешно изменен!')}`)
           }
@@ -560,7 +560,6 @@ exports.admin_titleOrder_update_put = [
         }
         oldOrder.dispatchDate = order.dispatchDate;
         oldOrder.organizationCustomerId = order.organizationCustomerId;
-        oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
@@ -571,8 +570,9 @@ exports.admin_titleOrder_update_put = [
             timestamp: oldOrder.dispatchDate,
             billNumber: oldOrder.billNumber,
             organizationCustomerId: oldOrder.organizationCustomerId,
-            orderStatus: oldOrder.status
+            orderStatus: order.status
           });
+          oldOrder.status = order.status;
           console.log(`${chalk.cyan('added to history Наименования успешно обновлены!')}`)
           await history.save();
         }
