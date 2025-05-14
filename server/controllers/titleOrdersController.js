@@ -283,6 +283,7 @@ exports.admin_titleOrder_update_put = [
         status: req.body.status,
         billNumber: req.body.billNumber,
         payeeId: req.body.payeeId,
+        dispatchDate: req.body.dispatchDate,
         isFromDeposit: req.body.isFromDeposit,
         _id: req.params.orderId,
       });
@@ -550,6 +551,7 @@ exports.admin_titleOrder_update_put = [
             await history.save();
             console.log(`${chalk.cyan('added to history Статус успешно изменен!')}`)
           }
+          oldOrder.dispatchDate = oldOrder.dispatchDate ?? req.body.dispatchDate;
           oldOrder.status = order.status;
           await oldOrder.save();
           logger.info(
@@ -571,6 +573,7 @@ exports.admin_titleOrder_update_put = [
           console.log(`${chalk.cyan('added to history Наименования успешно обновлены!')}`)
           await history.save();
         }
+        oldOrder.dispatchDate = oldOrder.dispatchDate ?? req.body.dispatchDate;
         oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
