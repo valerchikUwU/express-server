@@ -538,46 +538,45 @@ exports.admin_titleOrder_update_put = [
             }
           }
         } else {
+          oldOrder.dispatchDate = order.dispatchDate;
+          oldOrder.status = order.status;
           if (oldOrder.status !== order.status) {
-            oldOrder.dispatchDate = req.body.dispatchDate ?? new Date();
             const history = new History({
               accountId: req.params.accountId,
               orderId: req.params.orderId,
-              timestamp: req.body.dispatchDate ?? new Date(),
+              timestamp: oldOrder.dispatchDate,
               billNumber: oldOrder.billNumber,
               organizationCustomerId: oldOrder.organizationCustomerId,
-              orderStatus: order.status
+              orderStatus: oldOrder.status
             });
             await history.save();
             console.log(`${chalk.cyan('added to history Статус успешно изменен!')}`)
           }
-          oldOrder.dispatchDate = oldOrder.dispatchDate ?? req.body.dispatchDate;
-          oldOrder.status = order.status;
           await oldOrder.save();
           logger.info(
             `${chalk.yellow("OK!")} - ${chalk.red(req.ip)} - Order PROPS: ${JSON.stringify(order)}  - TitlesToCreate PROPS: ${JSON.stringify(titlesToCreate)}  - TitlesToUpdate PROPS: ${JSON.stringify(titlesToUpdate)}   - Статус успешно изменен!`
           );
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
+        oldOrder.dispatchDate = order.dispatchDate;
         oldOrder.organizationCustomerId = order.organizationCustomerId;
-        if (oldOrder.status !== order.status) {
-          oldOrder.dispatchDate = req.body.dispatchDate ?? new Date();
-          const history = new History({
-            accountId: req.params.accountId,
-            orderId: req.params.orderId,
-            timestamp: req.body.dispatchDate ?? new Date(),
-            billNumber: oldOrder.billNumber,
-            organizationCustomerId: oldOrder.organizationCustomerId,
-            orderStatus: order.status
-          });
-          console.log(`${chalk.cyan('added to history Наименования успешно обновлены!')}`)
-          await history.save();
-        }
-        oldOrder.dispatchDate = oldOrder.dispatchDate ?? req.body.dispatchDate;
         oldOrder.status = order.status;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
+        if (oldOrder.status !== order.status) {
+          const history = new History({
+            accountId: req.params.accountId,
+            orderId: req.params.orderId,
+            timestamp: oldOrder.dispatchDate,
+            billNumber: oldOrder.billNumber,
+            organizationCustomerId: oldOrder.organizationCustomerId,
+            orderStatus: oldOrder.status
+          });
+          console.log(`${chalk.cyan('added to history Наименования успешно обновлены!')}`)
+          await history.save();
+        }
+
         await oldOrder.save();
 
         logger.info(

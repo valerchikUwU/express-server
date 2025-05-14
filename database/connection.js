@@ -6,7 +6,8 @@ const sequelize = new Sequelize(process.env.db_name, process.env.db_user, proces
  host: process.env.host,
  port: process.env.port,
  timezone: '+03:00',
- dialect: 'mysql'
+ dialect: 'mysql',
+ logging: false
 });
 
 async function checkDatabaseConnection() {
