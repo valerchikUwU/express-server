@@ -558,11 +558,14 @@ exports.admin_titleOrder_update_put = [
           );
           return res.status(200).json({ message: "Статус успешно изменен!" });
         }
+        console.log(order.dispatchDate);
         oldOrder.dispatchDate = order.dispatchDate;
         oldOrder.organizationCustomerId = order.organizationCustomerId;
         oldOrder.billNumber = order.billNumber;
         oldOrder.payeeId = order.payeeId;
         oldOrder.isFromDeposit = order.isFromDeposit;
+
+        console.log(oldOrder.dispatchDate);
         if (oldOrder.status !== order.status) {
           const history = new History({
             accountId: req.params.accountId,

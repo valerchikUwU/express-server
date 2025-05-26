@@ -110,7 +110,7 @@ exports.account_organization_create_post = [
     if (req.body.organizationList.length === 0) {
       return res.status(400).json({ message: "Список организаций не может быть пустым" });
     }
-  next()
+    next()
   },
 
   body("firstName", "Имя должно быть указано!")
@@ -255,7 +255,7 @@ exports.superAdmin_account_organization_create_post = [
     .trim()
     .isLength({ min: 10 })
     .escape()
-    .matches(/^\+7\d{10}$/), 
+    .matches(/^\+7\d{10}$/),
   // .withMessage('Номер телефона должен начинаться с +7 и содержать 10 цифр'),
   body("roleId", "Роль должна быть выбрана!")
     .isIn(["2", "3"])
@@ -395,7 +395,7 @@ exports.superAdmin_account_update_put = [
     .isLength({ min: 1 })
     .escape(),
   body("isBlocked")
-  .escape(),
+    .escape(),
   body("organizationList.*").escape(),
 
   asyncHandler(async (req, res, next) => {
@@ -424,6 +424,30 @@ exports.superAdmin_account_update_put = [
         });
         return;
       } else {
+        const organizationPromises = req.body.organizationList.map(async (organization) => {
+          if (await OrganizationCustomer.findOne({
+            where: { organizationName: organization },
+          }) === null) {
+            const org = await OrganizationCustomer.create({
+              organizationName: organization,
+            });
+            await org.save();
+          }
+        });
+        await Promise.all(organizationPromises)
+
+        // for (const organization of req.body.organizationList) {
+        //   if (
+        //     (await OrganizationCustomer.findOne({
+        //       where: { organizationName: organization },
+        //     })) === null
+        //   ) {
+        //     const org = await OrganizationCustomer.create({
+        //       organizationName: organization,
+        //     });
+        //     await org.save();
+        //   }
+        // }
         const oldAccount = await Account.findByPk(req.params.accountFocusId);
         oldAccount.firstName = account.firstName;
         oldAccount.lastName = account.lastName;
@@ -509,7 +533,7 @@ exports.account_update_put = [
     .escape()
     .matches(/^\+7\d{10}$/)
     .withMessage("Номер телефона должен начинаться с +7 и содержать 10 цифр"),
-    body("isBlocked")
+  body("isBlocked")
     .escape(),
   body("organizationList.*").escape(),
 
@@ -538,6 +562,18 @@ exports.account_update_put = [
         });
         return;
       } else {
+        const organizationPromises = req.body.organizationList.map(async (organization) => {
+          if (await OrganizationCustomer.findOne({
+            where: { organizationName: organization },
+          }) === null) {
+            const org = await OrganizationCustomer.create({
+              organizationName: organization,
+            });
+            await org.save();
+          }
+        });
+        console.log(req.body.organizationList)
+        await Promise.all(organizationPromises)
         const oldAccount = await Account.findByPk(req.params.accountFocusId);
         oldAccount.firstName = account.firstName;
         oldAccount.lastName = account.lastName;
