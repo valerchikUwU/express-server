@@ -445,7 +445,7 @@ exports.user_order_detail = asyncHandler(async (req, res, next) => {
 
 exports.admin_order_detail = asyncHandler(async (req, res, next) => {
   try {
-    const [order, titles, products, payees] = await Promise.all([
+    const [order, titles, products, payees, organizationList] = await Promise.all([
       Order.findByPk(req.params.orderId, {
         include: [
           {
@@ -469,11 +469,6 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
             as: "payee",
             attributes: ["name"],
           },
-          {
-            model: Account,
-            as: "account",
-            attributes: ["organizationList"],
-          },
         ],
         attributes: {
           include: [
@@ -485,7 +480,6 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
             ],
             [Sequelize.literal(`name`), "payeeName"],
             [Sequelize.literal(`organizationName`), "organizationName"],
-            [Sequelize.literal(`organizationList`), "organizationList"],
           ],
         },
       }),
@@ -533,10 +527,10 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
         { type: sequelize.QueryTypes.SELECT }
       ),
       Payee.findAll(),
+      OrganizationCustomer.findAll()
     ]);
 
     if (order.id === null) {
-      // No results.
       const err = new Error("Заказ не найден");
       err.status = 404;
       throw err;
@@ -553,6 +547,7 @@ exports.admin_order_detail = asyncHandler(async (req, res, next) => {
       titles: titles,
       products: products,
       payees: payees,
+      organizationList: organizationList
     });
   } catch (err) {
     err.ip = req.ip;
